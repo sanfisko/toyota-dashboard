@@ -58,8 +58,10 @@ To start contributing, fork this repository and run `poetry install`. Then creat
 
 ## Note
 
-As I [@DurgNomis-drol](https://github.com/DurgNomis-drol) am not a professional programmer. I will try to maintain it as best as I can. If someone is interested in helping with this, they are more the welcome to message me to be a collaborator on this project.
+This is a friendly community fork of the original project by [@DurgNomis-drol](https://github.com/DurgNomis-drol),
+to ease up on maintenance and the [bus factor](https://en.wikipedia.org/wiki/Bus_factor) for this project.
 
 ## Credits
 
+Special thanks go [@DurgNomis-drol](https://github.com/DurgNomis-drol) for starting this project!
 A huge thanks go to [@calmjm](https://github.com/calmjm) for making [tojota](https://github.com/calmjm/tojota).
