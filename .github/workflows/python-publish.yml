@@ -21,6 +21,14 @@ jobs:
           fetch-depth: 0
           fetch-tags: true
 
+      - name: "🐍 Set up Python 3.121"
+        uses: "actions/setup-python@v5"
+        with:
+          python-version: "3.12"
+
+      - name: "⚙️ Install Poetry"
+        uses: "abatilo/actions-poetry@v4.0.0"
+
       # Automatic installation of plugins fails due to https://github.com/python-poetry/poetry/issues/10028
       # so we still do a `self add`
       - name: "⚙️ Install dependencies"
