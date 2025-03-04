@@ -7,6 +7,8 @@ jobs:
   pre-commit:
     name: "Pre-commit"
     runs-on: "ubuntu-latest"
+    permissions:
+      contents: read
     steps:
       - name: "⤵️ Check out code from GitHub"
         uses: "actions/checkout@v4"
