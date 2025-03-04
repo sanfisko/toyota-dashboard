@@ -17,6 +17,8 @@ jobs:
         os: ["macos-latest", "ubuntu-latest", "windows-latest"]
         python-version: ["3.9", "3.10", "3.11", "3.12"]
       fail-fast: false
+    permissions:
+      contents: read
     steps:
       - name: "⤵️ Check out code from GitHub"
         uses: "actions/checkout@v4"
