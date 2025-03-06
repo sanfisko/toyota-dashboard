@@ -13,8 +13,8 @@ from arrow import Arrow
 from pytoyoda.api import Api
 from pytoyoda.models.dashboard import Dashboard
 from pytoyoda.models.electric_status import ElectricStatus
-from mytoyota.models.endpoints.command import CommandType
-from mytoyota.models.endpoints.common import StatusModel
+from pytoyoda.models.endpoints.command import CommandType
+from pytoyoda.models.endpoints.common import StatusModel
 from pytoyoda.models.endpoints.vehicle_guid import VehicleGuidModel
 from pytoyoda.models.location import Location
 from pytoyoda.models.lock_status import LockStatus

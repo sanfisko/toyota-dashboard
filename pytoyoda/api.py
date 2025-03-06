@@ -18,8 +18,8 @@ from pytoyoda.const import (
     VEHICLE_TRIPS_ENDPOINT,
 )
 from pytoyoda.controller import Controller
-from mytoyota.models.endpoints.command import CommandType, RemoteCommandModel
-from mytoyota.models.endpoints.common import StatusModel
+from pytoyoda.models.endpoints.command import CommandType, RemoteCommandModel
+from pytoyoda.models.endpoints.common import StatusModel
 from pytoyoda.models.endpoints.electric import ElectricResponseModel
 from pytoyoda.models.endpoints.location import LocationResponseModel
 from pytoyoda.models.endpoints.notifications import NotificationResponseModel

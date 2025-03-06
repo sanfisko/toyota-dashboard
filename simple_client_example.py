@@ -5,7 +5,7 @@ import pprint
 from datetime import date, timedelta
 
 from pytoyoda.client import MyT
-from mytoyota.models.endpoints.command import CommandType
+from pytoyoda.models.endpoints.command import CommandType
 from pytoyoda.models.summary import SummaryType
 
 pp = pprint.PrettyPrinter(indent=4)
