@@ -7,7 +7,7 @@ from datetime import date, timedelta
 from pytoyoda.client import MyT
 from pytoyoda.models.summary import SummaryType
 
-#from pytoyoda.models.endpoints.command import CommandType
+# from pytoyoda.models.endpoints.command import CommandType
 
 pp = pprint.PrettyPrinter(indent=4)
 
@@ -49,7 +49,6 @@ async def get_information():
     cars = await client.get_vehicles(metric=True)
 
     for car in cars:
-
         # Send command to car
         # pp.pprint(await car.post_command(command=CommandType.DOOR_LOCK))
         # return
