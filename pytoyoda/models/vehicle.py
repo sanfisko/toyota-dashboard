@@ -103,7 +103,7 @@ class Vehicle:
                     limit=10,
                     offset=0,
                     route=False,
-                )
+                ),
             },
         ]
         self._endpoint_collect = [
