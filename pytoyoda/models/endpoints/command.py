@@ -1,4 +1,4 @@
-"""Toyota Connected Services API - Remote Comnmands Models."""
+"""Toyota Connected Services API - Remote Commands Models."""
 
 from enum import Enum
 from typing import Optional
