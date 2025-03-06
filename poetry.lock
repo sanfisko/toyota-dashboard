@@ -169,21 +169,22 @@ files = [
 
 [[package]]
 name = "hishel"
-version = "0.0.19"
+version = "0.1.1"
 description = "Persistent cache implementation for httpx and httpcore"
 optional = false
-python-versions = ">=3.8"
+python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "hishel-0.0.19-py3-none-any.whl", hash = "sha256:4606e82c2e569d35bb3413837f2b52e174d26d1b13baa416e17e156eba61a3e6"},
-    {file = "hishel-0.0.19.tar.gz", hash = "sha256:a58f9ccfad8a61d84422c4fcf31f428621a3d33d1b1e545df69ad3b443f4094e"},
+    {file = "hishel-0.1.1-py3-none-any.whl", hash = "sha256:5b51acc340303faeef2f5cfc1658acb1db1fdc3e3ad76406265a485f9707c5d6"},
+    {file = "hishel-0.1.1.tar.gz", hash = "sha256:1f6421b78cc23fc43c610f651b7848c9b8eee2d29551d64a2ab0d45b319b6559"},
 ]
 
 [package.dependencies]
 httpx = ">=0.22.0"
 
 [package.extras]
-redis = ["redis (==5.0.0)"]
+redis = ["redis (==5.0.1)"]
+s3 = ["boto3 (>=1.15.0,<=1.15.3) ; python_version < \"3.12\"", "boto3 (>=1.15.3) ; python_version >= \"3.12\""]
 sqlite = ["anysqlite (>=0.0.5)"]
 yaml = ["pyyaml (==6.0.1)"]
 
@@ -1157,4 +1158,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.9"
-content-hash = "7d7bf27c8ef27b57bfa008e40d66a90fbd1d5a291a54f24df99bfb2a956dd032"
+content-hash = "70c69711a01bd40241c4b805b06e0f76e23b86abd4ffa08fd8d62374eec2d021"
