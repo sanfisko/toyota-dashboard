@@ -50,7 +50,6 @@ async def get_information():
     cars = await client.get_vehicles(metric=True)
 
     for car in cars:
-
         # Send command to car
         # pp.pprint(await car.post_command(command=CommandType.DOOR_LOCK))
         # return

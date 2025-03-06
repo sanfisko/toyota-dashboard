@@ -241,9 +241,7 @@ class Api:
         _LOGGER.debug(msg=f"Parsed 'ClimateStatusResponseModel': {parsed_response}")
         return parsed_response
 
-    async def get_climate_settings_endpoint(
-        self, vin: str
-    ) -> ClimateSettingsResponseModel:
+    async def get_climate_settings_endpoint(self, vin: str) -> ClimateSettingsResponseModel:
         """Get climate control settings.
 
         Args:
