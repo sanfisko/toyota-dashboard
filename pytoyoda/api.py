@@ -274,10 +274,9 @@ class Api:
         _LOGGER.debug(msg=f"Parsed 'ServiceHistoryResponseModel': {parsed_response}")
         return parsed_response
 
-
-    async def post_command_endpoint(self, vin: str,
-                                    command: CommandType,
-                                    beeps: int = 0) -> StatusModel:
+    async def post_command_endpoint(
+        self, vin: str, command: CommandType, beeps: int = 0
+    ) -> StatusModel:
         """Post remote command to the vehicle.
 
         Args:
@@ -291,10 +290,13 @@ class Api:
             StatusModel: A pydantic model for the command status response
 
         """
-        remote_command = RemoteCommandModel(beep_count = beeps, command=command)
+        remote_command = RemoteCommandModel(beep_count=beeps, command=command)
         parsed_response: StatusModel = await self._request_and_parse(
-            StatusModel, "POST", VEHICLE_COMMAND_ENDPOINT, vin=vin,
-            body=remote_command.dict(exclude_unset=True, by_alias=True)
+            StatusModel,
+            "POST",
+            VEHICLE_COMMAND_ENDPOINT,
+            vin=vin,
+            body=remote_command.dict(exclude_unset=True, by_alias=True),
         )
         _LOGGER.debug(msg=f"Parsed 'StatusModel': {parsed_response}")
         return parsed_response
