@@ -1,7 +1,7 @@
 """Climate Settings Models."""
 
 from datetime import datetime, timedelta
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 from pytoyoda.models.endpoints.climate import (
     ACOperations,
@@ -111,7 +111,7 @@ class ClimateStatus:
         return self._climate_status.status
 
     @property
-    def start_time(self) -> datetime | None:
+    def start_time(self) -> Optional[datetime]:
         """Start time.
 
         Returns
@@ -122,7 +122,7 @@ class ClimateStatus:
         return self._climate_status.started_at
 
     @property
-    def duration(self) -> timedelta | None:
+    def duration(self) -> Optional[timedelta]:
         """The duration.
 
         Returns
@@ -136,7 +136,7 @@ class ClimateStatus:
         return timedelta(seconds=self._climate_status.duration)
 
     @property
-    def current_temperature(self) -> Tuple[float, str] | None:
+    def current_temperature(self) -> Optional[Tuple[float, str]]:
         """The current temperature.
 
         Returns
@@ -154,7 +154,7 @@ class ClimateStatus:
         )
 
     @property
-    def target_temperature(self) -> Tuple[float, str] | None:
+    def target_temperature(self) -> Optional[Tuple[float, str]]:
         """The target temperature.
 
         Returns
@@ -172,7 +172,7 @@ class ClimateStatus:
         )
 
     @property
-    def options(self) -> ClimateOptionStatus | None:
+    def options(self) -> Optional[ClimateOptionStatus]:
         """The status of climate options.
 
         Returns
@@ -213,12 +213,12 @@ class ClimateSettingsParameter:
         )
 
     @property
-    def available(self) -> bool | None:
+    def available(self) -> Optional[bool]:
         """The parameter avaiability.
 
         Returns
         -------
-            bool | None: The parameter avaiability value
+            Optional[bool]: The parameter avaiability value
 
         """
         return self._parameter.available
@@ -235,7 +235,7 @@ class ClimateSettingsParameter:
         return self._parameter.available
 
     @property
-    def display_name(self) -> str | None:
+    def display_name(self) -> Optional[str]:
         """The parameter display name.
 
         Returns
@@ -257,7 +257,7 @@ class ClimateSettingsParameter:
         return self._parameter.name
 
     @property
-    def icon_url(self) -> str | None:
+    def icon_url(self) -> Optional[str]:
         """The parameter icon url.
 
         Returns
@@ -295,12 +295,12 @@ class ClimateSettingsOperation:
         )
 
     @property
-    def available(self) -> bool | None:
+    def available(self) -> Optional[bool]:
         """The operation avaiability.
 
         Returns
         -------
-            bool | None: The operation avaiability value
+            Optional[bool]: The operation avaiability value
 
         """
         return self._operation.available
@@ -317,7 +317,7 @@ class ClimateSettingsOperation:
         return self._operation.category_name
 
     @property
-    def category_display_name(self) -> str | None:
+    def category_display_name(self) -> Optional[str]:
         """The operation category display name.
 
         Returns
@@ -328,12 +328,12 @@ class ClimateSettingsOperation:
         return self._operation.category_display_name
 
     @property
-    def parameters(self) -> List[ClimateSettingsParameter] | None:
+    def parameters(self) -> Optional[List[ClimateSettingsParameter]]:
         """The operation parameter.
 
         Returns
         -------
-            bool: The operation parameter
+            Optional[List[ClimateSettingsParameter]]: The operation parameter
 
         """
         if self._operation.ac_parameters is None:
@@ -381,34 +381,34 @@ class ClimateSettings:
         return self._climate_settings.settings_on
 
     @property
-    def temp_interval(self) -> float | None:
+    def temp_interval(self) -> Optional[float]:
         """The temperature interval.
 
         Returns
         -------
-            float | None: The value of temperature interval
+            Optional[float]: The value of temperature interval
 
         """
         return self._climate_settings.temp_interval
 
     @property
-    def min_temp(self) -> float | None:
+    def min_temp(self) -> Optional[float]:
         """The min temperature.
 
         Returns
         -------
-            float | None: The value of min temperature
+            Optional[float]: The value of min temperature
 
         """
         return self._climate_settings.min_temp
 
     @property
-    def max_temp(self) -> float | None:
+    def max_temp(self) -> Optional[float]:
         """The max temperature.
 
         Returns
         -------
-            float | None: The value of max temperature
+            Optional[float]: The value of max temperature
 
         """
         return self._climate_settings.max_temp
@@ -419,7 +419,7 @@ class ClimateSettings:
 
         Returns
         -------
-            float | None: The value of temperature
+            float: The value of temperature
             str: The temperature unit
 
         """
@@ -429,12 +429,12 @@ class ClimateSettings:
         )
 
     @property
-    def operations(self) -> List[ClimateSettingsOperation] | None:
+    def operations(self) -> Optional[List[ClimateSettingsOperation]]:
         """The climate operation settings.
 
         Returns
         -------
-            ClimateOperation: The settings of climate operation
+            Optional[List[ClimateSettingsOperation]]: The settings of climate operation
 
         """
         if self._climate_settings.ac_operations is None:
