@@ -58,7 +58,7 @@ class ClimateStatusModel(BaseModel):
     current_temperature: Optional[CurrentTemperature] = Field(alias="currentTemperature")
     duration: Optional[int]
     options: Optional[ClimateOptions]
-    started_at: Optional[datetime] = Field(alias="startedAt")
+    started_at: Optional[datetime] = Field(alias="startedAt", default=None)
     status: bool
     target_temperature: Optional[UnitValueModel] = Field(alias="targetTemperature")
     type: str
