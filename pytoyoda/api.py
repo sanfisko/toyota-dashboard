@@ -6,6 +6,10 @@ from uuid import uuid4
 
 from pytoyoda.const import (
     VEHICLE_ASSOCIATION_ENDPOINT,
+    VEHICLE_CLIMATE_CONTROL_ENDPOINT,
+    VEHICLE_CLIMATE_SETTINGS_ENDPOINT,
+    VEHICLE_CLIMATE_STATUS_ENDPOINT,
+    VEHICLE_CLIMATE_STATUS_REFRESH_ENDPOINT,
     VEHICLE_COMMAND_ENDPOINT,
     VEHICLE_GLOBAL_REMOTE_ELECTRIC_STATUS_ENDPOINT,
     VEHICLE_GLOBAL_REMOTE_STATUS_ENDPOINT,
@@ -18,6 +22,12 @@ from pytoyoda.const import (
     VEHICLE_TRIPS_ENDPOINT,
 )
 from pytoyoda.controller import Controller
+from pytoyoda.models.endpoints.climate import (
+    ClimateControlModel,
+    ClimateSettingsModel,
+    ClimateSettingsResponseModel,
+    ClimateStatusResponseModel,
+)
 from pytoyoda.models.endpoints.command import CommandType, RemoteCommandModel
 from pytoyoda.models.endpoints.common import StatusModel
 from pytoyoda.models.endpoints.electric import ElectricResponseModel
@@ -206,6 +216,118 @@ class Api:
             vin=vin,
         )
         _LOGGER.debug(msg=f"Parsed 'NotificationResponseModel': {parsed_response}")
+        return parsed_response
+
+    async def get_climate_status_endpoint(self, vin: str) -> ClimateStatusResponseModel:
+        """Get the current climate status.
+
+        Args:
+        ----
+            vin: str:   The vehicles VIN
+
+        Returns:
+        -------
+            ClimateStatusResponseModel: A pydantic model for the climate status
+            NOTE: Only returns data if the climate control is on. If it is off it will return a
+            status == 0 and all other fields will be None.
+
+        """
+        parsed_response = await self._request_and_parse(
+            ClimateStatusResponseModel,
+            "GET",
+            VEHICLE_CLIMATE_STATUS_ENDPOINT,
+            vin=vin,
+        )
+        _LOGGER.debug(msg=f"Parsed 'ClimateStatusResponseModel': {parsed_response}")
+        return parsed_response
+
+    async def get_climate_settings_endpoint(self, vin: str) -> ClimateSettingsResponseModel:
+        """Get climate control settings.
+
+        Args:
+        ----
+            vin: str:   The vehicles VIN
+
+        Returns:
+        -------
+            ClimateSettingsResponseModel:   A pydantic model for the climate settings
+
+        """
+        parsed_response: ClimateSettingsResponseModel = await self._request_and_parse(
+            ClimateSettingsResponseModel,
+            "GET",
+            VEHICLE_CLIMATE_SETTINGS_ENDPOINT,
+            vin=vin,
+        )
+        _LOGGER.debug(msg=f"Parsed 'StatusModel': {parsed_response}")
+        return parsed_response
+
+    async def put_climate_settings_endpoint(
+        self, vin: str, settings: ClimateSettingsModel
+    ) -> StatusModel:
+        """Update climate control settings.
+
+        Args:
+        ----
+            vin: str:                       The vehicles VIN
+            settings: ClimateSettingsModel: The climate control commsettings
+
+        Returns:
+        -------
+            StatusModel: A pydantic model for the status response
+
+        """
+        parsed_response: StatusModel = await self._request_and_parse(
+            StatusModel,
+            "PUT",
+            VEHICLE_CLIMATE_SETTINGS_ENDPOINT,
+            vin=vin,
+            body=settings.dict(exclude_unset=True, by_alias=True),
+        )
+        _LOGGER.debug(msg=f"Parsed 'StatusModel': {parsed_response}")
+        return parsed_response
+
+    async def post_climate_control_endpoint(
+        self, vin: str, command: ClimateControlModel
+    ) -> StatusModel:
+        """Send command to climate control.
+
+        Args:
+        ----
+            vin: str:                       The vehicles VIN
+            command: ClimateControlModel:   The climate control command
+
+        Returns:
+        -------
+            StatusModel: A pydantic model for the status response
+
+        """
+        parsed_response: StatusModel = await self._request_and_parse(
+            StatusModel,
+            "POST",
+            VEHICLE_CLIMATE_CONTROL_ENDPOINT,
+            vin=vin,
+            body=command.dict(exclude_unset=True, by_alias=True),
+        )
+        _LOGGER.debug(msg=f"Parsed 'StatusModel': {parsed_response}")
+        return parsed_response
+
+    async def refresh_climate_status(self, vin: str) -> StatusModel:
+        """Refresh climate status.
+
+        Args:
+        ----
+            vin: str:                       The vehicles VIN
+
+        Returns:
+        -------
+            StatusModel: A pydantic model for the status response
+
+        """
+        parsed_response: StatusModel = await self._request_and_parse(
+            StatusModel, "POST", VEHICLE_CLIMATE_STATUS_REFRESH_ENDPOINT, vin=vin
+        )
+        _LOGGER.debug(msg=f"Parsed 'StatusModel': {parsed_response}")
         return parsed_response
 
     async def get_trips_endpoint(  # noqa: PLR0913

@@ -11,6 +11,7 @@ from typing import Any, Dict, List, Optional, Tuple
 from arrow import Arrow
 
 from pytoyoda.api import Api
+from pytoyoda.models.climate import ClimateSettings, ClimateStatus
 from pytoyoda.models.dashboard import Dashboard
 from pytoyoda.models.electric_status import ElectricStatus
 from pytoyoda.models.endpoints.command import CommandType
@@ -79,6 +80,16 @@ class Vehicle:
                 "name": "service_history",
                 "capable": vehicle_info.features.service_history,
                 "function": partial(self._api.get_service_history_endpoint, vin=vehicle_info.vin),
+            },
+            {
+                "name": "climate_settings",
+                "capable": vehicle_info.features.climate_start_engine,
+                "function": partial(self._api.get_climate_settings_endpoint, vin=vehicle_info.vin),
+            },
+            {
+                "name": "climate_status",
+                "capable": vehicle_info.features.climate_start_engine,
+                "function": partial(self._api.get_climate_status_endpoint, vin=vehicle_info.vin),
             },
         ]
         self._endpoint_collect = [
@@ -172,6 +183,28 @@ class Vehicle:
             else None,
             self._metric,
         )
+
+    @property
+    def climate_settings(self) -> Optional[ClimateSettings]:
+        """Return the vehicle climate settings.
+
+        Returns
+        -------
+            A climate settings
+
+        """
+        return ClimateSettings(self._endpoint_data.get("climate_settings", None))
+
+    @property
+    def climate_status(self) -> Optional[ClimateStatus]:
+        """Return the vehicle climate status.
+
+        Returns
+        -------
+            A climate status
+
+        """
+        return ClimateStatus(self._endpoint_data.get("climate_status", None))
 
     @property
     def electric_status(self) -> Optional[ElectricStatus]:
@@ -430,6 +463,16 @@ class Vehicle:
                 break
 
         return ret
+
+    async def refresh_climate_status(self) -> StatusModel:
+        """Force update of climate status.
+
+        Returns
+        -------
+            StatusModel: A status response for the command.
+
+        """
+        return await self._api.refresh_climate_status(self.vin)
 
     async def post_command(self, command: CommandType, beeps: int = 0) -> StatusModel:
         """Send remote command to the vehicle.
