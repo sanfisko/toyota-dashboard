@@ -4,6 +4,7 @@
 [![Github Actions Build](https://img.shields.io/github/actions/workflow/status/zyf722/poetry-plugin-migrate/build.yml?logo=github)](https://github.com/zyf722/poetry-plugin-migrate/actions/workflows/build.yml)
 [![Code Coverage](https://img.shields.io/codecov/c/github/pytoyoda/pytoyoda?logo=codecov&logoColor=white
 )](https://app.codecov.io/github/pytoyoda/pytoyoda/)
+[![CodeQL](https://github.com/pytoyoda/pytoyoda/actions/workflows/codeql.yml/badge.svg)](https://github.com/pytoyoda/pytoyoda/actions/workflows/codeql.yml)
 
 # Toyota Connected Services Europe Python module
 
