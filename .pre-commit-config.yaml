@@ -21,7 +21,7 @@ repos:
         language: system
         entry: poetry run check-added-large-files
       - id: check-json
-        name: "🐛 Check for forgotten debug statemens"
+        name: "🐛 Check for forgotten debug statements"
         language: system
         types: [python]
         entry: poetry run debug-statement-hook

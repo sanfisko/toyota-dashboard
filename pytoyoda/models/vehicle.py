@@ -40,7 +40,8 @@ class Vehicle:
         self._endpoint_data: Dict[str, Any] = {}
         self._metric = metric
 
-        # Endpoint Name, Function to check if car supports the endpoint, endpoint to call to update
+        # Endpoint Name, Function to check if car supports the endpoint
+        # , endpoint to call to update
         api_endpoints = [
             {
                 "name": "location",
@@ -60,7 +61,7 @@ class Vehicle:
             },
             {
                 "name": "electric_status",
-                "capable": vehicle_info.extended_capabilities.econnect_vehicle_status_capable,
+                "capable": vehicle_info.extended_capabilities.econnect_vehicle_status_capable,  # noqa: E501
                 "function": partial(
                     self._api.get_vehicle_electric_status_endpoint,
                     vin=vehicle_info.vin,
@@ -273,8 +274,8 @@ class Vehicle:
 
         Args:
         ----
-            include_read (bool, optional): Indicates whether to include read notifications. \n
-            Defaults to False.
+            include_read (bool, optional): Indicates whether to include read
+            notifications. Defaults to False.
 
         Returns:
         -------
@@ -296,8 +297,8 @@ class Vehicle:
 
         Returns
         -------
-            Optional[List[ServiceHistory]]: A list of service history entries for the vehicle,
-            or None if not supported.
+            Optional[List[ServiceHistory]]: A list of service history entries
+            for the vehicle, or None if not supported.
 
         """
         if "service_history" in self._endpoint_data:
@@ -348,12 +349,14 @@ class Vehicle:
     ) -> List[Summary]:
         """Return a Daily, Weekly, Monthly or Yearly summary between the provided dates.
 
-        All but Daily can return a partial time range. For example if the summary_type is weekly
-        and the date ranges selected include partial weeks these partial weeks will be returned.
-        The dates contained in the summary will indicate the range of dates that made up the
-        partial week.
+        All but Daily can return a partial time range. For example
+        if the summary_type is weekly and the date ranges selected
+        include partial weeks these partial weeks will be returned.
+        The dates contained in the summary will indicate the range
+        of dates that made up the partial week.
 
-        Note: Weekly and yearly summaries lose a small amount of accuracy due to rounding issues
+        Note: Weekly and yearly summaries lose a small amount of
+        accuracy due to rounding issues.
 
         Args:
         ----
@@ -464,7 +467,8 @@ class Vehicle:
         ----
             from_date (date, required): The inclusive from date
             to_date (date, required): The inclusive to date
-            full_route (bool, optional): Provide the full route information for each trip
+            full_route (bool, optional): Provide the full route
+                                         information for each trip.
 
         Returns:
         -------
@@ -511,8 +515,8 @@ class Vehicle:
 
         Args:
         ----
-            command: CommandType:   The remote command model
-            beeps: int              Amount of beeps for commands that support it
+            command (CommandType): The remote command model
+            beeps (int): Amount of beeps for commands that support it
 
         Returns:
         -------
@@ -627,7 +631,8 @@ class Vehicle:
                 Summary(
                     month.summary,
                     self._metric,
-                    # The data might not include an entire month so update start and end dates
+                    # The data might not include an entire month
+                    # so update start and end dates.
                     max(month_start, from_date),
                     min(month_end, to_date),
                     month.hdc,
