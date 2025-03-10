@@ -1,4 +1,5 @@
 """pytest tests for pytoyoda using httpx mocking."""
+
 import json
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -81,11 +82,11 @@ async def test_authenticate_refresh_token(data_folder, httpx_mock: HTTPXMock):  
 @pytest.mark.asyncio
 async def test_get_static_data(data_folder, httpx_mock: HTTPXMock):  # noqa: D103
     #  Create valid token => Means no authentication requests
-    with open(f"{data_folder}/cached_token.json", encoding="utf-8") as f:  # noqa: ASYNC101. I dont see this as a problem in test code
+    with open(f"{data_folder}/cached_token.json", encoding="utf-8") as f:
         valid_token = json.load(f)
         valid_token["expiration"] = datetime.now() + timedelta(hours=4)
 
-        with open(CACHE_FILENAME, "w", encoding="utf-8") as wf:  # noqa: ASYNC101. I dont see this as a problem in test code
+        with open(CACHE_FILENAME, "w", encoding="utf-8") as wf:
             wf.write(json.dumps(valid_token, indent=4, default=str))
 
     # Ensure expired cache file.

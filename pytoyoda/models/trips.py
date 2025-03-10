@@ -1,4 +1,5 @@
 """Model for Trip Summaries."""
+
 from datetime import datetime, timedelta
 from typing import List, Optional, Tuple
 

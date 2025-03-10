@@ -1,4 +1,5 @@
 """Simple test of new API Changes."""
+
 import asyncio
 import json
 import pprint

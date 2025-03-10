@@ -1,4 +1,5 @@
 """Vehicle model."""
+
 import asyncio
 import copy
 import json
@@ -30,7 +31,9 @@ from pytoyoda.utils.log_utils import censor_all
 class Vehicle:
     """Vehicle data representation."""
 
-    def __init__(self, api: Api, vehicle_info: VehicleGuidModel, metric: bool = True) -> None:
+    def __init__(
+        self, api: Api, vehicle_info: VehicleGuidModel, metric: bool = True
+    ) -> None:
         """Initialise the Vehicle data representation."""
         self._vehicle_info = vehicle_info
         self._api = api
@@ -43,7 +46,9 @@ class Vehicle:
                 "name": "location",
                 "capable": vehicle_info.extended_capabilities.last_parked_capable
                 or vehicle_info.features.last_parked,
-                "function": partial(self._api.get_location_endpoint, vin=vehicle_info.vin),
+                "function": partial(
+                    self._api.get_location_endpoint, vin=vehicle_info.vin
+                ),
             },
             {
                 "name": "health_status",
@@ -64,32 +69,44 @@ class Vehicle:
             {
                 "name": "telemetry",
                 "capable": vehicle_info.extended_capabilities.telemetry_capable,
-                "function": partial(self._api.get_telemetry_endpoint, vin=vehicle_info.vin),
+                "function": partial(
+                    self._api.get_telemetry_endpoint, vin=vehicle_info.vin
+                ),
             },
             {
                 "name": "notifications",
                 "capable": True,  # TODO Unsure of the required capability
-                "function": partial(self._api.get_notification_endpoint, vin=vehicle_info.vin),
+                "function": partial(
+                    self._api.get_notification_endpoint, vin=vehicle_info.vin
+                ),
             },
             {
                 "name": "status",
                 "capable": vehicle_info.extended_capabilities.vehicle_status,
-                "function": partial(self._api.get_remote_status_endpoint, vin=vehicle_info.vin),
+                "function": partial(
+                    self._api.get_remote_status_endpoint, vin=vehicle_info.vin
+                ),
             },
             {
                 "name": "service_history",
                 "capable": vehicle_info.features.service_history,
-                "function": partial(self._api.get_service_history_endpoint, vin=vehicle_info.vin),
+                "function": partial(
+                    self._api.get_service_history_endpoint, vin=vehicle_info.vin
+                ),
             },
             {
                 "name": "climate_settings",
                 "capable": vehicle_info.features.climate_start_engine,
-                "function": partial(self._api.get_climate_settings_endpoint, vin=vehicle_info.vin),
+                "function": partial(
+                    self._api.get_climate_settings_endpoint, vin=vehicle_info.vin
+                ),
             },
             {
                 "name": "climate_status",
                 "capable": vehicle_info.features.climate_start_engine,
-                "function": partial(self._api.get_climate_status_endpoint, vin=vehicle_info.vin),
+                "function": partial(
+                    self._api.get_climate_status_endpoint, vin=vehicle_info.vin
+                ),
             },
         ]
         self._endpoint_collect = [
@@ -110,12 +127,17 @@ class Vehicle:
 
         """
 
-        async def parallel_wrapper(name: str, function: partial) -> Tuple[str, Dict[str, Any]]:
+        async def parallel_wrapper(
+            name: str, function: partial
+        ) -> Tuple[str, Dict[str, Any]]:
             r = await function()
             return name, r
 
         responses = asyncio.gather(
-            *[parallel_wrapper(name, function) for name, function in self._endpoint_collect]
+            *[
+                parallel_wrapper(name, function)
+                for name, function in self._endpoint_collect
+            ]
         )
         for name, data in await responses:
             self._endpoint_data[name] = data
@@ -158,7 +180,11 @@ class Vehicle:
         # TODO currently guessing until we see a mild hybrid and full EV
         # TODO should probably use electricalPlatformCode but values currently unknown
         # TODO list of fuel types. ?: G=Petrol Only, I=Hybrid
-        return "phev" if self._vehicle_info.ev_vehicle and self._vehicle_info.fuel_type else "ev"
+        return (
+            "phev"
+            if self._vehicle_info.ev_vehicle and self._vehicle_info.fuel_type
+            else "ev"
+        )
 
     @property
     def dashboard(self) -> Optional[Dashboard]:
@@ -174,7 +200,9 @@ class Vehicle:
         """
         # Always returns a Dashboard object as we can always get the odometer value
         return Dashboard(
-            self._endpoint_data["telemetry"] if "telemetry" in self._endpoint_data else None,
+            self._endpoint_data["telemetry"]
+            if "telemetry" in self._endpoint_data
+            else None,
             self._endpoint_data["electric_status"]
             if "electric_status" in self._endpoint_data
             else None,
@@ -276,7 +304,8 @@ class Vehicle:
             ret: List[ServiceHistory] = []
             payload = self._endpoint_data["service_history"].payload
             ret.extend(
-                ServiceHistory(service_history) for service_history in payload.service_histories
+                ServiceHistory(service_history)
+                for service_history in payload.service_histories
             )
             return ret
 
@@ -292,7 +321,9 @@ class Vehicle:
 
         """
         if self.service_history is not None:
-            return max(self.service_history, key=lambda x: (x.service_date, x.service_category))
+            return max(
+                self.service_history, key=lambda x: (x.service_date, x.service_category)
+            )
         return None
 
     @property
@@ -336,8 +367,7 @@ class Vehicle:
             List[Summary]: A list of summaries or empty list if not supported.
 
         """
-        if to_date > date.today():  # Future dates not allowed
-            to_date = date.today()
+        to_date = min(to_date, date.today())
 
         # Summary information is always returned in the first response.
         # No need to check all the following pages
@@ -353,7 +383,9 @@ class Vehicle:
         elif summary_type == SummaryType.WEEKLY:
             return self._generate_weekly_summaries(resp.payload.summary)
         elif summary_type == SummaryType.MONTHLY:
-            return self._generate_monthly_summaries(resp.payload.summary, from_date, to_date)
+            return self._generate_monthly_summaries(
+                resp.payload.summary, from_date, to_date
+            )
         elif summary_type == SummaryType.YEARLY:
             return self._generate_yearly_summaries(resp.payload.summary, to_date)
         else:
@@ -487,7 +519,9 @@ class Vehicle:
             StatusModel: A status response for the command.
 
         """
-        return await self._api.post_command_endpoint(self.vin, command=command, beeps=beeps)
+        return await self._api.post_command_endpoint(
+            self.vin, command=command, beeps=beeps
+        )
 
     #
     # More get functionality depending on what we find
@@ -513,7 +547,9 @@ class Vehicle:
 
     def _dump_all(self) -> Dict[str, Any]:
         """Dump data from all endpoints for debugging and further work."""
-        dump: [str, Any] = {"vehicle_info": json.loads(self._vehicle_info.model_dump_json())}
+        dump: [str, Any] = {
+            "vehicle_info": json.loads(self._vehicle_info.model_dump_json())
+        }
         for name, data in self._endpoint_data.items():
             dump[name] = json.loads(data.model_dump_json())
 
@@ -583,7 +619,9 @@ class Vehicle:
         summary.sort(key=attrgetter("year", "month"))
         for month in summary:
             month_start = Arrow(month.year, month.month, 1).date()
-            month_end = Arrow(month.year, month.month, 1).shift(months=1).shift(days=-1).date()
+            month_end = (
+                Arrow(month.year, month.month, 1).shift(months=1).shift(days=-1).date()
+            )
 
             ret.append(
                 Summary(
@@ -606,7 +644,9 @@ class Vehicle:
         start_date = date(day=1, month=summary[0].month, year=summary[0].year)
 
         if len(summary) == 1:
-            ret.append(Summary(build_summary, self._metric, start_date, to_date, build_hdc))
+            ret.append(
+                Summary(build_summary, self._metric, start_date, to_date, build_hdc)
+            )
         else:
             for month, next_month in zip(summary[1:], summary[2:] + [None]):
                 summary_month = date(day=1, month=month.month, year=month.year)
@@ -614,12 +654,18 @@ class Vehicle:
                 build_summary += month.summary
 
                 if next_month is None or next_month.year != month.year:
-                    end_date = min(to_date, date(day=31, month=12, year=summary_month.year))
+                    end_date = min(
+                        to_date, date(day=31, month=12, year=summary_month.year)
+                    )
                     ret.append(
-                        Summary(build_summary, self._metric, start_date, end_date, build_hdc)
+                        Summary(
+                            build_summary, self._metric, start_date, end_date, build_hdc
+                        )
                     )
                     if next_month:
-                        start_date = date(day=1, month=next_month.month, year=next_month.year)
+                        start_date = date(
+                            day=1, month=next_month.month, year=next_month.year
+                        )
                         build_hdc = copy.copy(next_month.hdc)
                         build_summary = copy.copy(next_month.summary)
 
