@@ -1,8 +1,9 @@
-![GitHub Workflow](https://img.shields.io/github/actions/workflow/status/pytoyoda/pytoyoda/build.yml)
-![Codecov](https://img.shields.io/codecov/c/github/pytoyoda/pytoyoda)
-![Commit activity](https://img.shields.io/github/commit-activity/y/pytoyoda/pytoyoda)
-![GitHub Release](https://img.shields.io/github/release/pytoyoda/pytoyoda.svg)
-![PyPI - Downloads](https://img.shields.io/pypi/dm/pytoyoda)
+[![License](https://img.shields.io/github/license/pytoyoda/pytoyoda)](LICENSE)
+[![PyPI version](https://img.shields.io/pypi/v/pytoyoda?logo=pypi&logoColor=white&label=PyPI)](https://pypi.org/project/pytoyoda/)
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/pytoyoda?logo=python&logoColor=white&label=Python)](https://pypi.org/project/pytoyoda/)
+[![Github Actions Build](https://img.shields.io/github/actions/workflow/status/zyf722/poetry-plugin-migrate/build.yml?logo=github)](https://github.com/zyf722/poetry-plugin-migrate/actions/workflows/build.yml)
+[![Code Coverage](https://img.shields.io/codecov/c/github/pytoyoda/pytoyoda?logo=codecov&logoColor=white
+)](https://app.codecov.io/github/pytoyoda/pytoyoda/)
 
 # Toyota Connected Services Europe Python module
 
