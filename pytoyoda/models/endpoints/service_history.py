@@ -14,7 +14,8 @@ class ServiceHistoryModel(CustomBaseModel):
 
     Attributes
     ----------
-        customer_created_record (bool): Indicates if the record was created by the customer.
+        customer_created_record (bool): Indicates if the record was created by
+            the customer.
         mileage (Optional[int]): The mileage at the time of the service.
         notes (Any): Additional notes about the service.
         operations_performed (Any): The operations performed during the service.
@@ -46,8 +47,8 @@ class ServiceHistoriesModel(CustomBaseModel):
 
     Attributes
     ----------
-        service_histories (List[Optional[ServiceHistoryModel]]): A list of all service histories.
-          Defaults to [].
+        service_histories (List[Optional[ServiceHistoryModel]]): A list of all
+            service histories. Defaults to [].
 
     """
 
@@ -63,7 +64,8 @@ class ServiceHistoryResponseModel(StatusModel):
 
     Attributes
     ----------
-        payload (Optional[ServiceHistoriesModel]): The service history payload. Defaults to None.
+        payload (Optional[ServiceHistoriesModel]): The service history payload.
+            Defaults to None.
 
     """
 

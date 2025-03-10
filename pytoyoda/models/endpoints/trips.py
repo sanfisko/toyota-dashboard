@@ -187,10 +187,10 @@ class TripsModel(CustomBaseModel):
         from_date (date): The start date of the trips.
         to_date (date): The end date of the trips.
         trips (List[_TripModel]): The list of trips.
-        summary (Optional[List[_SummaryItemModel]], optional): The summary of the trips. \n
+        summary (Optional[List[_SummaryItemModel]], optional): The summary of the trips.
             Defaults to None.
         metadata (_MetadataModel): The metadata of the trips.
-        route (Optional[_RouteModel], optional): The route of the trips. \n
+        route (Optional[_RouteModel], optional): The route of the trips.
             Defaults to None.
 
     """
@@ -210,7 +210,7 @@ class TripsResponseModel(StatusModel):
 
     Attributes
     ----------
-        payload (Optional[TripsModel], optional): The trips payload. \n
+        payload (Optional[TripsModel], optional): The trips payload.
             Defaults to None.
 
     """

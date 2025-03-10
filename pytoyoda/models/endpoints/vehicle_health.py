@@ -14,7 +14,7 @@ class VehicleHealthModel(CustomBaseModel):
 
     Attributes
     ----------
-        quantity_of_eng_oil_icon (Optional[List[Any]], optional): \n
+        quantity_of_eng_oil_icon (Optional[List[Any]], optional):
         The quantity of engine oil icon. Defaults to None.
         vin (str): The VIN (Vehicle Identification Number) of the vehicle.
         warning (Optional[List[Any]]): The warning information. Defaults to None.
@@ -37,7 +37,7 @@ class VehicleHealthResponseModel(StatusModel):
 
     Attributes
     ----------
-        payload (Optional[VehicleHealthModel], optional): The vehicle health payload. \n
+        payload (Optional[VehicleHealthModel], optional): The vehicle health payload.
         Defaults to None.
 
     """

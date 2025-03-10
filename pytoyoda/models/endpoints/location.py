@@ -23,12 +23,12 @@ class LocationModel(CustomBaseModel):
 
     Attributes
     ----------
-        last_timestamp (Optional[datetime], optional): The last timestamp of the location. \n
-            Defaults to None.
+        last_timestamp (Optional[datetime], optional): The last timestamp of the
+            location. Defaults to None.
         vehicle_location (Optional[_VehicleLocationModel], optional): The location of
-            the vehicle. \n Defaults to None.
-        vin (Optional[str], optional): The VIN (Vehicle Identification Number) of the vehicle. \n
-            Defaults to None.
+            the vehicle. Defaults to None.
+        vin (Optional[str], optional): The VIN (Vehicle Identification Number) of the
+            vehicle. Defaults to None.
 
     """
 
@@ -46,7 +46,8 @@ class LocationResponseModel(StatusModel):
 
     Attributes
     ----------
-        payload (Optional[LocationModel], optional): The location payload. Defaults to None.
+        payload (Optional[LocationModel], optional): The location payload.
+            Defaults to None.
 
     """
 

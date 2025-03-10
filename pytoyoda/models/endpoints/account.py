@@ -75,7 +75,8 @@ class AccountResponseModel(StatusModel):
 
     Attributes
     ----------
-        payload (Optional[AccountModel], optional): The account payload. Defaults to None.
+        payload (Optional[AccountModel], optional): The account payload.
+            Defaults to None.
 
     """
 

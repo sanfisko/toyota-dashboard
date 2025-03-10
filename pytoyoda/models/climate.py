@@ -23,7 +23,8 @@ class ClimateOptionStatus:
 
         Args:
         ----
-            options (ClimateOptions, optional): Contains all additional options for climate
+            options (ClimateOptions, optional): Contains all additional
+                options for climate
 
         """
         self._options = options

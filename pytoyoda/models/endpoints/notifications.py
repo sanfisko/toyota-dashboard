@@ -19,7 +19,8 @@ class NotificationModel(CustomBaseModel):
     Attributes
     ----------
         message_id (str): The ID of the notification message.
-        vin (str): The VIN (Vehicle Identification Number) associated with the notification.
+        vin (str): The VIN (Vehicle Identification Number) associated with the
+            notification.
         notification_date (datetime): The datetime of the notification.
         is_read (bool): Indicates whether the notification has been read.
         read_timestamp (datetime): The timestamp when the notification was read.
@@ -59,8 +60,8 @@ class NotificationResponseModel(CustomBaseModel):
         status_code (int): The status code of the response.
         headers (_HeadersModel): The headers of the response.
         body (str): The body of the response.
-        payload (Optional[List[_PayloadItemModel]], optional): The payload of the response. \n
-            Defaults to None.
+        payload (Optional[List[_PayloadItemModel]], optional): The payload of the
+            response. Defaults to None.
 
     """
 

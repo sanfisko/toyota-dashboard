@@ -348,9 +348,11 @@ class VehicleGuidModel(CustomBaseModel):
         capabilities (List[_CapabilitiesModel]): The capabilities of the vehicle.
         car_line_name (str): The name of the car line.
         color (str): The color of the vehicle.
-        commercial_rental (bool): Indicates if the vehicle is used for commercial rental.
+        commercial_rental (bool): Indicates if the vehicle is used for
+            commercial rental.
         contract_id (str): The contract ID of the vehicle.
-        cts_links (_LinksModel): The CTS (Connected Technologies Services) links of the vehicle.
+        cts_links (_LinksModel): The CTS (Connected Technologies Services) links
+            of the vehicle.
         data_consent (_DataConsentModel): The data consent information of the vehicle.
         date_of_first_use (Optional[date]): The date of first use of the vehicle.
         dcm (_DcmModel): The DCM (Data Communication Module) information of the vehicle.
@@ -358,14 +360,18 @@ class VehicleGuidModel(CustomBaseModel):
         dcms (Optional[Any]): The DCMS (Data Communication Module Status) information
             of the vehicle.
         display_model_description (str): The description of the displayed model.
-        display_subscriptions (List[Dict[str, str]]): The displayed subscriptions of the vehicle.
+        display_subscriptions (List[Dict[str, str]]): The displayed subscriptions
+            of the vehicle.
         electrical_platform_code (str): The electrical platform code of the vehicle.
-        emergency_contact (Optional[Any]): The emergency contact information of the vehicle.
+        emergency_contact (Optional[Any]): The emergency contact information
+            of the vehicle.
         ev_vehicle (bool): Indicates if the vehicle is an electric vehicle.
         extended_capabilities (_ExtendedCapabilitiesModel): The extended capabilities
             of the vehicle.
-        external_subscriptions (Optional[Any]): The external subscriptions of the vehicle.
-        family_sharing (bool): Indicates if the vehicle is part of a family sharing plan.
+        external_subscriptions (Optional[Any]): The external subscriptions
+            of the vehicle.
+        family_sharing (bool): Indicates if the vehicle is part of a family
+            sharing plan.
         faq_url (str): The URL of the FAQ (Frequently Asked Questions) for the vehicle.
         features (_FeaturesModel): The features of the vehicle.
         fleet_ind (Optional[Any]): The fleet indicator of the vehicle.
@@ -388,29 +394,34 @@ class VehicleGuidModel(CustomBaseModel):
         owner (bool): Indicates if the user is the owner of the vehicle.
         personalized_settings (_LinksModel): The personalized settings of the vehicle.
         preferred (Optional[bool]): Indicates if the vehicle is the preferred vehicle.
-        primary_subscriber (bool): Indicates if the user is the primary subscriber of the vehicle.
+        primary_subscriber (bool): Indicates if the user is the primary subscriber
+            of the vehicle.
         region (str): The region of the vehicle.
         registration_number (Optional[str]): The registration number of the vehicle.
         remote_display (Optional[Any]): The remote display information of the vehicle.
         remote_service_capabilities (_RemoteServiceCapabilitiesModel): The remote
             service capabilities of the vehicle.
-        remote_service_exceptions (List[Any]): The remote service exceptions of the vehicle.
+        remote_service_exceptions (List[Any]): The remote service exception
+            of the vehicle.
         remote_subscription_exists (bool): Indicates if a remote subscription
             exists for the vehicle.
         remote_subscription_status (str): The remote subscription status of the vehicle.
         remote_user (bool): Indicates if the user is a remote user of the vehicle.
         remote_user_guid (Optional[Union[UUID, str]]): The remote user GUID
             (Globally Unique Identifier) of the vehicle.
-        service_connect_status (Optional[Any]): The service connect status of the vehicle.
+        service_connect_status (Optional[Any]): The service connect status
+            of the vehicle.
         services (List[Any]): The services associated with the vehicle.
-        shop_genuine_parts_url (str): The URL for shopping genuine parts for the vehicle.
+        shop_genuine_parts_url (str): The URL for shopping genuine
+            parts for the vehicle.
         status (str): The status of the vehicle.
         stock_pic_reference (str): The stock picture reference of the vehicle.
         subscriber_guid (UUID): The subscriber GUID of the vehicle.
         subscription_expiration_status (bool): Indicates if the subscription
             is expired for the vehicle.
         subscription_status (str): The subscription status of the vehicle.
-        subscriptions (List[_SubscriptionsModel]): The subscriptions associated with the vehicle.
+        subscriptions (List[_SubscriptionsModel]): The subscriptions associated
+            with the vehicle.
         suffix_code (Optional[Any]): The suffix code of the vehicle.
         svl_satus (bool): Indicates the SVL (Smart Vehicle Link) status of the vehicle.
         tff_links (_LinksModel): The TFF (Toyota Friend Finder) links of the vehicle.
@@ -522,7 +533,7 @@ class VehiclesResponseModel(StatusModel):
 
     Attributes
     ----------
-        payload (Optional[List[VehicleGuidModel]], optional): The vehicles payload. \n
+        payload (Optional[List[VehicleGuidModel]], optional): The vehicles payload.
             Defaults to None.
 
     """

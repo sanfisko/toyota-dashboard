@@ -267,7 +267,7 @@ class LockStatus:
     # @property
     # def lights(self) -> Optional[Lights]:
     #    """Lights."""
-    #    return self._status if self._status is None else Lights(self._status.vehicle_status)
+    #    return self._status if self._status is None else Lights(self._status.vehicle_status) # noqa: E501
 
     # Seems to be not available for now
     # @property

@@ -15,7 +15,7 @@ class ElectricStatusModel(CustomBaseModel):
     Attributes
     ----------
         battery_level (int): The battery level of the electric vehicle.
-        can_set_next_charging_event Optional[bool]: Indicates whether the next \n
+        can_set_next_charging_event Optional[bool]: Indicates whether the next
             charging event can be set.
         charging_status (str): The charging status of the electric vehicle.
         ev_range (UnitValueModel): The electric vehicle range.
@@ -50,8 +50,8 @@ class ElectricResponseModel(StatusModel):
 
     Attributes
     ----------
-        payload (Optional[ElectricStatusModel], optional): The electric vehicle status payload. \n
-            Defaults to None.
+        payload (Optional[ElectricStatusModel], optional): The electric vehicle
+            status payload. Defaults to None.
 
     """
 

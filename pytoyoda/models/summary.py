@@ -69,7 +69,8 @@ class Summary:
         ----
             from_date (date, required): The inclusive from date
             to_date (date, required): The inclusive to date
-            full_route (bool, optional): Provide the full route information for each trip
+            full_route (bool, optional): Provide the full route information
+            for each trip.
 
         """
         return convert_distance(self._distance_unit, "km", self._summary.average_speed)
@@ -81,7 +82,7 @@ class Summary:
         Returns
         -------
             List[str]: List of countries visited in 'ISO 3166-1 alpha-2' or
-                two-letter country codes format.
+            two-letter country codes format.
 
         """
         return self._summary.countries
@@ -129,7 +130,8 @@ class Summary:
 
         Returns
         -------
-            timedelta: The distance driven using EV in selected metric or None if not supported
+            timedelta: The distance driven using EV in selectedwq
+            metric or None if not supported
 
         """
         if self._hdc and self._hdc.ev_distance:

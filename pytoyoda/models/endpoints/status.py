@@ -20,7 +20,8 @@ class SectionModel(CustomBaseModel):
     Attributes
     ----------
         section (str): The section of a vehicle status category.
-        values (List[_ValueStatusModel]): A list of values corresponding status informations.
+        values (List[_ValueStatusModel]): A list of values corresponding
+            status informations.
 
     """
 
@@ -84,7 +85,7 @@ class RemoteStatusResponseModel(StatusModel):
 
     Attributes
     ----------
-        payload (Optional[RemoteStatusModel], optional): The remote status payload. \n
+        payload (Optional[RemoteStatusModel], optional): The remote status payload.
             Defaults to None.
 
     """

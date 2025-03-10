@@ -17,8 +17,8 @@ class TelemetryModel(CustomBaseModel):
         fuel_type (str): The type of fuel.
         odometer (UnitValueModel): The odometer reading.
         fuel_level (Optional[int]): The fuel level.
-        distance_to_empty (Optional[UnitValueModel], optional): The estimated distance to empty. \n
-            Defaults to None.
+        distance_to_empty (Optional[UnitValueModel], optional): The estimated distance
+            to empty. Defaults to None.
         timestamp (datetime): The timestamp of the telemetry data.
 
     """
@@ -39,7 +39,8 @@ class TelemetryResponseModel(StatusModel):
 
     Attributes
     ----------
-        payload (Optional[TelemetryModel], optional): The telemetry payload. Defaults to None.
+        payload (Optional[TelemetryModel], optional): The telemetry payload.
+            Defaults to None.
 
     """
 
