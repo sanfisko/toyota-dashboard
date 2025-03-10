@@ -1,4 +1,5 @@
 """Toyota Connected Services API - Status Models."""
+
 from datetime import datetime
 from typing import List, Optional
 
@@ -19,7 +20,8 @@ class SectionModel(CustomBaseModel):
     Attributes
     ----------
         section (str): The section of a vehicle status category.
-        values (List[_ValueStatusModel]): A list of values corresponding status informations.
+        values (List[_ValueStatusModel]): A list of values corresponding
+            status informations.
 
     """
 
@@ -71,7 +73,9 @@ class RemoteStatusModel(CustomBaseModel):
     caution_overall_count: Optional[int] = Field(alias="cautionOverallCount")
     latitude: Optional[float]
     longitude: Optional[float]
-    location_acquisition_datetime: Optional[datetime] = Field(alias="locationAcquisitionDatetime")
+    location_acquisition_datetime: Optional[datetime] = Field(
+        alias="locationAcquisitionDatetime"
+    )
 
 
 class RemoteStatusResponseModel(StatusModel):
@@ -81,7 +85,7 @@ class RemoteStatusResponseModel(StatusModel):
 
     Attributes
     ----------
-        payload (Optional[RemoteStatusModel], optional): The remote status payload. \n
+        payload (Optional[RemoteStatusModel], optional): The remote status payload.
             Defaults to None.
 
     """

@@ -23,7 +23,8 @@ class ClimateOptionStatus:
 
         Args:
         ----
-            options (ClimateOptions, optional): Contains all additional options for climate
+            options (ClimateOptions, optional): Contains all additional
+                options for climate
 
         """
         self._options = options
@@ -339,7 +340,9 @@ class ClimateSettingsOperation:
         if self._operation.ac_parameters is None:
             return None
 
-        return List[(ClimateSettingsParameter(p) for p in self._operation.ac_parameters)]
+        return List[
+            (ClimateSettingsParameter(p) for p in self._operation.ac_parameters)
+        ]
 
 
 class ClimateSettings:
@@ -440,4 +443,6 @@ class ClimateSettings:
         if self._climate_settings.ac_operations is None:
             return None
 
-        return (ClimateSettingsOperation(p) for p in self._climate_settings.ac_operations)
+        return (
+            ClimateSettingsOperation(p) for p in self._climate_settings.ac_operations
+        )

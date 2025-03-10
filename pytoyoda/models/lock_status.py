@@ -1,4 +1,5 @@
 """Models for vehicle sensors."""
+
 from __future__ import annotations
 
 from datetime import datetime
@@ -23,7 +24,9 @@ def _get_category(
     return None
 
 
-def _get_section(data: Optional[VehicleStatusModel], section: str) -> Optional[SectionModel]:
+def _get_section(
+    data: Optional[VehicleStatusModel], section: str
+) -> Optional[SectionModel]:
     if data is not None:
         return next(
             (item for item in data.sections if item.section == section),
@@ -264,7 +267,7 @@ class LockStatus:
     # @property
     # def lights(self) -> Optional[Lights]:
     #    """Lights."""
-    #    return self._status if self._status is None else Lights(self._status.vehicle_status)
+    #    return self._status if self._status is None else Lights(self._status.vehicle_status) # noqa: E501
 
     # Seems to be not available for now
     # @property

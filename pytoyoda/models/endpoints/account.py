@@ -1,4 +1,5 @@
 """Toyota Connected Services API - Account Models."""
+
 from datetime import datetime
 from typing import List, Optional
 from uuid import UUID
@@ -74,7 +75,8 @@ class AccountResponseModel(StatusModel):
 
     Attributes
     ----------
-        payload (Optional[AccountModel], optional): The account payload. Defaults to None.
+        payload (Optional[AccountModel], optional): The account payload.
+            Defaults to None.
 
     """
 

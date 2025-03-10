@@ -1,4 +1,5 @@
 """Toyota Connected Services API - Trips Models."""
+
 from __future__ import annotations
 
 from datetime import date, datetime
@@ -48,7 +49,9 @@ class _SummaryBaseModel(CustomBaseModel):
             self.duration_overspeed += other.duration_overspeed
             self.length_highway += other.length_highway
             self.duration_highway += other.duration_highway
-            self.fuel_consumption = add_with_none(self.fuel_consumption, other.fuel_consumption)
+            self.fuel_consumption = add_with_none(
+                self.fuel_consumption, other.fuel_consumption
+            )
 
         return self
 
@@ -184,10 +187,10 @@ class TripsModel(CustomBaseModel):
         from_date (date): The start date of the trips.
         to_date (date): The end date of the trips.
         trips (List[_TripModel]): The list of trips.
-        summary (Optional[List[_SummaryItemModel]], optional): The summary of the trips. \n
+        summary (Optional[List[_SummaryItemModel]], optional): The summary of the trips.
             Defaults to None.
         metadata (_MetadataModel): The metadata of the trips.
-        route (Optional[_RouteModel], optional): The route of the trips. \n
+        route (Optional[_RouteModel], optional): The route of the trips.
             Defaults to None.
 
     """
@@ -207,7 +210,7 @@ class TripsResponseModel(StatusModel):
 
     Attributes
     ----------
-        payload (Optional[TripsModel], optional): The trips payload. \n
+        payload (Optional[TripsModel], optional): The trips payload.
             Defaults to None.
 
     """

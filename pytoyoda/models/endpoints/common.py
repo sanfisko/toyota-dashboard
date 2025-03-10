@@ -1,4 +1,5 @@
 """Toyota Connected Services API - Common Endpoint Models."""
+
 from typing import List, Optional, Union
 
 from pydantic.v1 import Field
@@ -24,7 +25,9 @@ class UnitValueModel(CustomBaseModel):
 
 class _MessageModel(CustomBaseModel):
     description: Optional[str]
-    detailed_description: Optional[str] = Field(alias="detailedDescription", default=None)
+    detailed_description: Optional[str] = Field(
+        alias="detailedDescription", default=None
+    )
     response_code: Optional[str] = Field(alias="responseCode")
 
 
@@ -41,7 +44,8 @@ class StatusModel(CustomBaseModel):
             which can be a string or a _MessagesModel object.
         code (Optional[int], optional): The status code. Defaults to None.
         errors (Optional[List], optional): A list of errors. Defaults to an empty list.
-        message (Optional[str], optional): A message associated with the status. Defaults to None.
+        message (Optional[str], optional): A message associated with the status.
+            Defaults to None.
 
     """
 

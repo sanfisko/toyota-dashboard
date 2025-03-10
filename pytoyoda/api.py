@@ -53,7 +53,7 @@ class Api:
 
         Args:
         ----
-            controller: Controller: A controller class to managing communication
+            controller (Controller): A controller class to managing communication
 
         Returns:
         -------
@@ -64,7 +64,9 @@ class Api:
 
     async def _request_and_parse(self, model, method: str, endpoint: str, **kwargs):
         """Parse requests and responses."""
-        response = await self.controller.request_json(method=method, endpoint=endpoint, **kwargs)
+        response = await self.controller.request_json(
+            method=method, endpoint=endpoint, **kwargs
+        )
         return model(**response)
 
     async def set_vehicle_alias_endpoint(self, alias: str, guid: str, vin: str):
@@ -104,7 +106,7 @@ class Api:
 
         Args:
         ----
-            vin: str:   The vehicles VIN
+            vin (str): The vehicles VIN
 
         Returns:
         -------
@@ -117,15 +119,17 @@ class Api:
         _LOGGER.debug(msg=f"Parsed 'LocationResponseModel': {parsed_response}")
         return parsed_response
 
-    async def get_vehicle_health_status_endpoint(self, vin: str) -> VehicleHealthResponseModel:
+    async def get_vehicle_health_status_endpoint(
+        self, vin: str
+    ) -> VehicleHealthResponseModel:
         r"""Get the latest health status.
 
-        Response includes the quantity of engine oil and any dashboard warning lights. \n
-        * If supported.
+        Response includes the quantity of engine oil and any dashboard warning
+        lights (If supported).
 
         Args:
         ----
-            vin: str:   The vehicles VIN
+            vin (str): The vehicles VIN
 
         Returns:
         -------
@@ -149,15 +153,17 @@ class Api:
         _LOGGER.debug(msg=f"Parsed 'RemoteStatusResponseModel': {parsed_response}")
         return parsed_response
 
-    async def get_vehicle_electric_status_endpoint(self, vin: str) -> ElectricResponseModel:
+    async def get_vehicle_electric_status_endpoint(
+        self, vin: str
+    ) -> ElectricResponseModel:
         r"""Get the latest electric status.
 
-        Response includes current battery level, EV Range, EV Range with AC, \n
+        Response includes current battery level, EV Range, EV Range with AC,
         fuel level, fuel range and current charging status
 
         Args:
         ----
-            vin: str:   The vehicles VIN
+            vin (str): The vehicles VIN
 
         Returns:
         -------
@@ -180,7 +186,7 @@ class Api:
 
         Args:
         ----
-            vin: str:   The vehicles VIN
+            vin (str): The vehicles VIN
 
         Returns:
         -------
@@ -202,7 +208,7 @@ class Api:
 
         Args:
         ----
-            vin: str:   The vehicles VIN
+            vin (str): The vehicles VIN
 
         Returns:
         -------
@@ -223,13 +229,13 @@ class Api:
 
         Args:
         ----
-            vin: str:   The vehicles VIN
+            vin (str): The vehicles VIN
 
         Returns:
         -------
             ClimateStatusResponseModel: A pydantic model for the climate status
-            NOTE: Only returns data if the climate control is on. If it is off it will return a
-            status == 0 and all other fields will be None.
+            NOTE: Only returns data if the climate control is on. If it is off
+            it will return a status == 0 and all other fields will be None.
 
         """
         parsed_response = await self._request_and_parse(
@@ -241,16 +247,18 @@ class Api:
         _LOGGER.debug(msg=f"Parsed 'ClimateStatusResponseModel': {parsed_response}")
         return parsed_response
 
-    async def get_climate_settings_endpoint(self, vin: str) -> ClimateSettingsResponseModel:
+    async def get_climate_settings_endpoint(
+        self, vin: str
+    ) -> ClimateSettingsResponseModel:
         """Get climate control settings.
 
         Args:
         ----
-            vin: str:   The vehicles VIN
+            vin (str): The vehicles VIN
 
         Returns:
         -------
-            ClimateSettingsResponseModel:   A pydantic model for the climate settings
+            ClimateSettingsResponseModel: A pydantic model for the climate settings
 
         """
         parsed_response: ClimateSettingsResponseModel = await self._request_and_parse(
@@ -269,8 +277,8 @@ class Api:
 
         Args:
         ----
-            vin: str:                       The vehicles VIN
-            settings: ClimateSettingsModel: The climate control commsettings
+            vin (str): The vehicles VIN
+            settings (ClimateSettingsModel): The climate control commsettings
 
         Returns:
         -------
@@ -294,8 +302,8 @@ class Api:
 
         Args:
         ----
-            vin: str:                       The vehicles VIN
-            command: ClimateControlModel:   The climate control command
+            vin (str): The vehicles VIN
+            command (ClimateControlModel): The climate control command
 
         Returns:
         -------
@@ -317,7 +325,7 @@ class Api:
 
         Args:
         ----
-            vin: str:                       The vehicles VIN
+            vin (str): The vehicles VIN
 
         Returns:
         -------
@@ -342,20 +350,22 @@ class Api:
     ) -> TripsResponseModel:
         r"""Get list of trips.
 
-        Retrieves a list of all trips between the given dates. \n
+        Retrieves a list of all trips between the given dates.
         The default data(route = False, summary = False) provides
         a basic summary of each trip and includes Coaching message and electrical use.
 
         Args:
         ----
-            vin: str:        The vehicles VIN
-            from_date: date: From date to include trips, inclusive. Cant be in the future.
-            to_date: date:   To date to include trips, inclusive. Cant be in the future.
-            route: bool:     If true returns the route of each trip as a list of coordinates.
-                             Suitable for drawing on a map.
-            summary: bool:   If true returns a summary of each month and day in the date range
-            limit: int:      Limit of number of trips to return in one request. Max 50.
-            offset: int:     Offset into trips to start the request.
+            vin (str): The vehicles VIN
+            from_date (date): From date to include trips, inclusive. Cant be in the
+                future.
+            to_date (date): To date to include trips, inclusive. Cant be in the future.
+            route (bool): If true returns the route of each trip as a list of
+                coordinates. Suitable for drawing on a map.
+            summary (bool): If true returns a summary of each month and day in the date
+                range.
+            limit (int): Limit of number of trips to return in one request. Max 50.
+            offset (int): Offset into trips to start the request.
 
         Returns:
         -------
@@ -376,7 +386,9 @@ class Api:
         _LOGGER.debug(msg=f"Parsed 'TripsResponseModel': {parsed_response}")
         return parsed_response
 
-    async def get_service_history_endpoint(self, vin: str) -> ServiceHistoryResponseModel:
+    async def get_service_history_endpoint(
+        self, vin: str
+    ) -> ServiceHistoryResponseModel:
         """Get the current servic history.
 
         Response includes service category, date and dealer.
@@ -387,7 +399,8 @@ class Api:
 
         Returns:
         -------
-            ServicHistoryResponseModel: A pydantic model for the service history response
+            ServicHistoryResponseModel: A pydantic model for the service
+                history response
 
         """
         parsed_response = await self._request_and_parse(

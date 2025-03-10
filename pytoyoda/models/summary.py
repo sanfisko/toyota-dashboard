@@ -1,4 +1,5 @@
 """Model for Trip Summaries."""
+
 from datetime import date, timedelta
 from enum import IntEnum
 from typing import List, Optional
@@ -19,7 +20,7 @@ class SummaryType(IntEnum):
 class Summary:
     """Base class of Daily, Weekly, Monthly, Yearly summary."""
 
-    def __init__(  # noqa: PLR0913
+    def __init__(
         self,
         summary: _SummaryBaseModel,
         metric: bool,
@@ -68,7 +69,8 @@ class Summary:
         ----
             from_date (date, required): The inclusive from date
             to_date (date, required): The inclusive to date
-            full_route (bool, optional): Provide the full route information for each trip
+            full_route (bool, optional): Provide the full route information
+            for each trip.
 
         """
         return convert_distance(self._distance_unit, "km", self._summary.average_speed)
@@ -80,7 +82,7 @@ class Summary:
         Returns
         -------
             List[str]: List of countries visited in 'ISO 3166-1 alpha-2' or
-                two-letter country codes format.
+            two-letter country codes format.
 
         """
         return self._summary.countries
@@ -105,7 +107,9 @@ class Summary:
             float: Distance covered in the selected metric
 
         """
-        return convert_distance(self._distance_unit, "km", self._summary.length / 1000.0)
+        return convert_distance(
+            self._distance_unit, "km", self._summary.length / 1000.0
+        )
 
     @property
     def ev_duration(self) -> Optional[timedelta]:
@@ -126,11 +130,14 @@ class Summary:
 
         Returns
         -------
-            timedelta: The distance driven using EV in selected metric or None if not supported
+            timedelta: The distance driven using EV in selectedwq
+            metric or None if not supported
 
         """
         if self._hdc and self._hdc.ev_distance:
-            return convert_distance(self._distance_unit, "km", self._hdc.ev_distance / 1000.0)
+            return convert_distance(
+                self._distance_unit, "km", self._hdc.ev_distance / 1000.0
+            )
         return None
 
     @property
@@ -183,7 +190,9 @@ class Summary:
 
         """
         if self._summary.fuel_consumption:
-            avg_fuel_consumed = (self._summary.fuel_consumption / self._summary.length) * 100
+            avg_fuel_consumed = (
+                self._summary.fuel_consumption / self._summary.length
+            ) * 100
             return (
                 round(avg_fuel_consumed, 3)
                 if self._metric
