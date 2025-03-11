@@ -24,7 +24,7 @@ jobs:
       - name: "⚙️ Install dependencies"
         run: poetry install
       - name: "🚀 Generate docs"
-        run: poetry run pdoc pytoyoda -o docs/
+        run: poetry run pdoc pytoyoda -o /
       - name: "⬆️ Upload docs artifact"
         uses: actions/upload-pages-artifact@v3
         with:
