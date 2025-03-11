@@ -140,3 +140,7 @@ async def test_get_static_data(data_folder, httpx_mock: HTTPXMock):  # noqa: D10
 
     # Check last trip
     assert car.last_trip is not None
+    assert car.last_trip.distance == 15.215
+    assert car.last_trip.ev_duration == timedelta(minutes=10, seconds=53)
+    assert car.last_trip.average_fuel_consumed == 1.485
+    assert car.last_trip.score == 65
