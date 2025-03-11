@@ -1,4 +1,4 @@
-"""pytest tests for pytoyoda.api."""
+"""Pytest tests for pytoyoda.api."""
 
 import json
 from datetime import date, timedelta

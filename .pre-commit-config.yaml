@@ -53,6 +53,11 @@ repos:
         types: [text]
         entry: poetry run end-of-file-fixer
         stages: [pre-commit, pre-push, manual]
+      - id: docstringformatter
+        name: "📜 Format python docstrings"
+        language: system
+        entry: poetry run docformatter --in-place --blank
+        always_run: true
       - id: ruff-check
         name: "🐶 Ruff Linter"
         language: system

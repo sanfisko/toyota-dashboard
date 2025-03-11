@@ -141,7 +141,9 @@ def censor_all(
 
 
 def censor_string(string: str) -> str:
-    """Censor a string by replacing all characters except the first two with asterisks.
+    """Censor a string.
+
+    Replacing all characters except the first two with asterisks.
 
     Args:
     ----

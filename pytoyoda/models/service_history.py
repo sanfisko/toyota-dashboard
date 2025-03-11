@@ -1,4 +1,4 @@
-"""models for vehicle service history."""
+"""Models for vehicle service history."""
 
 from datetime import date
 from typing import Any, Optional

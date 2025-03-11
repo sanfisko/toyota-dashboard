@@ -7,6 +7,7 @@ information, sensor data, fuel level, driving statistics and more.
 
   client = MyT()
   vehicles = await client.get_vehicles()
+
 """
 
 import logging
@@ -28,6 +29,7 @@ class MyT:
 
     NOTE: Only tested with Toyota endpoints to this point.
         Do you have a Lexus/Subaru and are willing to help?
+
     """
 
     def __init__(
@@ -50,9 +52,9 @@ class MyT:
     async def login(self) -> None:
         """Perform first login.
 
-        Performs first login to Toyota's servers. Should be ideally be used
-        the very first time you login in. Fetches a token and stores it in
-        the controller object for future use.
+        Performs first login to Toyota's servers. Should be ideally be
+        used the very first time you login in. Fetches a token and
+        stores it in the controller object for future use.
 
         """
         _LOGGER.debug("Performing first login")

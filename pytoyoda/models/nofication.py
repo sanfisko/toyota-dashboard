@@ -1,4 +1,4 @@
-"""models for vehicle notifications."""
+"""Models for vehicle notifications."""
 
 from datetime import datetime
 from typing import Optional

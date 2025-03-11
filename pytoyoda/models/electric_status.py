@@ -1,4 +1,4 @@
-"""models for vehicle electric status."""
+"""Models for vehicle electric status."""
 
 from datetime import date
 from typing import Optional

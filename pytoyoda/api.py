@@ -44,7 +44,11 @@ _LOGGER: logging.Logger = logging.getLogger(__name__)
 
 
 class Api:
-    """API Class. Allows access to available endpoints to retrieve the raw data."""
+    """API Class.
+
+    Allows access to available endpoints to retrieve the raw data.
+
+    """
 
     def __init__(self, controller: Controller) -> None:
         """Initialise the API.
@@ -100,8 +104,9 @@ class Api:
         return parsed_response
 
     async def get_location_endpoint(self, vin: str) -> LocationResponseModel:
-        """Get the last known location of your car. Only updates when car is parked.
+        """Get the last known location of your car.
 
+        Only updates when car is parked.
         Response includes Lat, Lon position. * If supported.
 
         Args:
@@ -122,7 +127,7 @@ class Api:
     async def get_vehicle_health_status_endpoint(
         self, vin: str
     ) -> VehicleHealthResponseModel:
-        r"""Get the latest health status.
+        """Get the latest health status.
 
         Response includes the quantity of engine oil and any dashboard warning
         lights (If supported).
