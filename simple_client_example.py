@@ -113,6 +113,7 @@ async def get_information():
         # pp.pprint(car._dump_all())
 
 
-loop = asyncio.get_event_loop()
+loop = asyncio.new_event_loop()
+asyncio.set_event_loop(loop)
 loop.run_until_complete(get_information())
 loop.close()
