@@ -33,9 +33,7 @@ jobs:
         run: "poetry install"
       - name: "🚀 Run pytest with coverage"
         run: |
-          poetry run pip install coverage
-          poetry run coverage run --source=pytoyoda/ -m pytest
-          poetry run coverage xml
+          poetry run pytest --cov=pytoyoda --junitxml=junit.xml
       - name: "⬆️ Upload Coverage to Codecov"
         uses: "codecov/codecov-action@v5"
         with:
@@ -44,3 +42,8 @@ jobs:
           fail_ci_if_error: true
           flags: "unittests"
           verbose: true
+      - name: "⬆️ Upload test results to Codecov"
+        if: "${{ !cancelled() }}"
+        uses: "codecov/test-results-action@v1"
+        with:
+          token: "${{ secrets.CODECOV_TOKEN }}"
