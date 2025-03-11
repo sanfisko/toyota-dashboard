@@ -1,7 +1,7 @@
 """pytest tests for pytoyoda using httpx mocking."""
 
 import json
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from pathlib import Path
 from shutil import copy2
 from typing import List
@@ -25,9 +25,15 @@ def build_routes(httpx_mock: HTTPXMock, filenames: List[str]) -> None:  # noqa: 
             routes = json.load(f)
 
         for route in routes:
+            fixed_url = route["request"]["url"]
+            fixed_url = fixed_url.replace(
+                "{trip_date_from}", str(date.today() - timedelta(days=90))
+            )
+            fixed_url = fixed_url.replace("{trip_date_to}", str(date.today()))
+
             httpx_mock.add_response(
                 method=route["request"]["method"],
-                url=route["request"]["url"],
+                url=fixed_url,
                 status_code=route["response"]["status"],
                 content=route["response"]["content"]
                 if isinstance(route["response"]["content"], str)
@@ -137,3 +143,10 @@ async def test_get_static_data(data_folder, httpx_mock: HTTPXMock):  # noqa: D10
         == "2020 RAV4 PHEV: Climate was started and will automatically shut off."
     )
     assert car.notifications[2].message == "2020 RAV4 PHEV: Charging Interrupted [4]."
+
+    # Check last trip
+    assert car.last_trip is not None
+    assert car.last_trip.distance == 15.215
+    assert car.last_trip.ev_duration == timedelta(minutes=10, seconds=53)
+    assert car.last_trip.average_fuel_consumed == 1.485
+    assert car.last_trip.score == 65
