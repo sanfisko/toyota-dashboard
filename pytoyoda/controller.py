@@ -11,7 +11,6 @@ from urllib import parse
 import hishel
 import httpx
 import jwt
-from httpx import JSON
 
 from pytoyoda.const import (
     ACCESS_TOKEN_URL,
@@ -294,7 +293,7 @@ class Controller:
         body: Optional[Dict[str, Any]] = None,
         params: Optional[Dict[str, Any]] = None,
         headers: Optional[Dict[str, Any]] = None,
-    ) -> JSON:
+    ) -> json:
         """Send a JSON request to the specified endpoint.
 
         Args:
@@ -318,7 +317,7 @@ class Controller:
 
         Returns:
         -------
-        JSON
+        json
             The JSON response from the request.
 
         Examples:
