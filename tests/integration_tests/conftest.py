@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from pytoyoda.controller import CACHE_FILENAME
+from pytoyoda.controller import _TOKEN_CACHE
 
 
 @pytest.fixture(scope="module")
@@ -17,4 +17,4 @@ def data_folder(request) -> str:
 def remove_cache() -> None:
     """Remove the credentials cache file if it exists."""
     # Remove cache file if exists
-    Path.unlink(CACHE_FILENAME, missing_ok=True)
+    _TOKEN_CACHE.clear()
