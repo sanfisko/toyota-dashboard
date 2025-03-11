@@ -85,6 +85,9 @@ select = [
 ]
 extend-ignore = ["PLR2004", "D203", "D213", "COM812"]
 
+[tool.ruff.format]
+docstring-code-format = true
+
 [tool.poetry-dynamic-versioning]
 enable = true
 
