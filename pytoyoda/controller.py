@@ -11,6 +11,7 @@ from urllib import parse
 import hishel
 import httpx
 import jwt
+from httpx import JSON
 
 from pytoyoda.const import (
     ACCESS_TOKEN_URL,
@@ -293,29 +294,36 @@ class Controller:
         body: Optional[Dict[str, Any]] = None,
         params: Optional[Dict[str, Any]] = None,
         headers: Optional[Dict[str, Any]] = None,
-    ):
+    ) -> JSON:
         """Send a JSON request to the specified endpoint.
 
         Args:
         ----
-            method (str): The HTTP method to use for the request.
-            endpoint (str): The endpoint to send the request to.
-            vin (Optional[str], optional): The VIN (Vehicle Identification Number)
-                to include in the request. Defaults to None.
-            body (Optional[Dict[str, Any]], optional): The JSON body to include in
-                the request. Defaults to None.
-            params (Optional[Dict[str, Any]], optional): The query parameters to
-                include in the request. Defaults to None.
-            headers (Optional[Dict[str, Any]], optional): The headers to include in
-                the request. Defaults to None.
+        method : str
+            The HTTP method to use for the request.
+        endpoint : str
+            The endpoint to send the request to.
+        vin : Optional[str]
+            The VIN (Vehicle Identification Number)
+            to include in the request. Defaults to None.
+        body : Optional[Dict[str, Any]]
+            The JSON body to include in
+            the request. Defaults to None.
+        params : Optional[Dict[str, Any]]
+            The query parameters to
+            include in the request. Defaults to None.
+        headers : Optional[Dict[str, Any]]
+            The headers to include in
+            the request. Defaults to None.
 
         Returns:
         -------
+        JSON
             The JSON response from the request.
 
         Examples:
         --------
-            response = await request_json("GET", "/cars", vin="1234567890")
+        response = await request_json("GET", "/cars", vin="1234567890")
 
         """
         response = await self.request_raw(method, endpoint, vin, body, params, headers)
