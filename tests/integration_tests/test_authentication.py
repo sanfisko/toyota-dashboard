@@ -3,14 +3,13 @@
 import json
 from datetime import date, datetime, timedelta
 from pathlib import Path
-from shutil import copy2
 from typing import List
 
 import pytest
 from pytest_httpx import HTTPXMock
 
 from pytoyoda import MyT
-from pytoyoda.controller import CACHE_FILENAME
+from pytoyoda.controller import _TOKEN_CACHE
 from pytoyoda.exceptions import ToyotaInvalidUsernameError, ToyotaLoginError
 
 
@@ -80,7 +79,17 @@ async def test_authenticate_invalid_password(httpx_mock: HTTPXMock):  # noqa: D1
 @pytest.mark.asyncio
 async def test_authenticate_refresh_token(data_folder, httpx_mock: HTTPXMock):  # noqa: D103
     # Ensure expired cache file.
-    copy2(f"{data_folder}/cached_token.json", CACHE_FILENAME)
+    with open(f"{data_folder}/cached_token.json", encoding="utf-8") as f:  # noqa: ASYNC230
+        cached_token = json.load(f)
+
+        username = "user@email.info"
+        _TOKEN_CACHE[username] = {
+            "access_token": cached_token["access_token"],
+            "refresh_token": cached_token["refresh_token"],
+            "uuid": cached_token["uuid"],
+            "expiration": cached_token["expiration"],
+        }
+
     build_routes(httpx_mock, ["authenticate_refresh_token.json"])
 
     client = MyT("user@email.info", "password")
@@ -93,11 +102,16 @@ async def test_authenticate_refresh_token(data_folder, httpx_mock: HTTPXMock):  
 async def test_get_static_data(data_folder, httpx_mock: HTTPXMock):  # noqa: D103
     #  Create valid token => Means no authentication requests
     with open(f"{data_folder}/cached_token.json", encoding="utf-8") as f:  # noqa: ASYNC230
-        valid_token = json.load(f)
-        valid_token["expiration"] = datetime.now() + timedelta(hours=4)
+        cached_token = json.load(f)
+        cached_token["expiration"] = datetime.now() + timedelta(hours=4)
 
-        with open(CACHE_FILENAME, "w", encoding="utf-8") as wf:  # noqa: ASYNC230
-            wf.write(json.dumps(valid_token, indent=4, default=str))
+        username = "user@email.info"
+        _TOKEN_CACHE[username] = {
+            "access_token": cached_token["access_token"],
+            "refresh_token": cached_token["refresh_token"],
+            "uuid": cached_token["uuid"],
+            "expiration": cached_token["expiration"],
+        }
 
     # Ensure expired cache file.
     build_routes(httpx_mock, ["get_static_data.json"])
