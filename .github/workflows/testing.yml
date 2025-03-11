@@ -33,7 +33,7 @@ jobs:
         run: "poetry install"
       - name: "🚀 Run pytest with coverage"
         run: |
-          poetry run pytest --cov=pytoyoda --junitxml=junit.xml
+          poetry run pytest --cov=pytoyoda --cov-report --junitxml=junit.xml
       - name: "⬆️ Upload Coverage to Codecov"
         uses: "codecov/codecov-action@v5"
         with:
