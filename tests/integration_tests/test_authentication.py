@@ -1,4 +1,4 @@
-"""pytest tests for pytoyoda using httpx mocking."""
+"""Pytest tests for pytoyoda using httpx mocking."""
 
 import json
 from datetime import date, datetime, timedelta

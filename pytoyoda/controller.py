@@ -72,7 +72,11 @@ class Controller:
             await self._update_token()
 
     async def _update_token(self) -> None:
-        """Login to toyota servers and retrieve token and uuid for the account."""
+        """Login to toyota servers.
+
+        Retrieve token and UUID for the account.
+
+        """
         if not self._is_token_valid():
             if self._refresh_token:
                 try:

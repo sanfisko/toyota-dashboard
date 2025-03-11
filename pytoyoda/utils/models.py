@@ -4,7 +4,7 @@ from pydantic.v1 import BaseModel, root_validator
 
 
 class CustomBaseModel(BaseModel):
-    """Model that automatically returns values thatcannot be parsed correctly as 'None' value."""  # noqa: E501
+    """Model that automatically replaces not parsable values as 'None'."""
 
     @root_validator(pre=True)
     def invalid_to_none(cls, values: dict[str, object]) -> dict[str, object]:  # noqa: N805
