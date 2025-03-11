@@ -56,7 +56,7 @@ class Controller:
             self._token = cache_data["access_token"]
             self._refresh_token = cache_data["refresh_token"]
             self._uuid = cache_data["uuid"]
-            self._token_expiration = datetime.fromisoformat(cache_data["expiration"])
+            self._token_expiration = cache_data["expiration"]
 
     async def login(self) -> None:
         """Perform first login."""

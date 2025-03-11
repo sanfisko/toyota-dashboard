@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import List
 
 import pytest
+from conftest import TEST_PASSWORD, TEST_TOKEN, TEST_USER, TEST_UUID
 from pytest_httpx import HTTPXMock
 
 from pytoyoda import MyT
@@ -46,7 +47,7 @@ def build_routes(httpx_mock: HTTPXMock, filenames: List[str]) -> None:  # noqa: 
 async def test_authenticate(httpx_mock):  # noqa: D103
     build_routes(httpx_mock, ["authenticate_working.json"])
 
-    client = MyT("user@email.com", "password")
+    client = MyT(TEST_USER, TEST_PASSWORD)
     # Nothing validates this is correct,
     # just replays a "correct" authentication sequence
     await client.login()
@@ -57,7 +58,7 @@ async def test_authenticate(httpx_mock):  # noqa: D103
 async def test_authenticate_invalid_username(httpx_mock: HTTPXMock):  # noqa: D103
     build_routes(httpx_mock, ["authenticate_invalid_username.json"])
 
-    client = MyT("user@email.com", "password")
+    client = MyT(TEST_USER, TEST_PASSWORD)
     # Nothing validates this is correct,
     # just replays an invalid username authentication sequence
     with pytest.raises(ToyotaInvalidUsernameError):
@@ -69,7 +70,7 @@ async def test_authenticate_invalid_username(httpx_mock: HTTPXMock):  # noqa: D1
 async def test_authenticate_invalid_password(httpx_mock: HTTPXMock):  # noqa: D103
     build_routes(httpx_mock, ["authenticate_invalid_password.json"])
 
-    client = MyT("user@email.com", "password")
+    client = MyT(TEST_USER, TEST_PASSWORD)
     # Nothing validates this is correct,
     # just replays an invalid username authentication sequence
     with pytest.raises(ToyotaLoginError):
@@ -77,46 +78,38 @@ async def test_authenticate_invalid_password(httpx_mock: HTTPXMock):  # noqa: D1
 
 
 @pytest.mark.asyncio
-async def test_authenticate_refresh_token(data_folder, httpx_mock: HTTPXMock):  # noqa: D103
-    # Ensure expired cache file.
-    with open(f"{data_folder}/cached_token.json", encoding="utf-8") as f:  # noqa: ASYNC230
-        cached_token = json.load(f)
-
-        username = "user@email.info"
-        _TOKEN_CACHE[username] = {
-            "access_token": cached_token["access_token"],
-            "refresh_token": cached_token["refresh_token"],
-            "uuid": cached_token["uuid"],
-            "expiration": cached_token["expiration"],
-        }
+async def test_authenticate_refresh_token(httpx_mock: HTTPXMock):  # noqa: D103
+    _TOKEN_CACHE[TEST_USER] = {
+        "access_token": TEST_TOKEN,
+        "refresh_token": TEST_TOKEN,
+        "uuid": TEST_UUID,
+        "expiration": datetime(
+            2024, 1, 1, 16, 20, 20, 316881
+        ),  # expired expiration datetime
+    }
 
     build_routes(httpx_mock, ["authenticate_refresh_token.json"])
 
-    client = MyT("user@email.info", "password")
+    client = MyT(TEST_USER, TEST_PASSWORD)
     # Nothing validates this is correct,
     # just replays a refresh token sequence
     await client.login()
 
 
 @pytest.mark.asyncio
-async def test_get_static_data(data_folder, httpx_mock: HTTPXMock):  # noqa: D103
+async def test_get_static_data(httpx_mock: HTTPXMock):  # noqa: D103
     #  Create valid token => Means no authentication requests
-    with open(f"{data_folder}/cached_token.json", encoding="utf-8") as f:  # noqa: ASYNC230
-        cached_token = json.load(f)
-        cached_token["expiration"] = datetime.now() + timedelta(hours=4)
-
-        username = "user@email.info"
-        _TOKEN_CACHE[username] = {
-            "access_token": cached_token["access_token"],
-            "refresh_token": cached_token["refresh_token"],
-            "uuid": cached_token["uuid"],
-            "expiration": cached_token["expiration"],
-        }
+    _TOKEN_CACHE[TEST_USER] = {
+        "access_token": TEST_TOKEN,
+        "refresh_token": TEST_TOKEN,
+        "uuid": TEST_UUID,
+        "expiration": datetime.now() + timedelta(hours=4),  # valid expiration datetime
+    }
 
     # Ensure expired cache file.
     build_routes(httpx_mock, ["get_static_data.json"])
 
-    client = MyT("user@email.info", "password")
+    client = MyT(TEST_USER, TEST_PASSWORD)
     # Nothing validates this is correct,
     # just replays a refresh token sequence
     await client.login()
