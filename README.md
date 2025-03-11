@@ -2,8 +2,7 @@
 [![PyPI version](https://img.shields.io/pypi/v/pytoyoda?logo=pypi&logoColor=white&label=PyPI)](https://pypi.org/project/pytoyoda/)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/pytoyoda?logo=python&logoColor=white&label=Python)](https://pypi.org/project/pytoyoda/)
 [![Github Actions Build](https://img.shields.io/github/actions/workflow/status/zyf722/poetry-plugin-migrate/build.yml?logo=github)](https://github.com/zyf722/poetry-plugin-migrate/actions/workflows/build.yml)
-[![Code Coverage](https://img.shields.io/codecov/c/github/pytoyoda/pytoyoda?logo=codecov&logoColor=white
-)](https://app.codecov.io/github/pytoyoda/pytoyoda/)
+[![Code Coverage](https://img.shields.io/codecov/c/github/pytoyoda/pytoyoda?logo=codecov&logoColor=white)](https://app.codecov.io/github/pytoyoda/pytoyoda/)
 [![CodeQL](https://github.com/pytoyoda/pytoyoda/actions/workflows/codeql.yml/badge.svg)](https://github.com/pytoyoda/pytoyoda/actions/workflows/codeql.yml)
 
 # Toyota Connected Services Europe Python module
@@ -26,7 +25,7 @@ This is an unofficial package and Toyota can change their API at any point witho
 
 This package can be installed through `pip`.
 
-```text
+```bash
 pip install pytoyoda
 ```
 

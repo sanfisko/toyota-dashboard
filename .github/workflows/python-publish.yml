@@ -24,7 +24,7 @@ jobs:
       - name: "🐍 Set up Python 3.121"
         uses: "actions/setup-python@v5"
         with:
-          python-version: "3.12"
+          python-version: "3.13"
 
       - name: "⚙️ Install Poetry"
         uses: "abatilo/actions-poetry@v4.0.0"
@@ -35,8 +35,9 @@ jobs:
         run: |
           poetry install --without dev
           poetry self add "poetry-dynamic-versioning[plugin]"
+
       - name: "🚀 Test package building"
         run: "poetry build"
 
-      - name: Publish package distributions to PyPI
+      - name: "📨 Publish package distributions to PyPI"
         uses: pypa/gh-action-pypi-publish@release/v1
