@@ -240,7 +240,27 @@ class Controller:
         params: Optional[Dict[str, Any]] = None,
         headers: Optional[Dict[str, Any]] = None,
     ) -> httpx.Response:
-        """Shared request method."""
+        """Shared request method.
+
+        Args:
+            method (str): The HTTP method to use for the request.
+            endpoint (str): The endpoint to send the request to.
+            vin (Optional[str]): The VIN (Vehicle Identification Number)
+                to include in the request. Defaults to None.
+            body (Optional[Dict[str, Any]]): The JSON body to include in
+                the request. Defaults to None.
+            params (Optional[Dict[str, Any]]): The query parameters to
+                include in the request. Defaults to None.
+            headers (Optional[Dict[str, Any]]): The headers to include in
+                the request. Defaults to None.
+
+        Returns:
+            httpx.Response: The httpx response from the request.
+
+        Raises:
+            ToyotaApiError: Error if API request failed.
+
+        """
         if method not in ("GET", "POST", "PUT", "DELETE"):
             raise ToyotaInternalError("Invalid request method provided")
 
