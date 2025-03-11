@@ -15,6 +15,5 @@ def data_folder(request) -> str:
 
 @pytest.fixture(scope="function")
 def remove_cache() -> None:
-    """Remove the credentials cache file if it exists."""
-    # Remove cache file if exists
+    """Remove the credentials cache if it exists."""
     _TOKEN_CACHE.clear()
