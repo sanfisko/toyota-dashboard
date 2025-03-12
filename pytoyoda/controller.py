@@ -258,7 +258,7 @@ class Controller:
             httpx.Response: The httpx response from the request.
 
         Raises:
-            ToyotaApiError: Error if API request failed.
+            ToyotaApiError: Raise if a API error occurres.
 
         """
         if method not in ("GET", "POST", "PUT", "DELETE"):
@@ -313,7 +313,7 @@ class Controller:
         body: Optional[Dict[str, Any]] = None,
         params: Optional[Dict[str, Any]] = None,
         headers: Optional[Dict[str, Any]] = None,
-    ) -> json:
+    ) -> str:
         """Send a JSON request to the specified endpoint.
 
         Args:

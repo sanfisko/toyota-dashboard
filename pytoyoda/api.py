@@ -56,11 +56,9 @@ class Api:
         Initialise the API and set the Controller
 
         Args:
-        ----
             controller (Controller): A controller class to managing communication
 
         Returns:
-        -------
             None
 
         """
@@ -110,11 +108,9 @@ class Api:
         Response includes Lat, Lon position. * If supported.
 
         Args:
-        ----
             vin (str): The vehicles VIN
 
         Returns:
-        -------
             LocationResponseModel: A pydantic model for the location response
 
         """
@@ -133,11 +129,9 @@ class Api:
         lights (If supported).
 
         Args:
-        ----
             vin (str): The vehicles VIN
 
         Returns:
-        -------
             VehicleHealthResponseModel: A pydantic model for the vehicle health response
 
         """
@@ -167,11 +161,9 @@ class Api:
         fuel level, fuel range and current charging status
 
         Args:
-        ----
             vin (str): The vehicles VIN
 
         Returns:
-        -------
             ElectricResponseModel: A pydantic model for the electric response
 
         """
@@ -190,11 +182,9 @@ class Api:
         Response includes current fuel level, distance to empty and odometer
 
         Args:
-        ----
             vin (str): The vehicles VIN
 
         Returns:
-        -------
             TelemetryResponseModel: A pydantic model for the telemetry response
 
         """
@@ -212,11 +202,9 @@ class Api:
         NOTE: Currently no way to mark notification as read or limit the response.
 
         Args:
-        ----
             vin (str): The vehicles VIN
 
         Returns:
-        -------
             NotificationResponseModel: A pydantic model for the notification response
 
         """
@@ -233,11 +221,9 @@ class Api:
         """Get the current climate status.
 
         Args:
-        ----
             vin (str): The vehicles VIN
 
         Returns:
-        -------
             ClimateStatusResponseModel: A pydantic model for the climate status
             NOTE: Only returns data if the climate control is on. If it is off
             it will return a status == 0 and all other fields will be None.
@@ -258,11 +244,9 @@ class Api:
         """Get climate control settings.
 
         Args:
-        ----
             vin (str): The vehicles VIN
 
         Returns:
-        -------
             ClimateSettingsResponseModel: A pydantic model for the climate settings
 
         """
@@ -281,12 +265,10 @@ class Api:
         """Update climate control settings.
 
         Args:
-        ----
             vin (str): The vehicles VIN
             settings (ClimateSettingsModel): The climate control commsettings
 
         Returns:
-        -------
             StatusModel: A pydantic model for the status response
 
         """
@@ -306,12 +288,10 @@ class Api:
         """Send command to climate control.
 
         Args:
-        ----
             vin (str): The vehicles VIN
             command (ClimateControlModel): The climate control command
 
         Returns:
-        -------
             StatusModel: A pydantic model for the status response
 
         """
@@ -329,11 +309,9 @@ class Api:
         """Refresh climate status.
 
         Args:
-        ----
             vin (str): The vehicles VIN
 
         Returns:
-        -------
             StatusModel: A pydantic model for the status response
 
         """
@@ -360,7 +338,6 @@ class Api:
         a basic summary of each trip and includes Coaching message and electrical use.
 
         Args:
-        ----
             vin (str): The vehicles VIN
             from_date (date): From date to include trips, inclusive. Cant be in the
                 future.
@@ -373,7 +350,6 @@ class Api:
             offset (int): Offset into trips to start the request.
 
         Returns:
-        -------
             TripsResponseModel: A pydantic model for the trips response
 
         """
@@ -399,11 +375,9 @@ class Api:
         Response includes service category, date and dealer.
 
         Args:
-        ----
-            vin: str:   The vehicles VIN
+            vin (str): The vehicles VIN
 
         Returns:
-        -------
             ServicHistoryResponseModel: A pydantic model for the service
                 history response
 
@@ -420,13 +394,11 @@ class Api:
         """Post remote command to the vehicle.
 
         Args:
-        ----
-            vin: str:               The vehicles VIN
-            command: CommandType    The command type
-            beeps: int:             Amount of beeps for commands that support it
+            vin (str): The vehicles VIN
+            command (CommandType): The command type
+            beeps (int): Amount of beeps for commands that support it
 
         Returns:
-        -------
             StatusModel: A pydantic model for the command status response
 
         """
