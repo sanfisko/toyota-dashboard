@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from pytoyoda.controller import _TOKEN_CACHE
+from pytoyoda.controller.Controller import _TOKEN_CACHE
 
 TEST_USER = "user@email.info"
 TEST_PASSWORD = "password"

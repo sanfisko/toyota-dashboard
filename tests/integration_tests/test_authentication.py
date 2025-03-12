@@ -10,7 +10,7 @@ from conftest import TEST_PASSWORD, TEST_TOKEN, TEST_USER, TEST_UUID
 from pytest_httpx import HTTPXMock
 
 from pytoyoda import MyT
-from pytoyoda.controller import _TOKEN_CACHE
+from pytoyoda.controller.Controller import _TOKEN_CACHE
 from pytoyoda.exceptions import ToyotaInvalidUsernameError, ToyotaLoginError
 
 
