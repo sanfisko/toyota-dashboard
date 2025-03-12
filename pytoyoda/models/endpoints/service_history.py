@@ -12,8 +12,7 @@ from pytoyoda.utils.models import CustomBaseModel
 class ServiceHistoryModel(CustomBaseModel):
     """Represents a service history record.
 
-    Attributes
-    ----------
+    Attributes:
         customer_created_record (bool): Indicates if the record was created by
             the customer.
         mileage (Optional[int]): The mileage at the time of the service.
@@ -45,8 +44,7 @@ class ServiceHistoryModel(CustomBaseModel):
 class ServiceHistoriesModel(CustomBaseModel):
     r"""Model representing a list of service histories.
 
-    Attributes
-    ----------
+    Attributes:
         service_histories (List[Optional[ServiceHistoryModel]]): A list of all
             service histories. Defaults to [].
 
@@ -62,8 +60,7 @@ class ServiceHistoryResponseModel(StatusModel):
 
     Inherits from StatusModel.
 
-    Attributes
-    ----------
+    Attributes:
         payload (Optional[ServiceHistoriesModel]): The service history payload.
             Defaults to None.
 

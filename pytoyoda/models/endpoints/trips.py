@@ -34,8 +34,7 @@ class _SummaryBaseModel(CustomBaseModel):
         Handles Min/Max/Average fields correctly.
 
         Args:
-        ----
-        other: _SummaryBaseModel: to be added
+            other (_SummaryBaseModel): to be added
 
         """
         if other is not None:
@@ -104,8 +103,7 @@ class _HDCModel(CustomBaseModel):
         Handles Min/Max/Average fields correctly.
 
         Args:
-        ----
-        other: _SummaryBaseModel: to be added
+            other (_SummaryBaseModel): to be added
 
         """
         if other is not None:
@@ -182,8 +180,7 @@ class _MetadataModel(CustomBaseModel):
 class TripsModel(CustomBaseModel):
     r"""Model representing trips data.
 
-    Attributes
-    ----------
+    Attributes:
         from_date (date): The start date of the trips.
         to_date (date): The end date of the trips.
         trips (List[_TripModel]): The list of trips.
@@ -208,8 +205,7 @@ class TripsResponseModel(StatusModel):
 
     Inherits from StatusModel.
 
-    Attributes
-    ----------
+    Attributes:
         payload (Optional[TripsModel], optional): The trips payload.
             Defaults to None.
 

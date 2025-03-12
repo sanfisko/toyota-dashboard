@@ -12,8 +12,7 @@ from pytoyoda.utils.models import CustomBaseModel
 class VehicleHealthModel(CustomBaseModel):
     r"""Model representing the health status of a vehicle.
 
-    Attributes
-    ----------
+    Attributes:
         quantity_of_eng_oil_icon (Optional[List[Any]], optional):
         The quantity of engine oil icon. Defaults to None.
         vin (str): The VIN (Vehicle Identification Number) of the vehicle.
@@ -35,10 +34,9 @@ class VehicleHealthResponseModel(StatusModel):
 
     Inherits from StatusModel.
 
-    Attributes
-    ----------
+    Attributes:
         payload (Optional[VehicleHealthModel], optional): The vehicle health payload.
-        Defaults to None.
+            Defaults to None.
 
     """
 

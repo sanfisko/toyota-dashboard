@@ -33,8 +33,7 @@ class ServiceHistory:
     def service_date(self) -> date:
         """The date of the service.
 
-        Returns
-        -------
+        Returns:
             date: The date of the service.
 
         """
@@ -44,9 +43,8 @@ class ServiceHistory:
     def customer_created_record(self) -> bool:
         """Indication whether it is an entry created by the user.
 
-        Returns
-        -------
-            str: Category of notification
+        Returns:
+            bool: Indicator for customer created record
 
         """
         return self._service_history.customer_created_record
@@ -55,9 +53,8 @@ class ServiceHistory:
     def odometer(self) -> Optional[float]:
         """Odometer distance at the time of servicing.
 
-        Returns
-        -------
-            int: Odometer distance at the time of servicing
+        Returns:
+            Optional[float]: Odometer distance at the time of servicing
                 in the current selected units
 
         """
@@ -78,8 +75,7 @@ class ServiceHistory:
     def notes(self) -> Any:
         """Additional notes about the service.
 
-        Returns
-        -------
+        Returns:
             Any: Additional notes about the service
 
         """
@@ -89,8 +85,7 @@ class ServiceHistory:
     def operations_performed(self) -> Any:
         """The operations performed during the service.
 
-        Returns
-        -------
+        Returns:
             Any: The operations performed during the service
 
         """
@@ -100,8 +95,7 @@ class ServiceHistory:
     def ro_number(self) -> Any:
         """The RO (Repair Order) number associated with the service.
 
-        Returns
-        -------
+        Returns:
             Any: The RO (Repair Order) number associated with the service
 
         """
@@ -111,8 +105,7 @@ class ServiceHistory:
     def service_category(self) -> str:
         """The category of the service.
 
-        Returns
-        -------
+        Returns:
             str: The category of the service.
 
         """
@@ -122,8 +115,7 @@ class ServiceHistory:
     def service_provider(self) -> str:
         """The service provider.
 
-        Returns
-        -------
+        Returns:
             str: The service provider
 
         """
@@ -133,8 +125,7 @@ class ServiceHistory:
     def servicing_dealer(self) -> Any:
         """Dealer that performed the service.
 
-        Returns
-        -------
+        Returns:
             Any: The dealer that performed the service
 
         """

@@ -340,8 +340,7 @@ class _FeaturesModel(CustomBaseModel):
 class VehicleGuidModel(CustomBaseModel):
     """Model representing a vehicle with its associated information.
 
-    Attributes
-    ----------
+    Attributes:
         alerts (List[Any]): The alerts associated with the vehicle.
         asiCode (str): The ASI code of the vehicle.
         brand (str): The brand of the vehicle.
@@ -531,8 +530,7 @@ class VehiclesResponseModel(StatusModel):
 
     Inherits from StatusModel.
 
-    Attributes
-    ----------
+    Attributes:
         payload (Optional[List[VehicleGuidModel]], optional): The vehicles payload.
             Defaults to None.
 

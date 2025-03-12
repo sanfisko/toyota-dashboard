@@ -12,8 +12,7 @@ class UnitValueModel(CustomBaseModel):
 
     Can be reused several times within other models.
 
-    Attributes
-    ----------
+    Attributes:
         unit (str): The unit of measurement.
         value (float): The numerical value.
 
@@ -38,8 +37,7 @@ class _MessagesModel(CustomBaseModel):
 class StatusModel(CustomBaseModel):
     """Model representing the status of an endpoint.
 
-    Attributes
-    ----------
+    Attributes:
         status (Union[str, _MessagesModel]): The status of the endpoint,
             which can be a string or a _MessagesModel object.
         code (Optional[int], optional): The status code. Defaults to None.

@@ -29,8 +29,7 @@ class Notification:
 
         For example, ChargingAlert, RemoteCommand
 
-        Returns
-        -------
+        Returns:
             str: Category of notification
 
         """
@@ -40,9 +39,8 @@ class Notification:
     def read(self) -> Optional[datetime]:
         """Notification has been read.
 
-        Returns
-        -------
-            datetime: Time notification read. None if not read.
+        Returns:
+            Optional[datetime]: Time notification read. None if not read.
 
         """
         return self._notification.read_timestamp
@@ -51,8 +49,7 @@ class Notification:
     def message(self) -> str:
         """Notification message.
 
-        Returns
-        -------
+        Returns:
             str: Notification message
 
         """
@@ -64,8 +61,7 @@ class Notification:
 
         For example, Alert
 
-        Returns
-        -------
+        Returns:
             str: Notification type
 
         """
@@ -75,9 +71,8 @@ class Notification:
     def date(self) -> datetime:
         """Notification Date.
 
-        Returns
-        -------
-            datime: Time of notification
+        Returns:
+            datetime: Time of notification
 
         """
         return self._notification.notification_date

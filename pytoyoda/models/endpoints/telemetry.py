@@ -12,8 +12,7 @@ from pytoyoda.utils.models import CustomBaseModel
 class TelemetryModel(CustomBaseModel):
     r"""Model representing telemetry data.
 
-    Attributes
-    ----------
+    Attributes:
         fuel_type (str): The type of fuel.
         odometer (UnitValueModel): The odometer reading.
         fuel_level (Optional[int]): The fuel level.
@@ -37,8 +36,7 @@ class TelemetryResponseModel(StatusModel):
 
     Inherits from StatusModel.
 
-    Attributes
-    ----------
+    Attributes:
         payload (Optional[TelemetryModel], optional): The telemetry payload.
             Defaults to None.
 

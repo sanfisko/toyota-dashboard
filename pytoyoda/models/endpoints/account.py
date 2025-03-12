@@ -59,8 +59,7 @@ class _CustomerModel(CustomBaseModel):
 class AccountModel(CustomBaseModel):
     """Model representing an account.
 
-    Attributes
-    ----------
+    Attributes:
         customer (_CustomerModel): The customer associated with the account.
 
     """
@@ -73,8 +72,7 @@ class AccountResponseModel(StatusModel):
 
     Inherits from StatusModel.
 
-    Attributes
-    ----------
+    Attributes:
         payload (Optional[AccountModel], optional): The account payload.
             Defaults to None.
 

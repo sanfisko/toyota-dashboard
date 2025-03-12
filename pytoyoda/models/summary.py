@@ -31,7 +31,6 @@ class Summary:
         """Initialise Class.
 
         Args:
-        ----
             summary (_SummaryBaseModel, required): Contains all the summary information
             metric (bool, required): Report in Metric or Imperial
             from_date (date, required): Start date for this summary
@@ -61,16 +60,8 @@ class Summary:
         """Average speed.
 
         Returns:
-        -------
             float: Average speed in selected metric
                 Return information on all trips made between the provided dates.
-
-        Args:
-        ----
-            from_date (date, required): The inclusive from date
-            to_date (date, required): The inclusive to date
-            full_route (bool, optional): Provide the full route information
-            for each trip.
 
         """
         return convert_distance(self._distance_unit, "km", self._summary.average_speed)
@@ -79,10 +70,9 @@ class Summary:
     def countries(self) -> List[str]:
         """Countries visited.
 
-        Returns
-        -------
+        Returns:
             List[str]: List of countries visited in 'ISO 3166-1 alpha-2' or
-            two-letter country codes format.
+                two-letter country codes format.
 
         """
         return self._summary.countries
@@ -91,8 +81,7 @@ class Summary:
     def duration(self) -> timedelta:
         """The total time driving.
 
-        Returns
-        -------
+        Returns:
             timedelta: The amount of time driving
 
         """
@@ -102,8 +91,7 @@ class Summary:
     def distance(self) -> float:
         """The total distance covered.
 
-        Returns
-        -------
+        Returns:
             float: Distance covered in the selected metric
 
         """
@@ -115,9 +103,9 @@ class Summary:
     def ev_duration(self) -> Optional[timedelta]:
         """The total time driving using EV.
 
-        Returns
-        -------
-            timedelta: The amount of time driving using EV or None if not supported
+        Returns:
+            Optional[timedelta]: The amount of time driving using EV or
+                None if not supported
 
         """
         if self._hdc and self._hdc.ev_time:
@@ -128,10 +116,9 @@ class Summary:
     def ev_distance(self) -> Optional[float]:
         """The total time distance driven using EV.
 
-        Returns
-        -------
-            timedelta: The distance driven using EV in selectedwq
-            metric or None if not supported
+        Returns:
+            Optional[float]: The distance driven using EV in selectedwq
+                metric or None if not supported
 
         """
         if self._hdc and self._hdc.ev_distance:
@@ -144,9 +131,8 @@ class Summary:
     def from_date(self) -> date:
         """The date the summary started.
 
-        Returns
-        -------
-            date:         The date the summary started
+        Returns:
+            date: The date the summary started
 
         """
         return self._from_date
@@ -155,9 +141,8 @@ class Summary:
     def to_date(self) -> date:
         """The date the summary ended.
 
-        Returns
-        -------
-            date:         The date the summary ended
+        Returns:
+            date: The date the summary ended
 
         """
         return self._to_date
@@ -166,8 +151,7 @@ class Summary:
     def fuel_consumed(self) -> float:
         """The total amount of fuel consumed.
 
-        Returns
-        -------
+        Returns:
             float: The total amount of fuel consumed in liters if metric or gallons
 
         """
@@ -184,8 +168,7 @@ class Summary:
     def average_fuel_consumed(self) -> float:
         """The average amount of fuel consumed.
 
-        Returns
-        -------
+        Returns:
             float: The average amount of fuel consumed in l/100km if metric or mpg
 
         """

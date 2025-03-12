@@ -29,9 +29,8 @@ class Location:
     def latitude(self) -> Optional[float]:
         """Latitude.
 
-        Returns
-        -------
-            Latest latitude or None. _Not always available_.
+        Returns:
+            Optional[float]: Latest latitude or None. _Not always available_.
 
         """
         return self._location.latitude if self._location else None
@@ -40,9 +39,8 @@ class Location:
     def longitude(self) -> Optional[float]:
         """Longitude.
 
-        Returns
-        -------
-            Latest longitude or None. _Not always available_.
+        Returns:
+            Optional[float]: Latest longitude or None. _Not always available_.
 
         """
         return self._location.longitude if self._location else None
@@ -51,9 +49,9 @@ class Location:
     def timestamp(self) -> Optional[datetime]:
         """Timestamp.
 
-        Returns
-        -------
-           Position aquired timestamp or None. _Not always available_.
+        Returns:
+            Optional[datetime]: Position aquired timestamp or None.
+                _Not always available_.
 
         """
         return self._location.location_acquisition_datetime if self._location else None
@@ -62,9 +60,8 @@ class Location:
     def state(self) -> str:
         """State.
 
-        Returns
-        -------
-          The state of the position or None. _Not always available_.
+        Returns:
+            str: The state of the position or None. _Not always available_.
 
         """
         return self._location.display_name if self._location else None
