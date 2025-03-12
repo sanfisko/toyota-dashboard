@@ -10,13 +10,11 @@ def censor_value(value: Any, key: str, to_censor: set) -> Any:
     """Censor sensitive values in a given data structure.
 
     Args:
-    ----
         value (Any): The value to be censored.
         key (str): The key associated with the value.
         to_censor (set): A set of keys to identify values that need to be censored.
 
     Returns:
-    -------
         Any: The censored value.
 
     """
@@ -35,11 +33,9 @@ def format_httpx_response(response: Response) -> str:
     """Format an HTTPX response into a string representation.
 
     Args:
-    ----
         response (Response): The HTTPX response object to format.
 
     Returns:
-    -------
         str: The formatted representation of the HTTPX response.
 
     """
@@ -60,11 +56,9 @@ def format_httpx_response_json(response: Response) -> str:
     """Format an HTTPX response into a json string representation.
 
     Args:
-    ----
         response (Response): The HTTPX response object to format.
 
     Returns:
-    -------
         str: The formatted representation of the HTTPX response.
 
     """
@@ -91,13 +85,11 @@ def censor_all(
     r"""Censor sensitive values in a dictionary.
 
     Args:
-    ----
         dictionary (Dict[str, Any]): The dictionary to be censored.
         to_censor (Optional[set], optional): A set of keys to identify values \n
             that need to be censored. Defaults to None.
 
     Returns:
-    -------
         Dict[str, Any]: The censored dictionary.
 
     """
@@ -146,11 +138,9 @@ def censor_string(string: str) -> str:
     Replacing all characters except the first two with asterisks.
 
     Args:
-    ----
         string (str): The string to be censored.
 
     Returns:
-    -------
         str: The censored string.
 
     """
