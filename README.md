@@ -39,6 +39,7 @@ curl -LO https://raw.githubusercontent.com/pytoyoda/pytoyoda/main/simple_client_
 # Create a credentials.json file with {"username":"your@mail.tld","password":"yourpassword"}
 python simple_client_example.py
 ```
+
 Please note that the `simple_client_example.py` file is only to be regarded as a playground and is intended to provide an initial insight into the possibilities. It is not an officially supported interface of the pytoyoda API!
 For an overview of the current official interfaces, please take a look at our [documentation](https://pytoyoda.github.io/pytoyoda/pytoyoda/models/vehicle.html).
 
