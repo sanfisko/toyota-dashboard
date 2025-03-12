@@ -22,7 +22,6 @@ class ClimateOptionStatus:
         """Initialise Class.
 
         Args:
-        ----
             options (ClimateOptions, optional): Contains all additional
                 options for climate
 
@@ -43,8 +42,7 @@ class ClimateOptionStatus:
     def front_defogger(self) -> bool:
         """The front defogger status.
 
-        Returns
-        -------
+        Returns:
             bool: The status of front defogger
 
         """
@@ -54,8 +52,7 @@ class ClimateOptionStatus:
     def rear_defogger(self) -> bool:
         """The rear defogger status.
 
-        Returns
-        -------
+        Returns:
             bool: The status of rear defogger
 
         """
@@ -72,7 +69,6 @@ class ClimateStatus:
         """Initialise Class.
 
         Args:
-        ----
             climate_status (ClimateStatusModel, required): Contains all information
               regarding the climate status
 
@@ -93,8 +89,7 @@ class ClimateStatus:
     def type(self) -> str:
         """The type.
 
-        Returns
-        -------
+        Returns:
             str: The type
 
         """
@@ -104,8 +99,7 @@ class ClimateStatus:
     def status(self) -> bool:
         """The status.
 
-        Returns
-        -------
+        Returns:
             bool: The status
 
         """
@@ -115,8 +109,7 @@ class ClimateStatus:
     def start_time(self) -> Optional[datetime]:
         """Start time.
 
-        Returns
-        -------
+        Returns:
             datetime: Start time
 
         """
@@ -126,8 +119,7 @@ class ClimateStatus:
     def duration(self) -> Optional[timedelta]:
         """The duration.
 
-        Returns
-        -------
+        Returns:
             timedelta: The duration
 
         """
@@ -140,8 +132,7 @@ class ClimateStatus:
     def current_temperature(self) -> Optional[Tuple[float, str]]:
         """The current temperature.
 
-        Returns
-        -------
+        Returns:
             float: The current temperature
             str: The current temperature unit
 
@@ -158,8 +149,7 @@ class ClimateStatus:
     def target_temperature(self) -> Optional[Tuple[float, str]]:
         """The target temperature.
 
-        Returns
-        -------
+        Returns:
             float: The target temperature
             str: The target temperature unit
 
@@ -176,8 +166,7 @@ class ClimateStatus:
     def options(self) -> Optional[ClimateOptionStatus]:
         """The status of climate options.
 
-        Returns
-        -------
+        Returns:
             ClimateOptionsStatus: The statuses of climate options
 
         """
@@ -197,7 +186,6 @@ class ClimateSettingsParameter:
         """Initialise Class.
 
         Args:
-        ----
             parameter (ACParameters, optional): Contains all parameters
 
         """
@@ -217,8 +205,7 @@ class ClimateSettingsParameter:
     def available(self) -> Optional[bool]:
         """The parameter avaiability.
 
-        Returns
-        -------
+        Returns:
             Optional[bool]: The parameter avaiability value
 
         """
@@ -228,8 +215,7 @@ class ClimateSettingsParameter:
     def enabled(self) -> bool:
         """The parameter enable.
 
-        Returns
-        -------
+        Returns:
             bool: The parameter enable value
 
         """
@@ -239,8 +225,7 @@ class ClimateSettingsParameter:
     def display_name(self) -> Optional[str]:
         """The parameter display name.
 
-        Returns
-        -------
+        Returns:
             bool: The parameter display name
 
         """
@@ -250,8 +235,7 @@ class ClimateSettingsParameter:
     def name(self) -> str:
         """The parameter name.
 
-        Returns
-        -------
+        Returns:
             bool: The parameter name
 
         """
@@ -261,8 +245,7 @@ class ClimateSettingsParameter:
     def icon_url(self) -> Optional[str]:
         """The parameter icon url.
 
-        Returns
-        -------
+        Returns:
             bool: The parameter icon url
 
         """
@@ -279,7 +262,6 @@ class ClimateSettingsOperation:
         """Initialise Class.
 
         Args:
-        ----
             operation (ACOperations): Contains all options for climate
 
         """
@@ -299,8 +281,7 @@ class ClimateSettingsOperation:
     def available(self) -> Optional[bool]:
         """The operation avaiability.
 
-        Returns
-        -------
+        Returns:
             Optional[bool]: The operation avaiability value
 
         """
@@ -310,8 +291,7 @@ class ClimateSettingsOperation:
     def category_name(self) -> str:
         """The operation category name.
 
-        Returns
-        -------
+        Returns:
             bool: The operation category name
 
         """
@@ -321,8 +301,7 @@ class ClimateSettingsOperation:
     def category_display_name(self) -> Optional[str]:
         """The operation category display name.
 
-        Returns
-        -------
+        Returns:
             bool: The operation category display name
 
         """
@@ -332,17 +311,14 @@ class ClimateSettingsOperation:
     def parameters(self) -> Optional[List[ClimateSettingsParameter]]:
         """The operation parameter.
 
-        Returns
-        -------
+        Returns:
             Optional[List[ClimateSettingsParameter]]: The operation parameter
 
         """
         if self._operation.ac_parameters is None:
             return None
 
-        return List[
-            (ClimateSettingsParameter(p) for p in self._operation.ac_parameters)
-        ]
+        return [ClimateSettingsParameter(p) for p in self._operation.ac_parameters]
 
 
 class ClimateSettings:
@@ -355,7 +331,6 @@ class ClimateSettings:
         """Initialise Class.
 
         Args:
-        ----
             climate_settings (ClimateSettingsModel, required): Contains all information
                 regarding the climate settings
 
@@ -376,8 +351,7 @@ class ClimateSettings:
     def settings_on(self) -> bool:
         """The settings on value.
 
-        Returns
-        -------
+        Returns:
             bool: The value of settings on
 
         """
@@ -387,8 +361,7 @@ class ClimateSettings:
     def temp_interval(self) -> Optional[float]:
         """The temperature interval.
 
-        Returns
-        -------
+        Returns:
             Optional[float]: The value of temperature interval
 
         """
@@ -398,8 +371,7 @@ class ClimateSettings:
     def min_temp(self) -> Optional[float]:
         """The min temperature.
 
-        Returns
-        -------
+        Returns:
             Optional[float]: The value of min temperature
 
         """
@@ -409,8 +381,7 @@ class ClimateSettings:
     def max_temp(self) -> Optional[float]:
         """The max temperature.
 
-        Returns
-        -------
+        Returns:
             Optional[float]: The value of max temperature
 
         """
@@ -420,8 +391,7 @@ class ClimateSettings:
     def temperature(self) -> tuple[float, str]:
         """The temperature.
 
-        Returns
-        -------
+        Returns:
             float: The value of temperature
             str: The temperature unit
 
@@ -435,14 +405,13 @@ class ClimateSettings:
     def operations(self) -> Optional[List[ClimateSettingsOperation]]:
         """The climate operation settings.
 
-        Returns
-        -------
+        Returns:
             Optional[List[ClimateSettingsOperation]]: The settings of climate operation
 
         """
         if self._climate_settings.ac_operations is None:
             return None
 
-        return (
+        return [
             ClimateSettingsOperation(p) for p in self._climate_settings.ac_operations
-        )
+        ]

@@ -35,9 +35,8 @@ class ElectricStatus:
     def battery_level(self) -> Optional[float]:
         """Battery level of the vehicle.
 
-        Returns
-        -------
-            float: Battery level of the vehicle in percentage.
+        Returns:
+            Optional[float]: Battery level of the vehicle in percentage.
 
         """
         return self._electric_status.battery_level if self._electric_status else None
@@ -46,9 +45,7 @@ class ElectricStatus:
     def charging_status(self) -> Optional[str]:
         """Charging status of the vehicle.
 
-        Returns
-        -------
-            str: Charging status of the vehicle.
+        Returns     Optional[str]: Charging status of the vehicle.
 
         """
         return self._electric_status.charging_status
@@ -57,9 +54,8 @@ class ElectricStatus:
     def remaining_charge_time(self) -> Optional[int]:
         """Remaining time to full charge in minutes.
 
-        Returns
-        -------
-            int: Remaining time to full charge in minutes.
+        Returns:
+            Optional[int]: Remaining time to full charge in minutes.
 
         """
         return self._electric_status.remaining_charge_time
@@ -68,9 +64,8 @@ class ElectricStatus:
     def ev_range(self) -> Optional[float]:
         """Electric vehicle range.
 
-        Returns
-        -------
-            float: Electric vehicle range in the current selected units.
+        Returns:
+            Optional[float]: Electric vehicle range in the current selected units.
 
         """
         if self._electric_status:
@@ -85,9 +80,9 @@ class ElectricStatus:
     def ev_range_with_ac(self) -> Optional[float]:
         """Electric vehicle range with AC.
 
-        Returns
-        -------
-            float: Electric vehicle range with AC in the current selected units.
+        Returns:
+            Optional[float]: Electric vehicle range with AC in the
+                current selected units.
 
         """
         if self._electric_status:
@@ -102,9 +97,8 @@ class ElectricStatus:
     def can_set_next_charging_event(self) -> Optional[bool]:
         """Can set next charging event.
 
-        Returns
-        -------
-            bool: Can set next charging event.
+        Returns:
+            Optional[bool]: Can set next charging event.
 
         """
         return (
@@ -117,9 +111,8 @@ class ElectricStatus:
     def last_update_timestamp(self) -> Optional[date]:
         """Last update timestamp.
 
-        Returns
-        -------
-            date: Last update timestamp.
+        Returns:
+            Optional[date]: Last update timestamp.
 
         """
         return (

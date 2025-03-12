@@ -1,10 +1,8 @@
 """Toyota Connected Services Controller."""
 
-import json
 import logging
 from datetime import datetime, timedelta
 from http import HTTPStatus
-from pathlib import Path
 from typing import Any, Dict, Optional
 from urllib import parse
 
@@ -28,10 +26,9 @@ from pytoyoda.utils.log_utils import format_httpx_response
 
 _LOGGER: logging.Logger = logging.getLogger(__name__)
 
-CACHE_FILENAME: Path = (
-    Path.home() / ".cache" / "toyota_credentials_cache_contains_secrets"
-)
-
+# In-memory cache as class dictionary
+# Each user name is used as a key
+_TOKEN_CACHE: Dict[str, Dict[str, Any]] = {}
 
 # TODO There is an issue if you login with the application on a phone as all the tokens change. # noqa: E501
 #      This seems to work sometimes but no others. Needs investigation.
@@ -54,17 +51,12 @@ class Controller:
         self._authenticate_url = httpx.URL(AUTHENTICATE_URL)
         self._authorize_url = httpx.URL(AUTHORIZE_URL)
 
-        # Do we have a cache file?
-        if CACHE_FILENAME.exists():
-            with open(str(CACHE_FILENAME), "r", encoding="utf-8") as f:
-                cache_data = json.load(f)
-                if self._username == cache_data["username"]:
-                    self._token = cache_data["access_token"]
-                    self._refresh_token = cache_data["refresh_token"]
-                    self._uuid = cache_data["uuid"]
-                    self._token_expiration = datetime.fromisoformat(
-                        cache_data["expiration"]
-                    )
+        if self._username in _TOKEN_CACHE:
+            cache_data = _TOKEN_CACHE[self._username]
+            self._token = cache_data["access_token"]
+            self._refresh_token = cache_data["refresh_token"]
+            self._uuid = cache_data["uuid"]
+            self._token_expiration = cache_data["expiration"]
 
     async def login(self) -> None:
         """Perform first login."""
@@ -216,20 +208,12 @@ class Controller:
             seconds=access_tokens["expires_in"]
         )
 
-        CACHE_FILENAME.parent.mkdir(parents=True, exist_ok=True)
-        with open(str(CACHE_FILENAME), "w", encoding="utf-8") as f:
-            f.write(
-                json.dumps(
-                    {
-                        "access_token": self._token,
-                        "refresh_token": self._refresh_token,
-                        "uuid": self._uuid,
-                        "expiration": self._token_expiration,
-                        "username": self._username,
-                    },
-                    default=str,
-                )
-            )
+        _TOKEN_CACHE[self._username] = {
+            "access_token": self._token,
+            "refresh_token": self._refresh_token,
+            "uuid": self._uuid,
+            "expiration": self._token_expiration,
+        }
 
     async def request_raw(  # noqa: PLR0913
         self,
@@ -240,7 +224,27 @@ class Controller:
         params: Optional[Dict[str, Any]] = None,
         headers: Optional[Dict[str, Any]] = None,
     ) -> httpx.Response:
-        """Shared request method."""
+        """Shared request method.
+
+        Args:
+            method (str): The HTTP method to use for the request.
+            endpoint (str): The endpoint to send the request to.
+            vin (Optional[str]): The VIN (Vehicle Identification Number)
+                to include in the request. Defaults to None.
+            body (Optional[Dict[str, Any]]): The JSON body to include in
+                the request. Defaults to None.
+            params (Optional[Dict[str, Any]]): The query parameters to
+                include in the request. Defaults to None.
+            headers (Optional[Dict[str, Any]]): The headers to include in
+                the request. Defaults to None.
+
+        Returns:
+            httpx.Response: The httpx response from the request.
+
+        Raises:
+            ToyotaApiError: Raise if a API error occurres.
+
+        """
         if method not in ("GET", "POST", "PUT", "DELETE"):
             raise ToyotaInternalError("Invalid request method provided")
 
@@ -293,28 +297,25 @@ class Controller:
         body: Optional[Dict[str, Any]] = None,
         params: Optional[Dict[str, Any]] = None,
         headers: Optional[Dict[str, Any]] = None,
-    ):
+    ) -> str:
         """Send a JSON request to the specified endpoint.
 
         Args:
-        ----
             method (str): The HTTP method to use for the request.
             endpoint (str): The endpoint to send the request to.
-            vin (Optional[str], optional): The VIN (Vehicle Identification Number)
+            vin (Optional[str]): The VIN (Vehicle Identification Number)
                 to include in the request. Defaults to None.
-            body (Optional[Dict[str, Any]], optional): The JSON body to include in
+            body (Optional[Dict[str, Any]]): The JSON body to include in
                 the request. Defaults to None.
-            params (Optional[Dict[str, Any]], optional): The query parameters to
+            params (Optional[Dict[str, Any]]): The query parameters to
                 include in the request. Defaults to None.
-            headers (Optional[Dict[str, Any]], optional): The headers to include in
+            headers (Optional[Dict[str, Any]]): The headers to include in
                 the request. Defaults to None.
 
         Returns:
-        -------
-            The JSON response from the request.
+            json: The JSON response from the request.
 
         Examples:
-        --------
             response = await request_json("GET", "/cars", vin="1234567890")
 
         """

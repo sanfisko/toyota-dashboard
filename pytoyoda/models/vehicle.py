@@ -40,8 +40,8 @@ class Vehicle:
         self._endpoint_data: Dict[str, Any] = {}
         self._metric = metric
 
-        # Endpoint Name, Function to check if car supports the endpoint
-        # , endpoint to call to update
+        # Endpoint Name, Function to check if car supports the endpoint,
+        # endpoint to call to update
         api_endpoints = [
             {
                 "name": "location",
@@ -136,8 +136,7 @@ class Vehicle:
         This method asynchronously updates the data for the vehicle by
         calling the endpoint functions in parallel.
 
-        Returns
-        -------
+        Returns:
             None
 
         """
@@ -161,9 +160,8 @@ class Vehicle:
     def vin(self) -> Optional[str]:
         """Return the vehicles VIN number.
 
-        Returns
-        -------
-            The vehicles VIN number
+        Returns:
+            Optional[str]: The vehicles VIN number
 
         """
         return self._vehicle_info.vin
@@ -172,9 +170,8 @@ class Vehicle:
     def alias(self) -> Optional[str]:
         """Vehicle's alias.
 
-        Returns
-        -------
-            Nickname of vehicle
+        Returns:
+            Optional[str]: Nickname of vehicle
 
         """
         return self._vehicle_info.nickname
@@ -183,12 +180,11 @@ class Vehicle:
     def type(self) -> Optional[str]:
         """Returns the "type" of vehicle.
 
-        Returns
-        -------
-            "fuel" if only fuel based
-            "mildhybrid" if hybrid
-            "phev" if plugin hybrid
-            "ev" if full electric vehicle
+        Returns:
+            Optional[str]: "fuel" if only fuel based
+                "mildhybrid" if hybrid
+                "phev" if plugin hybrid
+                "ev" if full electric vehicle
 
         """
         # TODO enum
@@ -208,9 +204,8 @@ class Vehicle:
         The dashboard consists of items of information you would expect to
         find on the dashboard. i.e. Fuel Levels.
 
-        Returns
-        -------
-            A dashboard
+        Returns:
+            Optional[Dashboard]: A dashboard
 
         """
         # Always returns a Dashboard object as we can always get the odometer value
@@ -231,9 +226,8 @@ class Vehicle:
     def climate_settings(self) -> Optional[ClimateSettings]:
         """Return the vehicle climate settings.
 
-        Returns
-        -------
-            A climate settings
+        Returns:
+            Optional[ClimateSettings]: A climate settings
 
         """
         return ClimateSettings(self._endpoint_data.get("climate_settings", None))
@@ -242,9 +236,8 @@ class Vehicle:
     def climate_status(self) -> Optional[ClimateStatus]:
         """Return the vehicle climate status.
 
-        Returns
-        -------
-            A climate status
+        Returns:
+            Optional[ClimateStatus]: A climate status
 
         """
         return ClimateStatus(self._endpoint_data.get("climate_status", None))
@@ -253,9 +246,8 @@ class Vehicle:
     def electric_status(self) -> Optional[ElectricStatus]:
         """Returns the Electric Status of the vehicle.
 
-        Returns
-        -------
-            Electric Status
+        Returns:
+            Optional[ElectricStatus]: Electric Status
 
         """
         return (
@@ -268,12 +260,11 @@ class Vehicle:
     def location(self) -> Optional[Location]:
         """Return the vehicles latest reported Location.
 
-        Returns
-        -------
-          The latest location or None. If None vehicle car does not support
-          providing location information.
-          _Note_ an empty location object can be returned when the Vehicle
-          supports location but none is currently available.
+        Returns:
+            Optional[Location]: The latest location or None. If None vehicle car
+                does not support providing location information.
+                _Note_ an empty location object can be returned when the Vehicle
+                supports location but none is currently available.
 
         """
         return (
@@ -286,15 +277,9 @@ class Vehicle:
     def notifications(self) -> Optional[List[Notification]]:
         r"""Returns a list of notifications for the vehicle.
 
-        Args:
-        ----
-            include_read (bool, optional): Indicates whether to include read
-            notifications. Defaults to False.
-
         Returns:
-        -------
             Optional[List[Notification]]: A list of notifications for the vehicle,
-            or None if not supported.
+                or None if not supported.
 
         """
         if "notifications" in self._endpoint_data:
@@ -309,10 +294,9 @@ class Vehicle:
     def service_history(self) -> Optional[List[ServiceHistory]]:
         r"""Returns a list of service history entries for the vehicle.
 
-        Returns
-        -------
+        Returns:
             Optional[List[ServiceHistory]]: A list of service history entries
-            for the vehicle, or None if not supported.
+                for the vehicle, or None if not supported.
 
         """
         if "service_history" in self._endpoint_data:
@@ -329,10 +313,9 @@ class Vehicle:
     def get_latest_service_history(self) -> Optional[ServiceHistory]:
         r"""Return the latest service history entry for the vehicle.
 
-        Returns
-        -------
+        Returns:
             Optional[ServiceHistory]: A service history entry for the vehicle,
-            ordered by date and service_category. None if not supported or unknown.
+                ordered by date and service_category. None if not supported or unknown.
 
         """
         if self.service_history is not None:
@@ -345,10 +328,9 @@ class Vehicle:
     def lock_status(self) -> Optional[LockStatus]:
         """Returns the latest lock status of Doors & Windows.
 
-        Returns
-        -------
+        Returns:
             Optional[LockStatus]: The latest lock status of Doors & Windows,
-            or None if not supported.
+                or None if not supported.
 
         """
         return LockStatus(
@@ -359,9 +341,8 @@ class Vehicle:
     def last_trip(self) -> Optional[Trip]:
         """Returns the Vehicle last trip.
 
-        Returns
-        -------
-            Optional[Trip]
+        Returns:
+            Optional[Trip]: The last trip
 
         """
         ret = None
@@ -377,9 +358,8 @@ class Vehicle:
     def trip_history(self) -> Optional[List[Trip]]:
         """Returns the Vehicle trips.
 
-        Returns
-        -------
-            Optional[List[Trip]]
+        Returns:
+            Optional[List[Trip]]: A list of trips
 
         """
         if "trip_history" in self._endpoint_data:
@@ -408,14 +388,12 @@ class Vehicle:
         accuracy due to rounding issues.
 
         Args:
-        ----
             from_date (date, required): The inclusive from date to report summaries.
             to_date (date, required): The inclusive to date to report summaries.
             summary_type (SummaryType, optional): Daily, Monthly or Yearly summary.
-                                                  Monthly by default.
+                Monthly by default.
 
         Returns:
-        -------
             List[Summary]: A list of summaries or empty list if not supported.
 
         """
@@ -446,8 +424,7 @@ class Vehicle:
     async def get_current_day_summary(self) -> Optional[Summary]:
         """Return a summary for the current day.
 
-        Returns
-        -------
+        Returns:
             Optional[Summary]: A summary or None if not supported.
 
         """
@@ -462,8 +439,7 @@ class Vehicle:
     async def get_current_week_summary(self) -> Optional[Summary]:
         """Return a summary for the current week.
 
-        Returns
-        -------
+        Returns:
             Optional[Summary]: A summary or None if not supported.
 
         """
@@ -478,8 +454,7 @@ class Vehicle:
     async def get_current_month_summary(self) -> Optional[Summary]:
         """Return a summary for the current month.
 
-        Returns
-        -------
+        Returns:
             Optional[Summary]: A summary or None if not supported.
 
         """
@@ -494,8 +469,7 @@ class Vehicle:
     async def get_current_year_summary(self) -> Optional[Summary]:
         """Return a summary for the current year.
 
-        Returns
-        -------
+        Returns:
             Optional[Summary]: A summary or None if not supported.
 
         """
@@ -513,14 +487,12 @@ class Vehicle:
         """Return information on all trips made between the provided dates.
 
         Args:
-        ----
             from_date (date, required): The inclusive from date
             to_date (date, required): The inclusive to date
             full_route (bool, optional): Provide the full route
                                          information for each trip.
 
         Returns:
-        -------
             Optional[List[Something]]: A list of all trips or None if not supported.
 
         """
@@ -552,8 +524,7 @@ class Vehicle:
     async def get_last_trip(self) -> Optional[Trip]:
         """Return information on the last trip.
 
-        Returns
-        -------
+        Returns:
             Optional[Trip]: A trip model or None if not supported.
 
         """
@@ -579,8 +550,7 @@ class Vehicle:
     async def refresh_climate_status(self) -> StatusModel:
         """Force update of climate status.
 
-        Returns
-        -------
+        Returns:
             StatusModel: A status response for the command.
 
         """
@@ -590,12 +560,10 @@ class Vehicle:
         """Send remote command to the vehicle.
 
         Args:
-        ----
             command (CommandType): The remote command model
             beeps (int): Amount of beeps for commands that support it
 
         Returns:
-        -------
             StatusModel: A status response for the command.
 
         """
@@ -611,12 +579,10 @@ class Vehicle:
         """Set the alias for the vehicle.
 
         Args:
-        ----
             value: The alias value to set for the vehicle.
 
         Returns:
-        -------
-            bool
+            bool: Indicator if value is set
 
         """
         return value

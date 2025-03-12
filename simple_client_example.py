@@ -90,6 +90,8 @@ async def get_information():
         pp.pprint(f"Notifications: {[[x] for x in car.notifications]}")
         # Service history
         pp.pprint(f"Latest service: {car.get_latest_service_history()}")
+        # Last trip distance
+        pp.pprint(f"Last trip distance: {car.last_trip.distance}")
         # Summary
         # pp.pprint(
         #    f"Summary: {[[x] for x in await car.get_summary(date.today() - timedelta(days=7), date.today(), summary_type=SummaryType.DAILY)]}"  # noqa: E501 # pylint: disable=C0301
@@ -113,6 +115,7 @@ async def get_information():
         # pp.pprint(car._dump_all())
 
 
-loop = asyncio.get_event_loop()
+loop = asyncio.new_event_loop()
+asyncio.set_event_loop(loop)
 loop.run_until_complete(get_information())
 loop.close()

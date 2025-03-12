@@ -21,8 +21,7 @@ class _VehicleLocationModel(CustomBaseModel):
 class LocationModel(CustomBaseModel):
     r"""Model representing the location of a vehicle.
 
-    Attributes
-    ----------
+    Attributes:
         last_timestamp (Optional[datetime], optional): The last timestamp of the
             location. Defaults to None.
         vehicle_location (Optional[_VehicleLocationModel], optional): The location of
@@ -44,8 +43,7 @@ class LocationResponseModel(StatusModel):
 
     Inherits from StatusModel.
 
-    Attributes
-    ----------
+    Attributes:
         payload (Optional[LocationModel], optional): The location payload.
             Defaults to None.
 

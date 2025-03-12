@@ -12,8 +12,7 @@ from pytoyoda.utils.models import CustomBaseModel
 class ElectricStatusModel(CustomBaseModel):
     r"""Model representing the status of an electric vehicle.
 
-    Attributes
-    ----------
+    Attributes:
         battery_level (int): The battery level of the electric vehicle.
         can_set_next_charging_event Optional[bool]: Indicates whether the next
             charging event can be set.
@@ -48,8 +47,7 @@ class ElectricResponseModel(StatusModel):
 
     Inherits from StatusModel.
 
-    Attributes
-    ----------
+    Attributes:
         payload (Optional[ElectricStatusModel], optional): The electric vehicle
             status payload. Defaults to None.
 

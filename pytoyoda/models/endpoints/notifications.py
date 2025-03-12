@@ -16,8 +16,7 @@ class _HeadersModel(CustomBaseModel):
 class NotificationModel(CustomBaseModel):
     """Model representing a notification.
 
-    Attributes
-    ----------
+    Attributes:
         message_id (str): The ID of the notification message.
         vin (str): The VIN (Vehicle Identification Number) associated with the
             notification.
@@ -54,8 +53,7 @@ class _PayloadItemModel(CustomBaseModel):
 class NotificationResponseModel(CustomBaseModel):
     r"""Model representing a notification response.
 
-    Attributes
-    ----------
+    Attributes:
         guid (UUID): The GUID (Globally Unique Identifier) of the response.
         status_code (int): The status code of the response.
         headers (_HeadersModel): The headers of the response.

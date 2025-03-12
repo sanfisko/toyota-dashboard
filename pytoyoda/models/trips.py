@@ -18,7 +18,6 @@ class Trip:
         """Initialise Class.
 
         Args:
-        ----
             trip (_TripModel, required): Contains all information regarding the trip
             metric (bool, required): Report in Metric or Imperial
 
@@ -40,8 +39,7 @@ class Trip:
     def start_location(self) -> Tuple[float, float]:
         """Start location.
 
-        Returns
-        -------
+        Returns:
             Tuple[float, float]: Start location (Lat, Lon)
 
         """
@@ -51,8 +49,7 @@ class Trip:
     def end_location(self) -> Tuple[float, float]:
         """End location.
 
-        Returns
-        -------
+        Returns:
             Tuple[float, float]: End location (Lat, Lon)
 
         """
@@ -62,8 +59,7 @@ class Trip:
     def start_time(self) -> datetime:
         """Start time.
 
-        Returns
-        -------
+        Returns:
             datetime: Start time of trip
 
         """
@@ -73,8 +69,7 @@ class Trip:
     def end_time(self) -> datetime:
         """End time.
 
-        Returns
-        -------
+        Returns:
             datetime: End time of trip
 
         """
@@ -84,8 +79,7 @@ class Trip:
     def duration(self) -> timedelta:
         """The total time driving.
 
-        Returns
-        -------
+        Returns:
             timedelta: The amount of time driving
 
         """
@@ -95,8 +89,7 @@ class Trip:
     def distance(self) -> float:
         """The total distance covered.
 
-        Returns
-        -------
+        Returns:
             float: Distance covered in the selected metric
 
         """
@@ -106,8 +99,7 @@ class Trip:
     def ev_duration(self) -> Optional[timedelta]:
         """The total time driving using EV.
 
-        Returns
-        -------
+        Returns:
             timedelta: The amount of time driving using EV or None if not supported
 
         """
@@ -117,10 +109,9 @@ class Trip:
     def ev_distance(self) -> Optional[float]:
         """The total time distance driven using EV.
 
-        Returns
-        -------
+        Returns:
             timedelta: The distance driven using EV in selected metric
-            or None if not supported.
+                or None if not supported.
 
         """
         return (
@@ -133,8 +124,7 @@ class Trip:
     def fuel_consumed(self) -> float:
         """The total amount of fuel consumed.
 
-        Returns
-        -------
+        Returns:
             float: The total amount of fuel consumed in liters if metric or gallons
 
         """
@@ -151,8 +141,7 @@ class Trip:
     def average_fuel_consumed(self) -> float:
         """The average amount of fuel consumed.
 
-        Returns
-        -------
+        Returns:
             float: The average amount of fuel consumed in l/100km if metric or mpg
 
         """
@@ -172,8 +161,7 @@ class Trip:
     def score(self) -> float:
         """The (hybrid) score for the trip.
 
-        Returns
-        -------
+        Returns:
             float: The hybrid score for the trip
 
         """
@@ -186,8 +174,7 @@ class Trip:
     def route(self) -> Optional[List[Tuple[float, float]]]:
         """The route taken.
 
-        Returns
-        -------
+        Returns:
             Optional[List[Tuple[float, float]]]: List of Lat, Lon of the route taken.
                 None if no route provided.
 

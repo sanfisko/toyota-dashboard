@@ -4,7 +4,12 @@ from pathlib import Path
 
 import pytest
 
-from pytoyoda.controller import CACHE_FILENAME
+from pytoyoda.controller import _TOKEN_CACHE
+
+TEST_USER = "user@email.info"
+TEST_PASSWORD = "password"
+TEST_TOKEN = "eyJ0eXAiOiJKV1QiLCJraWQiOiJZeVZ2SEU5d0xKNDBWVEpyc3pBNDJ6eTNyWjg9IiwiYWxnIjoiUlMyNTYifQ"  # noqa: E501
+TEST_UUID = "12345678-1234-1234-1234-123456789012"
 
 
 @pytest.fixture(scope="module")
@@ -15,6 +20,5 @@ def data_folder(request) -> str:
 
 @pytest.fixture(scope="function")
 def remove_cache() -> None:
-    """Remove the credentials cache file if it exists."""
-    # Remove cache file if exists
-    Path.unlink(CACHE_FILENAME, missing_ok=True)
+    """Remove the credentials cache if it exists."""
+    _TOKEN_CACHE.clear()

@@ -1,4 +1,7 @@
-"""Toyota Connected Services Client."""
+"""Toyota Connected Services Client.
+
+.. include:: ../README.md
+"""
 
 from importlib_metadata import version
 

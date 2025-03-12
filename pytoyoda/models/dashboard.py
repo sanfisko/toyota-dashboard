@@ -29,9 +29,8 @@ class Dashboard:
     ):
         """Initialise Dashboard.
 
-        Parameters
-        ----------
-            metric: bool:   Report distances in metric(or imperial)
+        Args:
+            metric (bool): Report distances in metric(or imperial)
 
         """
         self._electric: Optional[ElectricStatusModel] = (
@@ -57,9 +56,8 @@ class Dashboard:
     def odometer(self) -> Optional[float]:
         """Odometer distance.
 
-        Returns
-        -------
-            The latest odometer reading in the current selected units
+        Returns:
+            Optional[float]: The latest odometer reading in the current selected units
 
         """
         if self._telemetry:
@@ -74,9 +72,8 @@ class Dashboard:
     def fuel_level(self) -> Optional[int]:
         """Fuel level.
 
-        Returns
-        -------
-            A value as percentage
+        Returns:
+            Optional[int]: A value as percentage
 
         """
         return self._telemetry.fuel_level if self._telemetry else None
@@ -85,9 +82,8 @@ class Dashboard:
     def battery_level(self) -> Optional[float]:
         """Shows the battery level if available.
 
-        Returns
-        -------
-            A value as percentage
+        Returns:
+            Optional[float]: A value as percentage
 
         """
         return self._electric.battery_level if self._electric else None
@@ -96,12 +92,10 @@ class Dashboard:
     def fuel_range(self) -> Optional[float]:
         """The range using _only_ fuel.
 
-        Returns
-        -------
-            The range in the currently selected unit.
-
-            If vehicle is electric returns 0
-            If vehicle doesn't support fuel range returns None
+        Returns:
+            Optional[float]: The range in the currently selected unit.
+                If vehicle is electric returns 0
+                If vehicle doesn't support fuel range returns None
 
         """
         if self._electric and self._electric.fuel_range:
@@ -123,12 +117,10 @@ class Dashboard:
     def battery_range(self) -> Optional[float]:
         """The range using _only_ EV.
 
-        Returns
-        -------
-            The range in the currently selected unit.
-
-            If vehicle is fuel only returns None
-            If vehicle doesn't support battery range returns None
+        Returns:
+            Optional[float]: The range in the currently selected unit.
+                If vehicle is fuel only returns None
+                If vehicle doesn't support battery range returns None
 
         """
         if self._electric and self._electric.ev_range:
@@ -144,12 +136,10 @@ class Dashboard:
     def battery_range_with_ac(self) -> Optional[float]:
         """The range using _only_ EV when using AC.
 
-        Returns
-        -------
-            The range in the currently selected unit.
-
-            If vehicle is fuel only returns 0
-            If vehicle doesn't support battery range returns 0
+        Returns:
+            Optional[float]: The range in the currently selected unit.
+                If vehicle is fuel only returns 0
+                If vehicle doesn't support battery range returns 0
 
         """
         if self._electric and self._electric.ev_range_with_ac:
@@ -165,14 +155,12 @@ class Dashboard:
     def range(self) -> Optional[float]:
         """The range using all available fuel & EV.
 
-        Returns
-        -------
-            The range in the currently selected unit.
-
-            fuel only == fuel_range
-            ev only == battery_range_with_ac
-            hybrid == fuel_range + battery_range_with_ac
-            None if not supported
+        Returns:
+            Optional[float]: The range in the currently selected unit.
+                fuel only == fuel_range
+                ev only == battery_range_with_ac
+                hybrid == fuel_range + battery_range_with_ac
+                None if not supported
 
         """
         if self._telemetry and self._telemetry.distance_to_empty:
@@ -188,10 +176,9 @@ class Dashboard:
     def charging_status(self) -> Optional[str]:
         """Current charging status.
 
-        Returns
-        -------
-            A string containing the charging status as reported by the vehicle
-            None if vehicle doesn't support charging
+        Returns:
+            Optional[str]: A string containing the charging status as reported
+                by the vehicle. None if vehicle doesn't support charging
 
         """
         return self._electric.charging_status if self._electric else None
@@ -200,11 +187,10 @@ class Dashboard:
     def remaining_charge_time(self) -> Optional[timedelta]:
         """Time left until charge is complete.
 
-        Returns
-        -------
-            The amount of time left
-            None if vehicle is not currently charging.
-            None if vehicle doesn't support charging
+        Returns:
+            Optional[timedelta]: The amount of time left
+                None if vehicle is not currently charging.
+                None if vehicle doesn't support charging
 
         """
         return (
@@ -217,10 +203,9 @@ class Dashboard:
     def warning_lights(self) -> Optional[List[Any]]:
         """Dashboard Warning Lights.
 
-        Returns
-        -------
-            List of latest dashboard warning lights
-            _Note_ Not fully understood
+        Returns:
+            Optional[List[Any]]: List of latest dashboard warning lights
+                _Note_ Not fully understood
 
         """
         return self._health.warning if self._health else None

@@ -17,8 +17,7 @@ class _ValueStatusModel(CustomBaseModel):
 class SectionModel(CustomBaseModel):
     """Model representing the status category of a vehicle.
 
-    Attributes
-    ----------
+    Attributes:
         section (str): The section of a vehicle status category.
         values (List[_ValueStatusModel]): A list of values corresponding
             status informations.
@@ -32,8 +31,7 @@ class SectionModel(CustomBaseModel):
 class VehicleStatusModel(CustomBaseModel):
     """Model representing the status category of a vehicle.
 
-    Attributes
-    ----------
+    Attributes:
         category (str): The status category of the vehicle.
         display_order (int): The order in which the status category is displayed
             inside the MyToyota App.
@@ -55,8 +53,7 @@ class _TelemetryModel(CustomBaseModel):
 class RemoteStatusModel(CustomBaseModel):
     """Model representing the remote status of a vehicle.
 
-    Attributes
-    ----------
+    Attributes:
         vehicle_status (List[_VehicleStatusModel]): The status of the vehicle.
         telemetry (_TelemetryModel): The telemetry data of the vehicle.
         occurrence_date (datetime): The date of the occurrence.
@@ -83,8 +80,7 @@ class RemoteStatusResponseModel(StatusModel):
 
     Inherits from StatusModel.
 
-    Attributes
-    ----------
+    Attributes:
         payload (Optional[RemoteStatusModel], optional): The remote status payload.
             Defaults to None.
 
