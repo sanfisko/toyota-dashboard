@@ -10,8 +10,10 @@ from conftest import TEST_PASSWORD, TEST_TOKEN, TEST_USER, TEST_UUID
 from pytest_httpx import HTTPXMock
 
 from pytoyoda import MyT
-from pytoyoda.controller.Controller import _TOKEN_CACHE
+from pytoyoda.controller import Controller
 from pytoyoda.exceptions import ToyotaInvalidUsernameError, ToyotaLoginError
+
+_TOKEN_CACHE = Controller._TOKEN_CACHE
 
 
 def build_routes(httpx_mock: HTTPXMock, filenames: List[str]) -> None:  # noqa: D103
