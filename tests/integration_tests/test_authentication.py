@@ -10,8 +10,10 @@ from conftest import TEST_PASSWORD, TEST_TOKEN, TEST_USER, TEST_UUID
 from pytest_httpx import HTTPXMock
 
 from pytoyoda import MyT
-from pytoyoda.controller import _TOKEN_CACHE
+from pytoyoda.controller import Controller, TokenInfo
 from pytoyoda.exceptions import ToyotaInvalidUsernameError, ToyotaLoginError
+
+_TOKEN_CACHE = Controller._TOKEN_CACHE  # pylint: disable=W0212
 
 
 def build_routes(httpx_mock: HTTPXMock, filenames: List[str]) -> None:  # noqa: D103
@@ -79,14 +81,13 @@ async def test_authenticate_invalid_password(httpx_mock: HTTPXMock):  # noqa: D1
 
 @pytest.mark.asyncio
 async def test_authenticate_refresh_token(httpx_mock: HTTPXMock):  # noqa: D103
-    _TOKEN_CACHE[TEST_USER] = {
-        "access_token": TEST_TOKEN,
-        "refresh_token": TEST_TOKEN,
-        "uuid": TEST_UUID,
-        "expiration": datetime(
-            2024, 1, 1, 16, 20, 20, 316881
-        ),  # expired expiration datetime
-    }
+    #  Create token with expired 'expiration' datetime.
+    _TOKEN_CACHE[TEST_USER] = TokenInfo(
+        access_token=TEST_TOKEN,
+        refresh_token=TEST_TOKEN,
+        uuid=TEST_UUID,
+        expiration=datetime(2024, 1, 1, 16, 20, 20, 316881),
+    )
 
     build_routes(httpx_mock, ["authenticate_refresh_token.json"])
 
@@ -99,12 +100,12 @@ async def test_authenticate_refresh_token(httpx_mock: HTTPXMock):  # noqa: D103
 @pytest.mark.asyncio
 async def test_get_static_data(httpx_mock: HTTPXMock):  # noqa: D103
     #  Create valid token => Means no authentication requests
-    _TOKEN_CACHE[TEST_USER] = {
-        "access_token": TEST_TOKEN,
-        "refresh_token": TEST_TOKEN,
-        "uuid": TEST_UUID,
-        "expiration": datetime.now() + timedelta(hours=4),  # valid expiration datetime
-    }
+    _TOKEN_CACHE[TEST_USER] = TokenInfo(
+        access_token=TEST_TOKEN,
+        refresh_token=TEST_TOKEN,
+        uuid=TEST_UUID,
+        expiration=datetime.now() + timedelta(hours=4),
+    )
 
     # Ensure expired cache file.
     build_routes(httpx_mock, ["get_static_data.json"])

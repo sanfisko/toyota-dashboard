@@ -4,7 +4,9 @@ from pathlib import Path
 
 import pytest
 
-from pytoyoda.controller import _TOKEN_CACHE
+from pytoyoda.controller import Controller
+
+_TOKEN_CACHE = Controller._TOKEN_CACHE  # pylint: disable=W0212
 
 TEST_USER = "user@email.info"
 TEST_PASSWORD = "password"
