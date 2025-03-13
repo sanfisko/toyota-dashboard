@@ -10,16 +10,15 @@ information, sensor data, fuel level, driving statistics and more.
 
 """
 
-import logging
 from typing import List, Optional
+
+from loguru import logger
 
 from pytoyoda.api import Api
 from pytoyoda.models.vehicle import Vehicle
 
 from .controller import Controller
 from .exceptions import ToyotaInvalidUsernameError
-
-_LOGGER: logging.Logger = logging.getLogger(__name__)
 
 
 class MyT:
@@ -57,12 +56,12 @@ class MyT:
         stores it in the controller object for future use.
 
         """
-        _LOGGER.debug("Performing first login")
+        logger.debug("Performing first login")
         await self._api.controller.login()
 
     async def get_vehicles(self, metric: bool = True) -> Optional[List[Vehicle]]:
         """Return a list of vehicles."""
-        _LOGGER.debug("Getting list of vehicles associated with the account")
+        logger.debug("Getting list of vehicles associated with the account")
         vehicles = await self._api.get_vehicles_endpoint()
         if vehicles.payload is not None:
             return [Vehicle(self._api, v, metric) for v in vehicles.payload]

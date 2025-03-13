@@ -1,6 +1,5 @@
 """Toyota Connected Services Controller."""
 
-import logging
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from datetime import datetime, timedelta
@@ -11,6 +10,7 @@ from urllib import parse
 import hishel
 import httpx
 import jwt
+from loguru import logger
 
 from pytoyoda.const import (
     ACCESS_TOKEN_URL,
@@ -25,8 +25,6 @@ from pytoyoda.exceptions import (
     ToyotaLoginError,
 )
 from pytoyoda.utils.log_utils import format_httpx_response
-
-_LOGGER: logging.Logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -115,7 +113,7 @@ class Controller:
                     await self._refresh_tokens()
                     return
                 except ToyotaLoginError:
-                    _LOGGER.debug(
+                    logger.debug(
                         "Token refresh failed, falling back to full authentication"
                     )
 
@@ -129,7 +127,7 @@ class Controller:
 
     async def _authenticate(self) -> None:
         """Authenticate with username and password."""
-        _LOGGER.debug("Authenticating with username and password")
+        logger.debug("Authenticating with username and password")
 
         async with self._get_http_client() as client:
             # Authentication flow
@@ -167,7 +165,7 @@ class Controller:
                         )
 
             resp = await client.post(self._authenticate_url, json=data)
-            _LOGGER.debug(format_httpx_response(resp))
+            logger.debug(format_httpx_response(resp))
 
             if resp.status_code != HTTPStatus.OK:
                 raise ToyotaLoginError(
@@ -199,7 +197,7 @@ class Controller:
             self._authorize_url,
             headers={"cookie": f"iPlanetDirectoryPro={token_id}"},
         )
-        _LOGGER.debug(format_httpx_response(resp))
+        logger.debug(format_httpx_response(resp))
 
         if resp.status_code != HTTPStatus.FOUND:
             raise ToyotaLoginError(
@@ -232,7 +230,7 @@ class Controller:
                 "code_verifier": "plain",
             },
         )
-        _LOGGER.debug(format_httpx_response(resp))
+        logger.debug(format_httpx_response(resp))
 
         if resp.status_code != HTTPStatus.OK:
             raise ToyotaLoginError(
@@ -243,7 +241,7 @@ class Controller:
 
     async def _refresh_tokens(self) -> None:
         """Refresh the access token using the refresh token."""
-        _LOGGER.debug("Refreshing tokens")
+        logger.debug("Refreshing tokens")
 
         async with self._get_http_client() as client:
             resp = await client.post(
@@ -257,7 +255,7 @@ class Controller:
                     "refresh_token": self._refresh_token,
                 },
             )
-            _LOGGER.debug(format_httpx_response(resp))
+            logger.debug(format_httpx_response(resp))
 
             if resp.status_code != HTTPStatus.OK:
                 raise ToyotaLoginError(
@@ -359,7 +357,7 @@ class Controller:
                 params=params,
                 follow_redirects=True,
             )
-            _LOGGER.debug(format_httpx_response(response))
+            logger.debug(format_httpx_response(response))
 
             if response.status_code in [HTTPStatus.OK, HTTPStatus.ACCEPTED]:
                 return response
