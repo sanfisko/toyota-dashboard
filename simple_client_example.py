@@ -56,11 +56,11 @@ async def get_information():
         # pp.pprint(await car.post_command(command=CommandType.DOOR_LOCK))
         # return
         # Get climate status
-        # response = await car._api.get_climate_status_endpoint(car.vin)
+        # response = await car._api.get_climate_status(car.vin)
         # print(response)
 
         # Get current climate settings
-        # settings = await car._api.get_climate_settings_endpoint(car.vin)
+        # settings = await car._api.get_climate_settings(car.vin)
         # print(settings)
         # climate_settings: ClimateSettingsModel = ClimateSettingsModel(
         #   settingsOn=True,
@@ -72,7 +72,7 @@ async def get_information():
         #       ACParameters(enabled=False, name="rearDefrost")])])
         # climate_settings = settings.payload
         # climate_settings.temperature = 20
-        # response = await car._api.put_climate_settings_endpoint(car.vin, climate_settings)  # noqa: E501
+        # response = await car._api.update_climate_settings(car.vin, climate_settings)  # noqa: E501
         # print(response)
         # return
 

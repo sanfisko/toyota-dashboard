@@ -47,15 +47,13 @@ class Vehicle:
                 "name": "location",
                 "capable": vehicle_info.extended_capabilities.last_parked_capable
                 or vehicle_info.features.last_parked,
-                "function": partial(
-                    self._api.get_location_endpoint, vin=vehicle_info.vin
-                ),
+                "function": partial(self._api.get_location, vin=vehicle_info.vin),
             },
             {
                 "name": "health_status",
                 "capable": True,  # TODO Unsure of the required capability
                 "function": partial(
-                    self._api.get_vehicle_health_status_endpoint,
+                    self._api.get_vehicle_health_status,
                     vin=vehicle_info.vin,
                 ),
             },
@@ -63,57 +61,49 @@ class Vehicle:
                 "name": "electric_status",
                 "capable": vehicle_info.extended_capabilities.econnect_vehicle_status_capable,  # noqa: E501
                 "function": partial(
-                    self._api.get_vehicle_electric_status_endpoint,
+                    self._api.get_vehicle_electric_status,
                     vin=vehicle_info.vin,
                 ),
             },
             {
                 "name": "telemetry",
                 "capable": vehicle_info.extended_capabilities.telemetry_capable,
-                "function": partial(
-                    self._api.get_telemetry_endpoint, vin=vehicle_info.vin
-                ),
+                "function": partial(self._api.get_telemetry, vin=vehicle_info.vin),
             },
             {
                 "name": "notifications",
                 "capable": True,  # TODO Unsure of the required capability
-                "function": partial(
-                    self._api.get_notification_endpoint, vin=vehicle_info.vin
-                ),
+                "function": partial(self._api.get_notifications, vin=vehicle_info.vin),
             },
             {
                 "name": "status",
                 "capable": vehicle_info.extended_capabilities.vehicle_status,
-                "function": partial(
-                    self._api.get_remote_status_endpoint, vin=vehicle_info.vin
-                ),
+                "function": partial(self._api.get_remote_status, vin=vehicle_info.vin),
             },
             {
                 "name": "service_history",
                 "capable": vehicle_info.features.service_history,
                 "function": partial(
-                    self._api.get_service_history_endpoint, vin=vehicle_info.vin
+                    self._api.get_service_history, vin=vehicle_info.vin
                 ),
             },
             {
                 "name": "climate_settings",
                 "capable": vehicle_info.features.climate_start_engine,
                 "function": partial(
-                    self._api.get_climate_settings_endpoint, vin=vehicle_info.vin
+                    self._api.get_climate_settings, vin=vehicle_info.vin
                 ),
             },
             {
                 "name": "climate_status",
                 "capable": vehicle_info.features.climate_start_engine,
-                "function": partial(
-                    self._api.get_climate_status_endpoint, vin=vehicle_info.vin
-                ),
+                "function": partial(self._api.get_climate_status, vin=vehicle_info.vin),
             },
             {
                 "name": "trip_history",
                 "capable": True,
                 "function": partial(
-                    self._api.get_trips_endpoint,
+                    self._api.get_trips,
                     vin=vehicle_info.vin,
                     from_date=(date.today() - timedelta(days=90)),
                     to_date=date.today(),
@@ -401,7 +391,7 @@ class Vehicle:
 
         # Summary information is always returned in the first response.
         # No need to check all the following pages
-        resp = await self._api.get_trips_endpoint(
+        resp = await self._api.get_trips(
             self.vin, from_date, to_date, summary=True, limit=1, offset=0
         )
         if resp.payload is None or len(resp.payload.summary) == 0:
@@ -499,7 +489,7 @@ class Vehicle:
         ret: List[Trip] = []
         offset = 0
         while True:
-            resp = await self._api.get_trips_endpoint(
+            resp = await self._api.get_trips(
                 self.vin,
                 from_date,
                 to_date,
@@ -528,7 +518,7 @@ class Vehicle:
             Optional[Trip]: A trip model or None if not supported.
 
         """
-        resp = await self._api.get_trips_endpoint(
+        resp = await self._api.get_trips(
             self.vin,
             date.today() - timedelta(days=90),
             date.today(),
@@ -567,9 +557,7 @@ class Vehicle:
             StatusModel: A status response for the command.
 
         """
-        return await self._api.post_command_endpoint(
-            self.vin, command=command, beeps=beeps
-        )
+        return await self._api.send_command(self.vin, command=command, beeps=beeps)
 
     #
     # More get functionality depending on what we find

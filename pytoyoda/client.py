@@ -63,7 +63,7 @@ class MyT:
     async def get_vehicles(self, metric: bool = True) -> Optional[List[Vehicle]]:
         """Return a list of vehicles."""
         _LOGGER.debug("Getting list of vehicles associated with the account")
-        vehicles = await self._api.get_vehicles_endpoint()
+        vehicles = await self._api.get_vehicles()
         if vehicles.payload is not None:
             return [Vehicle(self._api, v, metric) for v in vehicles.payload]
 

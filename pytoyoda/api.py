@@ -2,6 +2,7 @@
 
 import logging
 from datetime import date, datetime, timezone
+from typing import Any, Dict, Type, TypeVar, Union
 from uuid import uuid4
 
 from pytoyoda.const import (
@@ -42,286 +43,332 @@ from pytoyoda.models.endpoints.vehicle_health import VehicleHealthResponseModel
 
 _LOGGER: logging.Logger = logging.getLogger(__name__)
 
+# Type variable for generic model handling
+T = TypeVar(
+    "T",
+    bound=Union[
+        StatusModel,
+        ElectricResponseModel,
+        LocationResponseModel,
+        NotificationResponseModel,
+        ServiceHistoryResponseModel,
+        RemoteStatusResponseModel,
+        TelemetryResponseModel,
+        TripsResponseModel,
+        VehiclesResponseModel,
+        VehicleHealthResponseModel,
+    ],
+)
+
 
 class Api:
-    """API Class.
+    """API for Toyota Connected Services.
 
-    Allows access to available endpoints to retrieve the raw data.
+    This class provides access to Toyota Connected Services endpoints to
+    retrieve and manipulate vehicle data.
 
     """
 
     def __init__(self, controller: Controller) -> None:
-        """Initialise the API.
-
-        Initialise the API and set the Controller
+        """Initialize the API with a controller for communication.
 
         Args:
-            controller (Controller): A controller class to managing communication
-
-        Returns:
-            None
+            controller: A controller instance to manage the API communication
 
         """
         self.controller = controller
 
-    async def _request_and_parse(self, model, method: str, endpoint: str, **kwargs):
-        """Parse requests and responses."""
+    async def _request_and_parse(
+        self, model: Type[T], method: str, endpoint: str, **kwargs
+    ) -> T:
+        """Parse requests and responses using Pydantic models.
+
+        Args:
+            model: Pydantic model class to parse response into
+            method: HTTP method (GET, POST, PUT, DELETE)
+            endpoint: API endpoint path
+            **kwargs: Additional arguments to pass to request method
+
+        Returns:
+            Parsed response data as specified model instance
+
+        """
         response = await self.controller.request_json(
             method=method, endpoint=endpoint, **kwargs
         )
-        return model(**response)
+        parsed_response = model(**response)
+        _LOGGER.debug(f"Parsed '{model.__name__}': {parsed_response}")
+        return parsed_response
 
-    async def set_vehicle_alias_endpoint(self, alias: str, guid: str, vin: str):
-        """Set the alias for a vehicle."""
+    async def _create_standard_headers(self) -> Dict[str, str]:
+        """Create standard headers for API requests.
+
+        Returns:
+            Dictionary with standard headers
+
+        """
+        return {
+            "datetime": str(int(datetime.now(timezone.utc).timestamp() * 1000)),
+            "x-correlationid": str(uuid4()),
+            "Content-Type": "application/json",
+        }
+
+    # Vehicle Management
+
+    async def set_vehicle_alias(self, alias: str, guid: str, vin: str) -> Any:
+        """Set a nickname/alias for a vehicle.
+
+        Args:
+            alias: New nickname for the vehicle
+            guid: Global unique identifier for the vehicle
+            vin: Vehicle Identification Number
+
+        Returns:
+            Raw response from the API
+
+        """
         return await self.controller.request_raw(
             method="PUT",
             endpoint=VEHICLE_ASSOCIATION_ENDPOINT,
             vin=vin,
-            headers={
-                "datetime": str(int(datetime.now(timezone.utc).timestamp() * 1000)),
-                "x-correlationid": str(uuid4()),
-                "Content-Type": "application/json",
-            },
+            headers=await self._create_standard_headers(),
             body={"guid": guid, "vin": vin, "nickName": alias},
         )
 
-    #    TODO: Remove for now as it seems to have no effect.
-    #    The App is sending it!
-    #    async def post_wake_endpoint(self) -> None:
-    #        """Send a wake request to the vehicle."""
-    #        await self.controller.request_raw(
-    #            method="POST", endpoint="/v2/global/remote/wake"
-    #        )
+    async def get_vehicles(self) -> VehiclesResponseModel:
+        """Get a list of vehicles registered with the Toyota account.
 
-    async def get_vehicles_endpoint(self) -> VehiclesResponseModel:
-        """Return list of vehicles registered with provider."""
-        parsed_response = await self._request_and_parse(
+        Returns:
+            Model containing vehicle information
+
+        """
+        return await self._request_and_parse(
             VehiclesResponseModel, "GET", VEHICLE_GUID_ENDPOINT
         )
-        _LOGGER.debug(msg=f"Parsed 'VehiclesResponseModel': {parsed_response}")
-        return parsed_response
 
-    async def get_location_endpoint(self, vin: str) -> LocationResponseModel:
-        """Get the last known location of your car.
+    # Vehicle Status and Information
+
+    async def get_location(self, vin: str) -> LocationResponseModel:
+        """Get the last known location of a vehicle.
 
         Only updates when car is parked.
-        Response includes Lat, Lon position. * If supported.
+        Includes latitude and longitude if supported.
 
         Args:
-            vin (str): The vehicles VIN
+            vin: Vehicle Identification Number
 
         Returns:
-            LocationResponseModel: A pydantic model for the location response
+            Model containing location information
 
         """
-        parsed_response = await self._request_and_parse(
+        return await self._request_and_parse(
             LocationResponseModel, "GET", VEHICLE_LOCATION_ENDPOINT, vin=vin
         )
-        _LOGGER.debug(msg=f"Parsed 'LocationResponseModel': {parsed_response}")
-        return parsed_response
 
-    async def get_vehicle_health_status_endpoint(
-        self, vin: str
-    ) -> VehicleHealthResponseModel:
-        """Get the latest health status.
+    async def get_vehicle_health_status(self, vin: str) -> VehicleHealthResponseModel:
+        """Get the latest health status of a vehicle.
 
-        Response includes the quantity of engine oil and any dashboard warning
-        lights (If supported).
+        Includes engine oil quantity and dashboard warning lights if supported.
 
         Args:
-            vin (str): The vehicles VIN
+            vin: Vehicle Identification Number
 
         Returns:
-            VehicleHealthResponseModel: A pydantic model for the vehicle health response
+            Model containing vehicle health information
 
         """
-        parsed_response = await self._request_and_parse(
+        return await self._request_and_parse(
             VehicleHealthResponseModel, "GET", VEHICLE_HEALTH_STATUS_ENDPOINT, vin=vin
         )
-        _LOGGER.debug(msg=f"Parsed 'VehicleHealthResponseModel': {parsed_response}")
-        return parsed_response
 
-    async def get_remote_status_endpoint(self, vin: str) -> RemoteStatusResponseModel:
-        """Get information about the vehicle."""
-        parsed_response = await self._request_and_parse(
+    async def get_remote_status(self, vin: str) -> RemoteStatusResponseModel:
+        """Get general information about a vehicle.
+
+        Args:
+            vin: Vehicle Identification Number
+
+        Returns:
+            Model containing general vehicle status
+
+        """
+        return await self._request_and_parse(
             RemoteStatusResponseModel,
             "GET",
             VEHICLE_GLOBAL_REMOTE_STATUS_ENDPOINT,
             vin=vin,
         )
-        _LOGGER.debug(msg=f"Parsed 'RemoteStatusResponseModel': {parsed_response}")
-        return parsed_response
 
-    async def get_vehicle_electric_status_endpoint(
-        self, vin: str
-    ) -> ElectricResponseModel:
-        r"""Get the latest electric status.
+    async def get_vehicle_electric_status(self, vin: str) -> ElectricResponseModel:
+        """Get the latest electric status of a vehicle.
 
-        Response includes current battery level, EV Range, EV Range with AC,
-        fuel level, fuel range and current charging status
+        Includes current battery level, EV range, fuel level, and charging status.
 
         Args:
-            vin (str): The vehicles VIN
+            vin: Vehicle Identification Number
 
         Returns:
-            ElectricResponseModel: A pydantic model for the electric response
+            Model containing electric vehicle information
 
         """
-        parsed_response = await self._request_and_parse(
+        return await self._request_and_parse(
             ElectricResponseModel,
             "GET",
             VEHICLE_GLOBAL_REMOTE_ELECTRIC_STATUS_ENDPOINT,
             vin=vin,
         )
-        _LOGGER.debug(msg=f"Parsed 'ElectricResponseModel': {parsed_response}")
-        return parsed_response
 
-    async def get_telemetry_endpoint(self, vin: str) -> TelemetryResponseModel:
-        """Get the latest telemetry status.
+    async def get_telemetry(self, vin: str) -> TelemetryResponseModel:
+        """Get the latest telemetry data for a vehicle.
 
-        Response includes current fuel level, distance to empty and odometer
+        Includes current fuel level, distance to empty, and odometer.
 
         Args:
-            vin (str): The vehicles VIN
+            vin: Vehicle Identification Number
 
         Returns:
-            TelemetryResponseModel: A pydantic model for the telemetry response
+            Model containing telemetry information
 
         """
-        parsed_response = await self._request_and_parse(
+        return await self._request_and_parse(
             TelemetryResponseModel, "GET", VEHICLE_TELEMETRY_ENDPOINT, vin=vin
         )
-        _LOGGER.debug(msg=f"Parsed 'TelemetryResponseModel': {parsed_response}")
-        return parsed_response
 
-    async def get_notification_endpoint(self, vin: str) -> NotificationResponseModel:
-        """Get all available notifications for the vehicle.
+    # Notifications and History
 
-        A notification includes a message, notification date, read flag, date read.
+    async def get_notifications(self, vin: str) -> NotificationResponseModel:
+        """Get all available notifications for a vehicle.
 
-        NOTE: Currently no way to mark notification as read or limit the response.
+        Includes message text, notification date, read flag, and date read.
+        Note: No way to mark notifications as read or limit the response.
 
         Args:
-            vin (str): The vehicles VIN
+            vin: Vehicle Identification Number
 
         Returns:
-            NotificationResponseModel: A pydantic model for the notification response
+            Model containing notification information
 
         """
-        parsed_response = await self._request_and_parse(
+        return await self._request_and_parse(
             NotificationResponseModel,
             "GET",
             VEHICLE_NOTIFICATION_HISTORY_ENDPOINT,
             vin=vin,
         )
-        _LOGGER.debug(msg=f"Parsed 'NotificationResponseModel': {parsed_response}")
-        return parsed_response
 
-    async def get_climate_status_endpoint(self, vin: str) -> ClimateStatusResponseModel:
-        """Get the current climate status.
+    async def get_service_history(self, vin: str) -> ServiceHistoryResponseModel:
+        """Get the service history for a vehicle.
+
+        Includes service category, date, and dealer information.
 
         Args:
-            vin (str): The vehicles VIN
+            vin: Vehicle Identification Number
 
         Returns:
-            ClimateStatusResponseModel: A pydantic model for the climate status
-            NOTE: Only returns data if the climate control is on. If it is off
-            it will return a status == 0 and all other fields will be None.
+            Model containing service history information
 
         """
-        parsed_response = await self._request_and_parse(
+        return await self._request_and_parse(
+            ServiceHistoryResponseModel, "GET", VEHICLE_SERVICE_HISTORY_ENDPONT, vin=vin
+        )
+
+    # Climate Control
+
+    async def get_climate_status(self, vin: str) -> ClimateStatusResponseModel:
+        """Get the current climate control status.
+
+        Note: Only returns data if climate control is on. If off,
+        it returns status == 0 and all other fields are None.
+
+        Args:
+            vin: Vehicle Identification Number
+
+        Returns:
+            Model containing climate status information
+
+        """
+        return await self._request_and_parse(
             ClimateStatusResponseModel,
             "GET",
             VEHICLE_CLIMATE_STATUS_ENDPOINT,
             vin=vin,
         )
-        _LOGGER.debug(msg=f"Parsed 'ClimateStatusResponseModel': {parsed_response}")
-        return parsed_response
 
-    async def get_climate_settings_endpoint(
-        self, vin: str
-    ) -> ClimateSettingsResponseModel:
-        """Get climate control settings.
+    async def refresh_climate_status(self, vin: str) -> StatusModel:
+        """Request an update to the climate status from the vehicle.
 
         Args:
-            vin (str): The vehicles VIN
+            vin: Vehicle Identification Number
 
         Returns:
-            ClimateSettingsResponseModel: A pydantic model for the climate settings
+            Model containing status of the refresh request
 
         """
-        parsed_response: ClimateSettingsResponseModel = await self._request_and_parse(
+        return await self._request_and_parse(
+            StatusModel, "POST", VEHICLE_CLIMATE_STATUS_REFRESH_ENDPOINT, vin=vin
+        )
+
+    async def get_climate_settings(self, vin: str) -> ClimateSettingsResponseModel:
+        """Get the current climate control settings.
+
+        Args:
+            vin: Vehicle Identification Number
+
+        Returns:
+            Model containing climate settings information
+
+        """
+        return await self._request_and_parse(
             ClimateSettingsResponseModel,
             "GET",
             VEHICLE_CLIMATE_SETTINGS_ENDPOINT,
             vin=vin,
         )
-        _LOGGER.debug(msg=f"Parsed 'StatusModel': {parsed_response}")
-        return parsed_response
 
-    async def put_climate_settings_endpoint(
+    async def update_climate_settings(
         self, vin: str, settings: ClimateSettingsModel
     ) -> StatusModel:
-        """Update climate control settings.
+        """Update the climate control settings for a vehicle.
 
         Args:
-            vin (str): The vehicles VIN
-            settings (ClimateSettingsModel): The climate control commsettings
+            vin: Vehicle Identification Number
+            settings: New climate control settings
 
         Returns:
-            StatusModel: A pydantic model for the status response
+            Model containing status of the update request
 
         """
-        parsed_response: StatusModel = await self._request_and_parse(
+        return await self._request_and_parse(
             StatusModel,
             "PUT",
             VEHICLE_CLIMATE_SETTINGS_ENDPOINT,
             vin=vin,
             body=settings.dict(exclude_unset=True, by_alias=True),
         )
-        _LOGGER.debug(msg=f"Parsed 'StatusModel': {parsed_response}")
-        return parsed_response
 
-    async def post_climate_control_endpoint(
+    async def send_climate_control_command(
         self, vin: str, command: ClimateControlModel
     ) -> StatusModel:
-        """Send command to climate control.
+        """Send a control command to the climate system.
 
         Args:
-            vin (str): The vehicles VIN
-            command (ClimateControlModel): The climate control command
+            vin: Vehicle Identification Number
+            command: Climate control command to send
 
         Returns:
-            StatusModel: A pydantic model for the status response
+            Model containing status of the command request
 
         """
-        parsed_response: StatusModel = await self._request_and_parse(
+        return await self._request_and_parse(
             StatusModel,
             "POST",
             VEHICLE_CLIMATE_CONTROL_ENDPOINT,
             vin=vin,
             body=command.dict(exclude_unset=True, by_alias=True),
         )
-        _LOGGER.debug(msg=f"Parsed 'StatusModel': {parsed_response}")
-        return parsed_response
 
-    async def refresh_climate_status(self, vin: str) -> StatusModel:
-        """Refresh climate status.
+    # Trip Data
 
-        Args:
-            vin (str): The vehicles VIN
-
-        Returns:
-            StatusModel: A pydantic model for the status response
-
-        """
-        parsed_response: StatusModel = await self._request_and_parse(
-            StatusModel, "POST", VEHICLE_CLIMATE_STATUS_REFRESH_ENDPOINT, vin=vin
-        )
-        _LOGGER.debug(msg=f"Parsed 'StatusModel': {parsed_response}")
-        return parsed_response
-
-    async def get_trips_endpoint(  # noqa: PLR0913
+    async def get_trips(  # noqa: PLR0913
         self,
         vin: str,
         from_date: date,
@@ -331,26 +378,19 @@ class Api:
         limit: int = 5,
         offset: int = 0,
     ) -> TripsResponseModel:
-        r"""Get list of trips.
-
-        Retrieves a list of all trips between the given dates.
-        The default data(route = False, summary = False) provides
-        a basic summary of each trip and includes Coaching message and electrical use.
+        """Get a list of trips for a vehicle within a date range.
 
         Args:
-            vin (str): The vehicles VIN
-            from_date (date): From date to include trips, inclusive. Cant be in the
-                future.
-            to_date (date): To date to include trips, inclusive. Cant be in the future.
-            route (bool): If true returns the route of each trip as a list of
-                coordinates. Suitable for drawing on a map.
-            summary (bool): If true returns a summary of each month and day in the date
-                range.
-            limit (int): Limit of number of trips to return in one request. Max 50.
-            offset (int): Offset into trips to start the request.
+            vin: Vehicle Identification Number
+            from_date: Start date for trip data (inclusive, cannot be in future)
+            to_date: End date for trip data (inclusive, cannot be in future)
+            route: If True, returns route coordinates for each trip
+            summary: If True, returns monthly and daily trip summaries
+            limit: Maximum number of trips to return (max 50)
+            offset: Starting offset for pagination
 
         Returns:
-            TripsResponseModel: A pydantic model for the trips response
+            Model containing trip information
 
         """
         endpoint = VEHICLE_TRIPS_ENDPOINT.format(
@@ -361,54 +401,31 @@ class Api:
             limit=limit,
             offset=offset,
         )
-        parsed_response = await self._request_and_parse(
+        return await self._request_and_parse(
             TripsResponseModel, "GET", endpoint, vin=vin
         )
-        _LOGGER.debug(msg=f"Parsed 'TripsResponseModel': {parsed_response}")
-        return parsed_response
 
-    async def get_service_history_endpoint(
-        self, vin: str
-    ) -> ServiceHistoryResponseModel:
-        """Get the current servic history.
+    # Remote Commands
 
-        Response includes service category, date and dealer.
-
-        Args:
-            vin (str): The vehicles VIN
-
-        Returns:
-            ServicHistoryResponseModel: A pydantic model for the service
-                history response
-
-        """
-        parsed_response = await self._request_and_parse(
-            ServiceHistoryResponseModel, "GET", VEHICLE_SERVICE_HISTORY_ENDPONT, vin=vin
-        )
-        _LOGGER.debug(msg=f"Parsed 'ServiceHistoryResponseModel': {parsed_response}")
-        return parsed_response
-
-    async def post_command_endpoint(
+    async def send_command(
         self, vin: str, command: CommandType, beeps: int = 0
     ) -> StatusModel:
-        """Post remote command to the vehicle.
+        """Send a remote command to a vehicle.
 
         Args:
-            vin (str): The vehicles VIN
-            command (CommandType): The command type
-            beeps (int): Amount of beeps for commands that support it
+            vin: Vehicle Identification Number
+            command: Type of command to send
+            beeps: Number of beeps for commands that support it
 
         Returns:
-            StatusModel: A pydantic model for the command status response
+            Model containing status of the command request
 
         """
         remote_command = RemoteCommandModel(beep_count=beeps, command=command)
-        parsed_response: StatusModel = await self._request_and_parse(
+        return await self._request_and_parse(
             StatusModel,
             "POST",
             VEHICLE_COMMAND_ENDPOINT,
             vin=vin,
             body=remote_command.dict(exclude_unset=True, by_alias=True),
         )
-        _LOGGER.debug(msg=f"Parsed 'StatusModel': {parsed_response}")
-        return parsed_response
