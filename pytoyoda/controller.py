@@ -204,9 +204,11 @@ class Controller:
                 f"Authorization failed. {resp.status_code}, {resp.text}."
             )
 
-        return parse.parse_qs(httpx.URL(resp.headers.get("location")).query.decode())[
-            "code"
-        ]
+        return str(
+            parse.parse_qs(httpx.URL(resp.headers.get("location")).query.decode())[
+                "code"
+            ]
+        )
 
     async def _retrieve_tokens(self, client, auth_code: str) -> Dict[str, Any]:
         """Retrieve access and refresh tokens.
@@ -276,11 +278,9 @@ class Controller:
         """
         # Verify all required tokens are present
         required_fields = ["access_token", "id_token", "refresh_token", "expires_in"]
-        missing_fields = [
+        if missing_fields := [
             field for field in required_fields if field not in response_data
-        ]
-
-        if missing_fields:
+        ]:
             raise ToyotaLoginError(
                 f"Token retrieval failed. Missing fields: {', '.join(missing_fields)}"
             )
@@ -397,7 +397,7 @@ class Controller:
 
         # Add additional headers
         if additional_headers:
-            headers.update(additional_headers)
+            headers |= additional_headers
 
         return headers
 
