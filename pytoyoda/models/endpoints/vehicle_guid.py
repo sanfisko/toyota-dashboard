@@ -4,7 +4,7 @@ from datetime import date
 from typing import Any, Dict, List, Optional, Union
 from uuid import UUID
 
-from pydantic.v1 import Field
+from pydantic import Field
 
 from pytoyoda.models.endpoints.common import StatusModel
 from pytoyoda.utils.models import CustomBaseModel

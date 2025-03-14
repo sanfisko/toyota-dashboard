@@ -3,8 +3,7 @@
 from enum import Enum
 from typing import Optional
 
-from pydantic import ConfigDict
-from pydantic.v1 import Field
+from pydantic import ConfigDict, Field
 
 from pytoyoda.utils.models import CustomBaseModel
 

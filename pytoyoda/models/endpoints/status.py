@@ -3,7 +3,7 @@
 from datetime import datetime
 from typing import List, Optional
 
-from pydantic.v1 import Field
+from pydantic import Field
 
 from pytoyoda.models.endpoints.common import StatusModel, UnitValueModel
 from pytoyoda.utils.models import CustomBaseModel

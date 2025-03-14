@@ -2,8 +2,7 @@
 
 from typing import Any, Dict
 
-from pydantic import ConfigDict, model_validator
-from pydantic.v1 import BaseModel, ValidationError
+from pydantic import BaseModel, ConfigDict, ValidationError, model_validator
 
 
 class CustomBaseModel(BaseModel):
