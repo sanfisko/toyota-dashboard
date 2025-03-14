@@ -13,7 +13,7 @@ authors = [{name = "Simon Grud Hansen", email = "simongrud@gmail.com"}]
 requires-python = '>=3.9,<4.0'
 
 [project.urls]
-homepage = "https://github.com/pytoyoda/pytoyoda"
+homepage = "https://pytoyoda.github.io/pytoyoda/pytoyoda.html"
 repository = "https://github.com/pytoyoda/pytoyoda"
 "Bug Tracker" = "https://github.com/pytoyoda/pytoyoda/issues"
 "Release Notes" = "https://github.com/pytoyoda/pytoyoda/releases"
