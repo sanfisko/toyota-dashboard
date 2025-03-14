@@ -1,29 +1,11 @@
 """Conversion utilities for distance and fuel efficiency."""
 
-from enum import Enum, auto
-from typing import Union
-
 from loguru import logger
 
 # Conversion constants
 KM_TO_MILES = 0.621371192
 MILES_TO_KM = 1.60934
 L_TO_MPG_FACTOR = 282.5
-
-
-class DistanceUnit(Enum):
-    """Distance units."""
-
-    KM = "km"
-    MILES = "miles"
-
-
-class FuelUnit(Enum):
-    """Fuel efficiency units."""
-
-    L_PER_100KM = auto()
-    L_PER_100MILES = auto()
-    MPG = auto()
 
 
 def convert_to_miles(kilometers: float) -> float:
@@ -55,8 +37,8 @@ def convert_to_km(miles: float) -> float:
 
 
 def convert_distance(
-    convert_to: Union[str, DistanceUnit],
-    convert_from: Union[str, DistanceUnit],
+    convert_to: str,
+    convert_from: str,
     value: float,
     decimal_places: int = 3,
 ):
@@ -72,14 +54,9 @@ def convert_distance(
         Converted distance value
 
     """
-    if isinstance(convert_to, str):
-        convert_to = DistanceUnit(convert_to)
-    if isinstance(convert_from, str):
-        convert_from = DistanceUnit(convert_from)
-
     if convert_to == convert_from:
         return round(value, decimal_places)
-    if convert_to == DistanceUnit.KM:
+    if convert_to == "km":
         return round(convert_to_km(value), decimal_places)
     return round(convert_to_miles(value), decimal_places)
 
