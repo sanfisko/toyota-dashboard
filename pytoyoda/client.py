@@ -34,6 +34,7 @@ class MyT:
     Attributes:
         username: The email address used for Toyota account login
         password: The password used for Toyota account login
+        use_metric: Whether to use metric units (True) or imperial units (False)
 
     """
 
@@ -41,16 +42,16 @@ class MyT:
         self,
         username: str,
         password: str,
-        controller_class: Type[Controller] = Controller,
         use_metric: bool = True,
+        controller_class: Type[Controller] = Controller,
     ) -> None:
         """Initialize the Toyota Connected Services client.
 
         Args:
             username: Email address for Toyota account login
             password: Password for Toyota account
-            controller_class: Controller class to use for API communication
             use_metric: Whether to use metric units (True) or imperial units (False)
+            controller_class: Controller class to use for API communication
 
         Raises:
             ToyotaInvalidUsernameError: If username is invalid or missing @ symbol
@@ -61,10 +62,12 @@ class MyT:
                 "Invalid username format. Must be a valid email address."
             )
 
-        self.username = username
-        self._password = password
-        self._controller = controller_class(username=username, password=password)
-        self._api = Api(self._controller)
+        self._api = Api(
+            controller_class(
+                username=username,
+                password=password,
+            ),
+        )
         self._use_metric = use_metric
 
         logger.debug("MyT client initialized for user: %s", username)
@@ -101,15 +104,15 @@ class MyT:
         """
         logger.debug("Retrieving vehicles associated with account")
 
-        vehicles_response = await self._api.get_vehicles()
+        vehicles = await self._api.get_vehicles()
 
-        if not vehicles_response.payload:
+        if not vehicles.payload:
             logger.info("No vehicles found for this account")
             return []
 
-        logger.debug("Found %d vehicles", len(vehicles_response.payload))
+        logger.debug("Found %d vehicles", len(vehicles.payload))
 
         return [
             Vehicle(self._api, vehicle_data, metric=self._use_metric)
-            for vehicle_data in vehicles_response.payload
+            for vehicle_data in vehicles.payload
         ]
