@@ -1,14 +1,17 @@
-name: "Lint code"
+name: "autofix.ci"
 
 on:
+  workflow_call:
   pull_request:
+  push:
+    branches: ["main"]
+permissions:
+  contents: read
 
 jobs:
-  pre-commit:
-    name: "Pre-commit"
+  autofix:
+    name: "pre-commit & autofix"
     runs-on: "ubuntu-latest"
-    permissions:
-      contents: read
     steps:
       - name: "⤵️ Check out code from GitHub"
         uses: "actions/checkout@v4"
@@ -23,3 +26,5 @@ jobs:
       - name: "🚀 Run pre-commit on all files"
         run: |
           poetry run pre-commit run --all-files --show-diff-on-failure --color=always
+      - name: "🛠️ Autofix pre-commit errors"
+        uses: autofix-ci/action@551dded8c6cc8a1054039c8bc0b8b48c51dfc6ef
