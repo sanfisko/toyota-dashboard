@@ -57,6 +57,7 @@ repos:
         name: "📜 Format python docstrings"
         language: system
         entry: poetry run docformatter --in-place --blank
+        pass_filenames: true
         always_run: true
       - id: ruff-check
         name: "🐶 Ruff Linter"
