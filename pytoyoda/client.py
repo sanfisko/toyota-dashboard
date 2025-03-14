@@ -3,31 +3,37 @@
 A client for connecting to MyT (Toyota Connected Services) and retrieving vehicle
 information, sensor data, fuel level, driving statistics and more.
 
-  Typical usage example:
-
-  client = MyT()
-  vehicles = await client.get_vehicles()
+Example:
+    ```python
+    client = MyT(username="user@example.com", password="password")
+    await client.login()
+    vehicles = await client.get_vehicles()
+    for vehicle in vehicles:
+        await vehicle.update()
+        print(f"Dashboard: {vehicle.dashboard}")
+    ```
 
 """
 
-from typing import List, Optional
+from typing import List, Optional, Type
 
 from loguru import logger
 
 from pytoyoda.api import Api
+from pytoyoda.controller import Controller
+from pytoyoda.exceptions import ToyotaInvalidUsernameError, ToyotaLoginError
 from pytoyoda.models.vehicle import Vehicle
-
-from .controller import Controller
-from .exceptions import ToyotaInvalidUsernameError
 
 
 class MyT:
-    """Connected Services client.
+    """Toyota Connected Services client.
 
-    Connected services client class.
+    Provides a simple interface to access Toyota Connected Services data
+    for vehicles associated with a Toyota account.
 
-    NOTE: Only tested with Toyota endpoints to this point.
-        Do you have a Lexus/Subaru and are willing to help?
+    Attributes:
+        username: The email address used for Toyota account login
+        password: The password used for Toyota account login
 
     """
 
@@ -35,35 +41,75 @@ class MyT:
         self,
         username: str,
         password: str,
-        controller_class=Controller,
+        controller_class: Type[Controller] = Controller,
+        use_metric: bool = True,
     ) -> None:
-        """Initialise Connected Services client."""
-        if username is None or "@" not in username:
-            raise ToyotaInvalidUsernameError
+        """Initialize the Toyota Connected Services client.
 
-        self._api = Api(
-            controller_class(
-                username=username,
-                password=password,
-            ),
-        )
+        Args:
+            username: Email address for Toyota account login
+            password: Password for Toyota account
+            controller_class: Controller class to use for API communication
+            use_metric: Whether to use metric units (True) or imperial units (False)
 
-    async def login(self) -> None:
-        """Perform first login.
-
-        Performs first login to Toyota's servers. Should be ideally be
-        used the very first time you login in. Fetches a token and
-        stores it in the controller object for future use.
+        Raises:
+            ToyotaInvalidUsernameError: If username is invalid or missing @ symbol
 
         """
-        logger.debug("Performing first login")
-        await self._api.controller.login()
+        if not username or "@" not in username:
+            raise ToyotaInvalidUsernameError(
+                "Invalid username format. Must be a valid email address."
+            )
 
-    async def get_vehicles(self, metric: bool = True) -> Optional[List[Vehicle]]:
-        """Return a list of vehicles."""
-        logger.debug("Getting list of vehicles associated with the account")
-        vehicles = await self._api.get_vehicles()
-        if vehicles.payload is not None:
-            return [Vehicle(self._api, v, metric) for v in vehicles.payload]
+        self.username = username
+        self._password = password
+        self._controller = controller_class(username=username, password=password)
+        self._api = Api(self._controller)
+        self._use_metric = use_metric
 
-        return []
+        logger.debug("MyT client initialized for user: %s", username)
+
+    async def login(self) -> None:
+        """Perform initial login to Toyota Connected Services.
+
+        This should be called before making any API requests to ensure
+        proper authentication. It will fetch and store access tokens
+        for subsequent requests.
+
+        Raises:
+            ToyotaLoginError: If login fails for any reason
+
+        """
+        logger.debug("Performing initial login")
+        try:
+            await self._controller.login()
+            logger.debug("Login successful")
+        except ToyotaLoginError as error:
+            logger.error("Login failed: %s", str(error))
+            raise
+
+    async def get_vehicles(self) -> List[Optional[Vehicle]]:
+        """Retrieve all vehicles associated with the account.
+
+        Returns:
+            List of Vehicle objects associated with the account. Empty list if no
+            vehicles are found.
+
+        Raises:
+            ToyotaLoginError: If not properly authenticated
+
+        """
+        logger.debug("Retrieving vehicles associated with account")
+
+        vehicles_response = await self._api.get_vehicles()
+
+        if not vehicles_response.payload:
+            logger.info("No vehicles found for this account")
+            return []
+
+        logger.debug("Found %d vehicles", len(vehicles_response.payload))
+
+        return [
+            Vehicle(self._api, vehicle_data, metric=self._use_metric)
+            for vehicle_data in vehicles_response.payload
+        ]
