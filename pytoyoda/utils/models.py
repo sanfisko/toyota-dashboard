@@ -2,7 +2,8 @@
 
 from typing import Any, Dict
 
-from pydantic.v1 import BaseModel, ValidationError, root_validator
+from pydantic import ConfigDict, model_validator
+from pydantic.v1 import BaseModel, ValidationError
 
 
 class CustomBaseModel(BaseModel):
@@ -23,15 +24,13 @@ class CustomBaseModel(BaseModel):
 
     """
 
-    class Config:
-        """Pydantic model configuration."""
+    model_config = ConfigDict(
+        arbitrary_types_allowed=True, validate_assignment=True, extra="ignore"
+    )
 
-        arbitrary_types_allowed = True
-        validate_assignment = True
-        extra = "ignore"
-
-    @root_validator(pre=True)
-    def invalid_to_none(cls, values: Dict[str, Any]) -> Dict[str, Any]:  # noqa: N805
+    @model_validator(mode="before")
+    @classmethod
+    def invalid_to_none(cls, values: Dict[str, Any]) -> Dict[str, Any]:
         """Convert invalid values to None during validation.
 
         For each field in the model, attempt validation. If validation fails,
