@@ -341,7 +341,7 @@ class Api:
             "PUT",
             VEHICLE_CLIMATE_SETTINGS_ENDPOINT,
             vin=vin,
-            body=settings.dict(exclude_unset=True, by_alias=True),
+            body=settings.model_dump(exclude_unset=True, by_alias=True),
         )
 
     async def send_climate_control_command(
@@ -362,7 +362,7 @@ class Api:
             "POST",
             VEHICLE_CLIMATE_CONTROL_ENDPOINT,
             vin=vin,
-            body=command.dict(exclude_unset=True, by_alias=True),
+            body=command.model_dump(exclude_unset=True, by_alias=True),
         )
 
     # Trip Data
@@ -426,5 +426,5 @@ class Api:
             "POST",
             VEHICLE_COMMAND_ENDPOINT,
             vin=vin,
-            body=remote_command.dict(exclude_unset=True, by_alias=True),
+            body=remote_command.model_dump(exclude_unset=True, by_alias=True),
         )
