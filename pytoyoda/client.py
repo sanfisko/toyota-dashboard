@@ -82,7 +82,7 @@ class MyT:
         """
         logger.debug("Performing initial login")
         try:
-            await self._controller.login()
+            await self._api.controller.login()
             logger.debug("Login successful")
         except ToyotaLoginError as error:
             logger.error("Login failed: %s", str(error))

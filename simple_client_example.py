@@ -44,7 +44,7 @@ if not credentials:
 USERNAME = credentials["username"]
 PASSWORD = credentials["password"]
 
-client = MyT(username=USERNAME, password=PASSWORD)
+client = MyT(username=USERNAME, password=PASSWORD, use_metric=True)
 
 
 async def get_information():
@@ -53,7 +53,7 @@ async def get_information():
     await client.login()
 
     logger.info("Retrieving cars...")
-    cars = await client.get_vehicles(metric=True)
+    cars = await client.get_vehicles()
 
     for car in cars:
         # Send command to car
