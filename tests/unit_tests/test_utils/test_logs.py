@@ -113,7 +113,7 @@ def test_censor_string(string, expected):  # noqa: D103
             404,
             {"Content-Type": "text/html"},
             "<html>Not Found</html>",
-            "Request:\n  Method : GET\n  URL    : https://example.com/notfound\n  Headers: Headers({'host': 'example.com', 'accept': 'application/json'})\n  Body   : \nResponse:\n  Status : (404,Not Found)\n  Headers: Headers({'content-type': 'text/html', 'content-length': '22'})\n  Content: <html>Not Found</html>",  # noqa : E501
+            "Request:\n  Method : GET\n  URL    : https://example.com/notfound\n  Headers: Headers({'host': 'example.com', 'accept': 'application/json'})\n  Body   : \nResponse:\n  Status : (404, Not Found)\n  Headers: Headers({'content-type': 'text/html', 'content-length': '22'})\n  Content: <html>Not Found</html>",  # noqa : E501
         ),
     ],
 )
