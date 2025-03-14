@@ -110,11 +110,11 @@ async def test_get_static_data(httpx_mock: HTTPXMock):  # noqa: D103
     # Ensure expired cache file.
     build_routes(httpx_mock, ["get_static_data.json"])
 
-    client = MyT(TEST_USER, TEST_PASSWORD)
+    client = MyT(TEST_USER, TEST_PASSWORD, use_metric=True)
     # Nothing validates this is correct,
     # just replays a refresh token sequence
     await client.login()
-    cars = await client.get_vehicles(metric=True)
+    cars = await client.get_vehicles()
     car = cars[0]
     await car.update()
 
