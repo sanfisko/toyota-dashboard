@@ -1,38 +1,125 @@
-"""Conversion utilities used."""
+"""Conversion utilities for distance and fuel efficiency."""
+
+from enum import Enum, auto
+from typing import Union
 
 from loguru import logger
 
+# Conversion constants
+KM_TO_MILES = 0.621371192
+MILES_TO_KM = 1.60934
+L_TO_MPG_FACTOR = 282.5
+
+
+class DistanceUnit(Enum):
+    """Distance units."""
+
+    KM = "km"
+    MILES = "miles"
+
+
+class FuelUnit(Enum):
+    """Fuel efficiency units."""
+
+    L_PER_100KM = auto()
+    L_PER_100MILES = auto()
+    MPG = auto()
+
 
 def convert_to_miles(kilometers: float) -> float:
-    """Convert kilometers to miles."""
+    """Convert kilometers to miles.
+
+    Args:
+        kilometers: Distance in kilometers
+
+    Returns:
+        Equivalent distance in miles
+
+    """
+    if kilometers < 0:
+        raise ValueError("Distance cannot be negative")
     logger.debug("Converting %s kilometers to miles...", kilometers)
-    return kilometers * 0.621371192
+    return kilometers * KM_TO_MILES
 
 
 def convert_to_km(miles: float) -> float:
-    """Convert kilometers to miles."""
+    """Convert miles to kilometers.
+
+    Args:
+        miles: Distance in miles
+
+    Returns:
+        Equivalent distance in kilometers
+
+    """
+    if miles < 0:
+        raise ValueError("Distance cannot be negative")
     logger.debug("Converting %s miles to kilometers...", miles)
-    return miles * 1.60934
+    return miles * MILES_TO_KM
 
 
 def convert_distance(
-    convert_to: str, convert_from: str, value: float, decimal_places: int = 3
+    convert_to: Union[str, DistanceUnit],
+    convert_from: Union[str, DistanceUnit],
+    value: float,
+    decimal_places: int = 3,
 ):
-    """Convert distance for kilometers and miles."""
+    """Convert distance between kilometers and miles.
+
+    Args:
+        convert_to: Target unit ("km" or "miles")
+        convert_from: Source unit ("km" or "miles")
+        value: Distance value to convert
+        decimal_places: Number of decimal places for result rounding
+
+    Returns:
+        Converted distance value
+
+    """
+    if value < 0:
+        raise ValueError("Distance cannot be negative")
+
+    if isinstance(convert_to, str):
+        convert_to = DistanceUnit(convert_to)
+    if isinstance(convert_from, str):
+        convert_from = DistanceUnit(convert_from)
+
     if convert_to == convert_from:
         return round(value, decimal_places)
-    if convert_to == "km":
+    if convert_to == DistanceUnit.KM:
         return round(convert_to_km(value), decimal_places)
     return round(convert_to_miles(value), decimal_places)
 
 
 def convert_to_liter_per_100_miles(liters: float) -> float:
-    """Convert liters per 100 km to liters per 100 miles."""
-    logger.debug("Converting %s liters to L/100miles...", liters)
-    return round(liters * 1.609344, 4)
+    """Convert liters per 100 km to liters per 100 miles.
+
+    Args:
+        liters: Fuel consumption in liters per 100 km
+
+    Returns:
+        Fuel consumption in liters per 100 miles
+
+    """
+    if liters < 0:
+        raise ValueError("Fuel consumption cannot be negative")
+    logger.debug("Converting %s L/100km to L/100miles...", liters)
+    return round(liters * MILES_TO_KM, 4)
 
 
 def convert_to_mpg(liters_per_100_km: float) -> float:
-    """Convert to miles per UK gallon (MPG)."""
+    """Convert to miles per UK gallon (MPG).
+
+    Args:
+        liters_per_100_km: Fuel consumption in liters per 100 km
+
+    Returns:
+        Fuel efficiency in miles per gallon
+
+    """
+    if liters_per_100_km < 0:
+        raise ValueError("Fuel consumption cannot be negative")
     logger.debug("Converting %s L/100km to MPG...", liters_per_100_km)
-    return round(282.5 / liters_per_100_km, 4) if liters_per_100_km > 0.0 else 0.0
+    return (
+        round(L_TO_MPG_FACTOR / liters_per_100_km, 4) if liters_per_100_km > 0 else 0.0
+    )
