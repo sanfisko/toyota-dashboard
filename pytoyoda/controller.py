@@ -182,7 +182,7 @@ class Controller:
             "Authentication Failed. Token ID not received after multiple attempts."
         )
 
-    async def _perform_authorization(self, client, token_id: str) -> str:
+    async def _perform_authorization(self, client, token_id: str) -> list[str]:
         """Perform the authorization part of the login flow.
 
         Args:
@@ -204,13 +204,11 @@ class Controller:
                 f"Authorization failed. {resp.status_code}, {resp.text}."
             )
 
-        return str(
-            parse.parse_qs(httpx.URL(resp.headers.get("location")).query.decode())[
-                "code"
-            ]
-        )
+        return parse.parse_qs(httpx.URL(resp.headers.get("location")).query.decode())[
+            "code"
+        ]
 
-    async def _retrieve_tokens(self, client, auth_code: str) -> Dict[str, Any]:
+    async def _retrieve_tokens(self, client, auth_code: list[str]) -> Dict[str, Any]:
         """Retrieve access and refresh tokens.
 
         Args:

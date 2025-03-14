@@ -15,7 +15,7 @@ from pytoyoda.models.summary import SummaryType
 # from pytoyoda.models.endpoints.command import CommandType
 
 logger.remove(0)
-logger.add(sys.stderr, level="INFO")
+logger.add(sys.stderr, level="DEBUG")
 
 
 # Set your username and password in a file on top level called "credentials.json" in the format: # noqa: E501
