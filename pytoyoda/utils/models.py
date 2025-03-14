@@ -37,9 +37,6 @@ class CustomBaseModel(BaseModel):
                 continue
             validator = WrapValidator(invalid_to_none)
             if get_origin(annotation) is Annotated:
-                cls.__annotations__[name] = Annotated[
-                    *get_args(annotation),
-                    validator,
-                ]
+                cls.__annotations__[name] = Annotated[*get_args(annotation), validator]
             else:
                 cls.__annotations__[name] = Annotated[annotation, validator]
