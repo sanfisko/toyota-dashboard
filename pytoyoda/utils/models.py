@@ -1,8 +1,16 @@
 """Utilities for manipulating or extending pydantic models."""
 
-from typing import Any, Dict
+from collections.abc import Callable
+from typing import Annotated, Any, get_args, get_origin
 
-from pydantic import BaseModel, ConfigDict, ValidationError, model_validator
+from pydantic import BaseModel, ValidationError, WrapValidator
+
+
+def invalid_to_none(v: Any, handler: Callable[[Any], Any]) -> Any:  # noqa: D103
+    try:
+        return handler(v)
+    except ValidationError:
+        return None
 
 
 class CustomBaseModel(BaseModel):
@@ -23,45 +31,15 @@ class CustomBaseModel(BaseModel):
 
     """
 
-    model_config = ConfigDict(
-        arbitrary_types_allowed=True, validate_assignment=True, extra="ignore"
-    )
-
-    @model_validator(mode="before")
-    @classmethod
-    def invalid_to_none(cls, values: Dict[str, Any]) -> Dict[str, Any]:
-        """Convert invalid values to None during validation.
-
-        For each field in the model, attempt validation. If validation fails,
-        set the field value to None instead of raising an exception.
-
-        Args:
-            values: Dictionary of field values to validate
-
-        Returns:
-            Dictionary with invalid values replaced by None
-
-        """
-        validated_values: Dict[str, Any] = {}
-
-        for name, value in values.items():
-            # Skip fields not defined in the model
-            field = cls.__fields__.get(name)
-            if field is None:
+    def __init_subclass__(cls, **kwargs: Any) -> None:  # noqa: D105
+        for name, annotation in cls.__annotations__.items():
+            if name.startswith("_"):  # exclude protected/private attributes
                 continue
-
-            # Try to validate the field
-            try:
-                validated_value, _ = field.validate(
-                    value,
-                    validated_values,
-                    loc="__root__",
-                    cls=cls,  # type: ignore[arg-type]
-                )
-                validated_values[name] = validated_value
-            except ValidationError:
-                # If validation fails, set to None
-                values[name] = None
-                validated_values[name] = None
-
-        return values
+            validator = WrapValidator(invalid_to_none)
+            if get_origin(annotation) is Annotated:
+                cls.__annotations__[name] = Annotated[
+                    *get_args(annotation),
+                    validator,
+                ]
+            else:
+                cls.__annotations__[name] = Annotated[annotation, validator]
