@@ -36,8 +36,6 @@ def convert_to_miles(kilometers: float) -> float:
         Equivalent distance in miles
 
     """
-    if kilometers < 0:
-        raise ValueError("Distance cannot be negative")
     logger.debug("Converting %s kilometers to miles...", kilometers)
     return kilometers * KM_TO_MILES
 
@@ -52,8 +50,6 @@ def convert_to_km(miles: float) -> float:
         Equivalent distance in kilometers
 
     """
-    if miles < 0:
-        raise ValueError("Distance cannot be negative")
     logger.debug("Converting %s miles to kilometers...", miles)
     return miles * MILES_TO_KM
 
@@ -76,9 +72,6 @@ def convert_distance(
         Converted distance value
 
     """
-    if value < 0:
-        raise ValueError("Distance cannot be negative")
-
     if isinstance(convert_to, str):
         convert_to = DistanceUnit(convert_to)
     if isinstance(convert_from, str):
@@ -101,8 +94,6 @@ def convert_to_liter_per_100_miles(liters: float) -> float:
         Fuel consumption in liters per 100 miles
 
     """
-    if liters < 0:
-        raise ValueError("Fuel consumption cannot be negative")
     logger.debug("Converting %s L/100km to L/100miles...", liters)
     return round(liters * MILES_TO_KM, 4)
 
@@ -117,8 +108,6 @@ def convert_to_mpg(liters_per_100_km: float) -> float:
         Fuel efficiency in miles per gallon
 
     """
-    if liters_per_100_km < 0:
-        raise ValueError("Fuel consumption cannot be negative")
     logger.debug("Converting %s L/100km to MPG...", liters_per_100_km)
     return (
         round(L_TO_MPG_FACTOR / liters_per_100_km, 4) if liters_per_100_km > 0 else 0.0
