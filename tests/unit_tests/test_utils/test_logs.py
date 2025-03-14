@@ -117,7 +117,7 @@ def test_censor_string(string, expected):  # noqa: D103
         ),
     ],
 )
-def test_format_httpx_response(  # noqa : PLR0913
+def test_format_httpx_response(  # noqa : PLR0913,D103
     method,
     url,
     request_headers,

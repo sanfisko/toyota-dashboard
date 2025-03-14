@@ -13,7 +13,7 @@ authors = [{name = "Simon Grud Hansen", email = "simongrud@gmail.com"}]
 requires-python = '>=3.9,<4.0'
 
 [project.urls]
-homepage = "https://github.com/pytoyoda/pytoyoda"
+homepage = "https://pytoyoda.github.io/pytoyoda/pytoyoda.html"
 repository = "https://github.com/pytoyoda/pytoyoda"
 "Bug Tracker" = "https://github.com/pytoyoda/pytoyoda/issues"
 "Release Notes" = "https://github.com/pytoyoda/pytoyoda/releases"
@@ -38,25 +38,22 @@ classifiers = [
 requires-poetry = '>=2.0,<3.0'
 
 [tool.poetry.dependencies]
-langcodes = "^3.1"
-httpx = ">=0.18.1"
 arrow = "^1.1"
-importlib-metadata = "^8.0.0"
-pyjwt = "^2.8.0"
-pydantic = "^2.10.4"
 hishel = "^0.1.0"
+httpx = "^0.28.1"
+importlib-metadata = "^8.0.0"
+langcodes = "^3.1"
+loguru = "^0.7.3"
+pydantic = "^2.10.4"
+pyjwt = "^2.8.0"
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^4.0.0"
-pre-commit-hooks = "^5.0.0"
-ruff = "^0.9.0"
-codespell = "^2.0.0"
-docformatter = "^1.7.5"
 pytest = "^8.0.0"
-pytest-cov = "^6.0.0"
-pytest-pretty = "^1.2.0"
 pytest-asyncio = "^0.25.0"
+pytest-cov = "^6.0.0"
 pytest-httpx = "^0.35.0"
+pytest-sugar = "^1.0.0"
 
 [tool.poetry.group.docs.dependencies]
 pdoc = "^15.0.1"

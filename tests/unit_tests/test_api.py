@@ -153,7 +153,7 @@ async def test_api_request_and_parse_endpoints(  # NOQA: PLR0913
     """
     # Arrange
 
-    with open(  # noqa : ASYNC101
+    with open(  # noqa : ASYNC230
         f"{data_folder}/{response_data_json_path}.json", "r", encoding="utf-8"
     ) as f:
         response_data = json.load(f)

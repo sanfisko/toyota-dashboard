@@ -1,9 +1,10 @@
 """Toyota Connected Services API."""
 
-import logging
 from datetime import date, datetime, timezone
 from typing import Any, Dict, Type, TypeVar, Union
 from uuid import uuid4
+
+from loguru import logger
 
 from pytoyoda.const import (
     VEHICLE_ASSOCIATION_ENDPOINT,
@@ -40,8 +41,6 @@ from pytoyoda.models.endpoints.telemetry import TelemetryResponseModel
 from pytoyoda.models.endpoints.trips import TripsResponseModel
 from pytoyoda.models.endpoints.vehicle_guid import VehiclesResponseModel
 from pytoyoda.models.endpoints.vehicle_health import VehicleHealthResponseModel
-
-_LOGGER: logging.Logger = logging.getLogger(__name__)
 
 # Type variable for generic model handling
 T = TypeVar(
@@ -97,7 +96,7 @@ class Api:
             method=method, endpoint=endpoint, **kwargs
         )
         parsed_response = model(**response)
-        _LOGGER.debug(f"Parsed '{model.__name__}': {parsed_response}")
+        logger.debug(f"Parsed '{model.__name__}': {parsed_response}")
         return parsed_response
 
     async def _create_standard_headers(self) -> Dict[str, str]:

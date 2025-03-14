@@ -1,14 +1,17 @@
-name: "Lint code"
+name: "pre-commit"
 
 on:
+  workflow_call:
   pull_request:
+  push:
+    branches: ["main"]
+permissions:
+  contents: read
 
 jobs:
   pre-commit:
-    name: "Pre-commit"
+    name: "pre-commit"
     runs-on: "ubuntu-latest"
-    permissions:
-      contents: read
     steps:
       - name: "⤵️ Check out code from GitHub"
         uses: "actions/checkout@v4"

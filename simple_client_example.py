@@ -2,8 +2,11 @@
 
 import asyncio
 import json
-import pprint
+import sys
 from datetime import date, timedelta
+from pprint import pformat
+
+from loguru import logger
 
 from pytoyoda.client import MyT
 from pytoyoda.models.summary import SummaryType
@@ -11,7 +14,8 @@ from pytoyoda.models.summary import SummaryType
 # from pytoyoda.models.endpoints.climate import ACOperations, ACParameters, ClimateSettingsModel  # noqa: E501
 # from pytoyoda.models.endpoints.command import CommandType
 
-pp = pprint.PrettyPrinter(indent=4)
+logger.remove(0)
+logger.add(sys.stderr, level="INFO")
 
 
 # Set your username and password in a file on top level called "credentials.json" in the format: # noqa: E501
@@ -45,15 +49,15 @@ client = MyT(username=USERNAME, password=PASSWORD)
 
 async def get_information():
     """Test login and output from endpoints."""
-    print("Logging in...")
+    logger.info("Logging in...")
     await client.login()
 
-    print("Retrieving cars...")
+    logger.info("Retrieving cars...")
     cars = await client.get_vehicles(metric=True)
 
     for car in cars:
         # Send command to car
-        # pp.pprint(await car.post_command(command=CommandType.DOOR_LOCK))
+        # logger.info(await car.post_command(command=CommandType.DOOR_LOCK))
         # return
         # Get climate status
         # response = await car._api.get_climate_status(car.vin)
@@ -79,40 +83,42 @@ async def get_information():
         await car.update()
 
         # Dashboard Information
-        pp.pprint(f"Dashboard: {car.dashboard}")
+        logger.info(pformat(f"Dashboard: {car.dashboard}"))
         # Electric Status Information
-        pp.pprint(f"Electric Status: {car.electric_status}")
+        logger.info(pformat(f"Electric Status: {car.electric_status}"))
         # Location Information
-        pp.pprint(f"Location: {car.location}")
+        logger.info(pformat(f"Location: {car.location}"))
         # Lock Status
-        pp.pprint(f"Lock Status: {car.lock_status}")
+        logger.info(pformat(f"Lock Status: {car.lock_status}"))
         # Notifications
-        pp.pprint(f"Notifications: {[[x] for x in car.notifications]}")
+        logger.info(pformat(f"Notifications: {[[x] for x in car.notifications]}"))
         # Service history
-        pp.pprint(f"Latest service: {car.get_latest_service_history()}")
+        logger.info(pformat(f"Latest service: {car.get_latest_service_history()}"))
         # Last trip distance
-        pp.pprint(f"Last trip distance: {car.last_trip.distance}")
+        logger.info(pformat(f"Last trip distance: {car.last_trip.distance}"))
         # Summary
-        # pp.pprint(
-        #    f"Summary: {[[x] for x in await car.get_summary(date.today() - timedelta(days=7), date.today(), summary_type=SummaryType.DAILY)]}"  # noqa: E501 # pylint: disable=C0301
-        # )
-        # pp.pprint(
-        #    f"Summary: {[[x] for x in await car.get_summary(date.today() - timedelta(days=7 * 4), date.today(), summary_type=SummaryType.WEEKLY)]}"  # noqa: E501 # pylint: disable=C0301
-        # )
-        pp.pprint(
-            f"Summary: {[[x] for x in await car.get_summary(date.today() - timedelta(days=6 * 30), date.today(), summary_type=SummaryType.MONTHLY)]}"  # noqa: E501
+        # logger.info(pformat(
+        #    f"Daily summary: {[[x] for x in await car.get_summary(date.today() - timedelta(days=7), date.today(), summary_type=SummaryType.DAILY)]}"  # noqa: E501 # pylint: disable=C0301
+        # ))
+        # logger.info(pformat(
+        #    f"Weekly summary: {[[x] for x in await car.get_summary(date.today() - timedelta(days=7 * 4), date.today(), summary_type=SummaryType.WEEKLY)]}"  # noqa: E501 # pylint: disable=C0301
+        # ))
+        logger.info(
+            pformat(
+                f"Monthly summary: {[[x] for x in await car.get_summary(date.today() - timedelta(days=6 * 30), date.today(), summary_type=SummaryType.MONTHLY)]}"  # noqa: E501
+            )
         )
-        # pp.pprint(
-        #    f"Summary: {[[x] for x in await car.get_summary(date.today() - timedelta(days=365), date.today(), summary_type=SummaryType.YEARLY)]}"  # noqa: E501 # pylint: disable=C0301
-        # )
+        # logger.info(pformat(
+        #    f"Yearly summary: {[[x] for x in await car.get_summary(date.today() - timedelta(days=365), date.today(), summary_type=SummaryType.YEARLY)]}"  # noqa: E501 # pylint: disable=C0301
+        # ))
 
         # Trips
-        # pp.pprint(
+        # logger.info(pformat(
         #    f"Trips: f{await car.get_trips(date.today() - timedelta(days=7), date.today(), full_route=True)}"  # noqa: E501
-        # )
+        # ))
 
         # Dump all the information collected so far:
-        # pp.pprint(car._dump_all())
+        # logger.info(pformat(car._dump_all()))
 
 
 loop = asyncio.new_event_loop()
