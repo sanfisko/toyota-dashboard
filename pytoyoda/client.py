@@ -5,7 +5,7 @@ information, sensor data, fuel level, driving statistics and more.
 
 Example:
     ```python
-    client = MyT(username="user@example.com", password="password")
+    client = MyT(username="user@example.com", password="password", use_metric=True)
     await client.login()
     vehicles = await client.get_vehicles()
     for vehicle in vehicles:
