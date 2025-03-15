@@ -6,7 +6,17 @@ from typing import Annotated, Any, get_args, get_origin
 from pydantic import BaseModel, ValidationError, WrapValidator
 
 
-def invalid_to_none(v: Any, handler: Callable[[Any], Any]) -> Any:  # noqa: D103
+def invalid_to_none(v: Any, handler: Callable[[Any], Any]) -> Any:
+    """Return None for failed validations otherwise original value.
+
+    Args:
+        v: Value to validate
+        handler: Original validation handler
+
+    Returns:
+        Validated value or None if validation fails
+
+    """
     try:
         return handler(v)
     except ValidationError:
@@ -31,12 +41,26 @@ class CustomBaseModel(BaseModel):
 
     """
 
-    def __init_subclass__(cls, **kwargs: Any) -> None:  # noqa: D105
+    def __init_subclass__(cls, **kwargs: Any) -> None:
+        """Automatically add validation wrapper to all fields of subclasses.
+
+        This method is called when a subclass of CustomBaseModel is created.
+        It adds the invalid_to_none validator to each field annotation.
+        """
         for name, annotation in cls.__annotations__.items():
-            if name.startswith("_"):  # exclude protected/private attributes
+            # Skip private/protected attributes
+            if name.startswith("_"):
                 continue
+
+            # Apply the validator wrapper
             validator = WrapValidator(invalid_to_none)
+
+            # Handle already Annotated fields
             if get_origin(annotation) is Annotated:
-                cls.__annotations__[name] = Annotated[get_args(annotation), validator]
+                base_type = get_args(annotation)[0]
+                existing_metadata = get_args(annotation)[1:]
+                cls.__annotations__[name] = Annotated[
+                    base_type, validator, *existing_metadata
+                ]
             else:
                 cls.__annotations__[name] = Annotated[annotation, validator]
