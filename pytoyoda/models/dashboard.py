@@ -30,7 +30,7 @@ class Dashboard(CustomAPIBaseModel[Any]):
         metric: bool = True,
         **kwargs,
     ):
-        """Initialise Dashboard.
+        """Initialise Dashboard model.
 
         Args:
             telemetry (Optional[TelemetryResponseModel]): Telemetry response model

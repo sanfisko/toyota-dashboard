@@ -20,7 +20,7 @@ class ElectricStatus(CustomAPIBaseModel[Any]):
         metric: bool = True,
         **kwargs,
     ):
-        """Initialise Dashboard.
+        """Initialise ElectricStatus model.
 
         Args:
             electric_status (Optional[ElectricStatusModel]): Electric status model

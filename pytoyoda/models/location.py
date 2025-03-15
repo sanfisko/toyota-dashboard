@@ -13,7 +13,7 @@ class Location(CustomAPIBaseModel[LocationResponseModel]):
     """Latest Location of car."""
 
     def __init__(self, location: LocationResponseModel, **kwargs):
-        """Initialize location model.
+        """Initialize Location model.
 
         Args:
             location (LocationResponseModel): Contains information about
