@@ -6,7 +6,7 @@ from datetime import date, datetime
 from typing import Any, List, Optional
 from uuid import UUID
 
-from pydantic.v1 import Field
+from pydantic import Field
 
 from pytoyoda.models.endpoints.common import StatusModel
 from pytoyoda.utils.helpers import add_with_none

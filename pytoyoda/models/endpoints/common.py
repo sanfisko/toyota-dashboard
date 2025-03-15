@@ -2,7 +2,7 @@
 
 from typing import List, Optional, Union
 
-from pydantic.v1 import Field
+from pydantic import Field
 
 from pytoyoda.utils.models import CustomBaseModel
 

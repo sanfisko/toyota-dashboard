@@ -3,7 +3,7 @@
 from enum import Enum
 from typing import Optional
 
-from pydantic.v1 import Field
+from pydantic import ConfigDict, Field
 
 from pytoyoda.utils.models import CustomBaseModel
 
@@ -35,8 +35,4 @@ class RemoteCommandModel(CustomBaseModel):
 
     beep_count: Optional[int] = Field(alias="beepCount", default=None)
     command: CommandType
-
-    class Config:
-        """Pydantic serialization option for enum value use."""
-
-        use_enum_values = True
+    model_config = ConfigDict(use_enum_values=True)
