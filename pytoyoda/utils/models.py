@@ -57,10 +57,6 @@ class CustomBaseModel(BaseModel):
 
             # Handle already Annotated fields
             if get_origin(annotation) is Annotated:
-                base_type = get_args(annotation)[0]
-                existing_metadata = get_args(annotation)[1:]
-                cls.__annotations__[name] = Annotated[
-                    base_type, validator, *existing_metadata
-                ]
+                cls.__annotations__[name] = Annotated[get_args(annotation), validator]
             else:
                 cls.__annotations__[name] = Annotated[annotation, validator]
