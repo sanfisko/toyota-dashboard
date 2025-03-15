@@ -1,9 +1,11 @@
 """Utilities for manipulating or extending pydantic models."""
 
 from collections.abc import Callable
-from typing import Annotated, Any, get_args, get_origin
+from typing import Annotated, Any, Generic, TypeVar, get_args, get_origin
 
-from pydantic import BaseModel, ValidationError, WrapValidator
+from pydantic import BaseModel, ConfigDict, ValidationError, WrapValidator
+
+T = TypeVar("T")
 
 
 def invalid_to_none(v: Any, handler: Callable[[Any], Any]) -> Any:
@@ -23,7 +25,7 @@ def invalid_to_none(v: Any, handler: Callable[[Any], Any]) -> Any:
         return None
 
 
-class CustomBaseModel(BaseModel):
+class CustomEndpointBaseModel(BaseModel):
     """Enhanced BaseModel that automatically sets invalid values to None.
 
     This model extends Pydantic's BaseModel to provide more graceful handling
@@ -60,3 +62,30 @@ class CustomBaseModel(BaseModel):
                 cls.__annotations__[name] = Annotated[get_args(annotation), validator]
             else:
                 cls.__annotations__[name] = Annotated[annotation, validator]
+
+
+class CustomAPIBaseModel(BaseModel, Generic[T]):
+    """Base class for all API models."""
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    def __init__(self, data: T, **kwargs):
+        """Initialize with data object.
+
+        Args:
+            data (T): The underlying data object
+            **kwargs: Additional keyword arguments passed to the parent class
+
+        """
+        super().__init__(**kwargs)
+        self._data = data
+
+    def __repr__(self) -> str:
+        """Generate string representation based on properties."""
+        return " ".join(
+            [
+                f"{k}={getattr(self, k)!s}"
+                for k, v in type(self).__dict__.items()
+                if isinstance(v, property)
+            ],
+        )

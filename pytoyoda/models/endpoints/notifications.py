@@ -6,14 +6,14 @@ from uuid import UUID
 
 from pydantic import Field
 
-from pytoyoda.utils.models import CustomBaseModel
+from pytoyoda.utils.models import CustomEndpointBaseModel
 
 
-class _HeadersModel(CustomBaseModel):
+class _HeadersModel(CustomEndpointBaseModel):
     content_type: Optional[str] = Field(..., alias="Content-Type")
 
 
-class NotificationModel(CustomBaseModel):
+class NotificationModel(CustomEndpointBaseModel):
     """Model representing a notification.
 
     Attributes:
@@ -45,12 +45,12 @@ class NotificationModel(CustomBaseModel):
     display_category: Optional[str] = Field(alias="displayCategory")
 
 
-class _PayloadItemModel(CustomBaseModel):
+class _PayloadItemModel(CustomEndpointBaseModel):
     vin: Optional[str] = None
     notifications: Optional[List[NotificationModel]]
 
 
-class NotificationResponseModel(CustomBaseModel):
+class NotificationResponseModel(CustomEndpointBaseModel):
     r"""Model representing a notification response.
 
     Attributes:

@@ -1,7 +1,9 @@
 """Climate Settings Models."""
 
 from datetime import datetime, timedelta
-from typing import List, Optional, Tuple
+from typing import Any, List, Optional
+
+from pydantic import BaseModel
 
 from pytoyoda.models.endpoints.climate import (
     ACOperations,
@@ -10,33 +12,32 @@ from pytoyoda.models.endpoints.climate import (
     ClimateSettingsModel,
     ClimateStatusModel,
 )
+from pytoyoda.utils.models import CustomAPIBaseModel
 
 
-class ClimateOptionStatus:
+class Temperature(BaseModel):
+    """Temperature value with unit."""
+
+    value: float
+    unit: str
+
+    def __str__(self) -> str:
+        """Represent Temperature model as string."""
+        return f"{self.value}{self.unit}"
+
+
+class ClimateOptionStatus(CustomAPIBaseModel[ClimateOptions]):
     """Climate option status."""
 
-    def __init__(
-        self,
-        options: ClimateOptions,
-    ):
-        """Initialise Class.
+    def __init__(self, options: ClimateOptions, **kwargs):
+        """Initialize climate option status.
 
         Args:
-            options (ClimateOptions, optional): Contains all additional
-                options for climate
+            options (ClimateOptions): Contains all additional options for climate
+            **kwargs: Additional keyword arguments passed to the parent class
 
         """
-        self._options = options
-
-    def __repr__(self):
-        """Representation of the climate option status model."""
-        return " ".join(
-            [
-                f"{k}={getattr(self, k)!s}"
-                for k, v in type(self).__dict__.items()
-                if isinstance(v, property)
-            ],
-        )
+        super().__init__(data=options, **kwargs)
 
     @property
     def front_defogger(self) -> bool:
@@ -46,7 +47,7 @@ class ClimateOptionStatus:
             bool: The status of front defogger
 
         """
-        return self._options.front_defogger
+        return self._data.front_defogger
 
     @property
     def rear_defogger(self) -> bool:
@@ -56,34 +57,22 @@ class ClimateOptionStatus:
             bool: The status of rear defogger
 
         """
-        return self._options.rear_defogger
+        return self._data.rear_defogger
 
 
-class ClimateStatus:
+class ClimateStatus(CustomAPIBaseModel[ClimateStatusModel]):
     """Climate status."""
 
-    def __init__(
-        self,
-        climate_status: ClimateStatusModel,
-    ):
-        """Initialise Class.
+    def __init__(self, climate_status: ClimateStatusModel, **kwargs):
+        """Initialize climate status.
 
         Args:
-            climate_status (ClimateStatusModel, required): Contains all information
+            climate_status (ClimateStatusModel): Contains all information
               regarding the climate status
+            **kwargs: Additional keyword arguments passed to the parent class
 
         """
-        self._climate_status = climate_status.payload
-
-    def __repr__(self):
-        """Representation of the climate status model."""
-        return " ".join(
-            [
-                f"{k}={getattr(self, k)!s}"
-                for k, v in type(self).__dict__.items()
-                if isinstance(v, property)
-            ],
-        )
+        super().__init__(data=climate_status.payload, **kwargs)
 
     @property
     def type(self) -> str:
@@ -93,7 +82,7 @@ class ClimateStatus:
             str: The type
 
         """
-        return self._climate_status.type
+        return self._data.type
 
     @property
     def status(self) -> bool:
@@ -103,7 +92,7 @@ class ClimateStatus:
             bool: The status
 
         """
-        return self._climate_status.status
+        return self._data.status
 
     @property
     def start_time(self) -> Optional[datetime]:
@@ -113,7 +102,7 @@ class ClimateStatus:
             datetime: Start time
 
         """
-        return self._climate_status.started_at
+        return self._data.started_at
 
     @property
     def duration(self) -> Optional[timedelta]:
@@ -123,43 +112,41 @@ class ClimateStatus:
             timedelta: The duration
 
         """
-        if self._climate_status.duration is None:
+        if self._data.duration is None:
             return None
 
-        return timedelta(seconds=self._climate_status.duration)
+        return timedelta(seconds=self._data.duration)
 
     @property
-    def current_temperature(self) -> Optional[Tuple[float, str]]:
+    def current_temperature(self) -> Optional[Temperature]:
         """The current temperature.
 
         Returns:
-            float: The current temperature
-            str: The current temperature unit
+            Temperature: The current temperature with unit
 
         """
-        if self._climate_status.current_temperature is None:
+        if self._data.current_temperature is None:
             return None
 
-        return (
-            self._climate_status.current_temperature.value,
-            self._climate_status.current_temperature.unit,
+        return Temperature(
+            value=self._data.current_temperature.value,
+            unit=self._data.current_temperature.unit,
         )
 
     @property
-    def target_temperature(self) -> Optional[Tuple[float, str]]:
+    def target_temperature(self) -> Optional[Temperature]:
         """The target temperature.
 
         Returns:
-            float: The target temperature
-            str: The target temperature unit
+            Temperature: The target temperature with unit
 
         """
-        if self._climate_status.target_temperature is None:
+        if self._data.target_temperature is None:
             return None
 
-        return (
-            self._climate_status.target_temperature.value,
-            self._climate_status.target_temperature.unit,
+        return Temperature(
+            value=self._data.target_temperature.value,
+            unit=self._data.target_temperature.unit,
         )
 
     @property
@@ -170,46 +157,34 @@ class ClimateStatus:
             ClimateOptionsStatus: The statuses of climate options
 
         """
-        if self._climate_status.options is None:
+        if self._data.options is None:
             return None
 
-        return ClimateOptionStatus(self._climate_status.options)
+        return ClimateOptionStatus(options=self._data.options)
 
 
-class ClimateSettingsParameter:
+class ClimateSettingsParameter(CustomAPIBaseModel[ACParameters]):
     """Climate settings parameter."""
 
-    def __init__(
-        self,
-        parameter: ACParameters,
-    ):
-        """Initialise Class.
+    def __init__(self, parameter: ACParameters, **kwargs):
+        """Initialize climate settings parameter.
 
         Args:
-            parameter (ACParameters, optional): Contains all parameters
+            parameter (ACParameters): Contains all parameters
+            **kwargs: Additional keyword arguments passed to the parent class
 
         """
-        self._parameter = parameter
-
-    def __repr__(self):
-        """Representation of the climate settings parameter model."""
-        return " ".join(
-            [
-                f"{k}={getattr(self, k)!s}"
-                for k, v in type(self).__dict__.items()
-                if isinstance(v, property)
-            ],
-        )
+        super().__init__(data=parameter, **kwargs)
 
     @property
     def available(self) -> Optional[bool]:
-        """The parameter avaiability.
+        """The parameter availability.
 
         Returns:
-            Optional[bool]: The parameter avaiability value
+            bool: The parameter availability value
 
         """
-        return self._parameter.available
+        return self._data.available
 
     @property
     def enabled(self) -> bool:
@@ -219,133 +194,109 @@ class ClimateSettingsParameter:
             bool: The parameter enable value
 
         """
-        return self._parameter.available
+        return self._data.enabled
 
     @property
     def display_name(self) -> Optional[str]:
         """The parameter display name.
 
         Returns:
-            bool: The parameter display name
+            str: The parameter display name
 
         """
-        return self._parameter.display_name
+        return self._data.display_name
 
     @property
     def name(self) -> str:
         """The parameter name.
 
         Returns:
-            bool: The parameter name
+            str: The parameter name
 
         """
-        return self._parameter.name
+        return self._data.name
 
     @property
     def icon_url(self) -> Optional[str]:
         """The parameter icon url.
 
         Returns:
-            bool: The parameter icon url
+            str: The parameter icon url
 
         """
-        return self._parameter.icon_url
+        return self._data.icon_url
 
 
-class ClimateSettingsOperation:
+class ClimateSettingsOperation(CustomAPIBaseModel[ACOperations]):
     """Climate settings operation."""
 
-    def __init__(
-        self,
-        operation: ACOperations,
-    ):
-        """Initialise Class.
+    def __init__(self, operations: ACOperations, **kwargs):
+        """Initialize climate settings operation.
 
         Args:
-            operation (ACOperations): Contains all options for climate
+            operations (ACOperations): Contains all options for climate
+            **kwargs: Additional keyword arguments passed to the parent class
 
         """
-        self._operation = operation
-
-    def __repr__(self):
-        """Representation of the climate settings operation model."""
-        return " ".join(
-            [
-                f"{k}={getattr(self, k)!s}"
-                for k, v in type(self).__dict__.items()
-                if isinstance(v, property)
-            ],
-        )
+        super().__init__(data=operations, **kwargs)
 
     @property
     def available(self) -> Optional[bool]:
-        """The operation avaiability.
+        """The operation availability.
 
         Returns:
-            Optional[bool]: The operation avaiability value
+            bool: The operation availability value
 
         """
-        return self._operation.available
+        return self._data.available
 
     @property
     def category_name(self) -> str:
         """The operation category name.
 
         Returns:
-            bool: The operation category name
+            str: The operation category name
 
         """
-        return self._operation.category_name
+        return self._data.category_name
 
     @property
     def category_display_name(self) -> Optional[str]:
         """The operation category display name.
 
         Returns:
-            bool: The operation category display name
+            str: The operation category display name
 
         """
-        return self._operation.category_display_name
+        return self._data.category_display_name
 
     @property
     def parameters(self) -> Optional[List[ClimateSettingsParameter]]:
         """The operation parameter.
 
         Returns:
-            Optional[List[ClimateSettingsParameter]]: The operation parameter
+            List[ClimateSettingsParameter]: The operation parameter
 
         """
-        if self._operation.ac_parameters is None:
+        if self._data.ac_parameters is None:
             return None
 
-        return [ClimateSettingsParameter(p) for p in self._operation.ac_parameters]
+        return [ClimateSettingsParameter(parameter=p) for p in self._data.ac_parameters]
 
 
-class ClimateSettings:
+class ClimateSettings(CustomAPIBaseModel[Any]):
     """Climate settings."""
 
-    def __init__(
-        self,
-        climate_settings: ClimateSettingsModel,
-    ):
-        """Initialise Class.
+    def __init__(self, climate_settings: ClimateSettingsModel, **kwargs):
+        """Initialize climate settings.
 
         Args:
-            climate_settings (ClimateSettingsModel, required): Contains all information
+            climate_settings (ClimateSettingsModel): Contains all information
                 regarding the climate settings
+            **kwargs: Additional keyword arguments passed to the parent class
 
         """
-        self._climate_settings = climate_settings.payload
-
-    def __repr__(self):
-        """Representation of the climate settings model."""
-        return " ".join(
-            [
-                f"{k}={getattr(self, k)!s}"
-                for k, v in type(self).__dict__.items()
-                if isinstance(v, property)
-            ],
-        )
+        super().__init__(data=climate_settings.payload, **kwargs)
 
     @property
     def settings_on(self) -> bool:
@@ -355,50 +306,49 @@ class ClimateSettings:
             bool: The value of settings on
 
         """
-        return self._climate_settings.settings_on
+        return self._data.settings_on
 
     @property
     def temp_interval(self) -> Optional[float]:
         """The temperature interval.
 
         Returns:
-            Optional[float]: The value of temperature interval
+            float: The value of temperature interval
 
         """
-        return self._climate_settings.temp_interval
+        return self._data.temp_interval
 
     @property
     def min_temp(self) -> Optional[float]:
         """The min temperature.
 
         Returns:
-            Optional[float]: The value of min temperature
+            float: The value of min temperature
 
         """
-        return self._climate_settings.min_temp
+        return self._data.min_temp
 
     @property
     def max_temp(self) -> Optional[float]:
         """The max temperature.
 
         Returns:
-            Optional[float]: The value of max temperature
+            float: The value of max temperature
 
         """
-        return self._climate_settings.max_temp
+        return self._data.max_temp
 
     @property
-    def temperature(self) -> tuple[float, str]:
+    def temperature(self) -> Temperature:
         """The temperature.
 
         Returns:
-            float: The value of temperature
-            str: The temperature unit
+            Temperature: The temperature with unit
 
         """
-        return (
-            self._climate_settings.temperature,
-            self._climate_settings.temperature_unit,
+        return Temperature(
+            value=self._data.temperature,
+            unit=self._data.temperature_unit,
         )
 
     @property
@@ -406,12 +356,10 @@ class ClimateSettings:
         """The climate operation settings.
 
         Returns:
-            Optional[List[ClimateSettingsOperation]]: The settings of climate operation
+            List[ClimateSettingsOperation]: The settings of climate operation
 
         """
-        if self._climate_settings.ac_operations is None:
+        if self._data.ac_operations is None:
             return None
 
-        return [
-            ClimateSettingsOperation(p) for p in self._climate_settings.ac_operations
-        ]
+        return [ClimateSettingsOperation(operation=p) for p in self._data.ac_operations]

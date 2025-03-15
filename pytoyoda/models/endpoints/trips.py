@@ -10,10 +10,10 @@ from pydantic import Field
 
 from pytoyoda.models.endpoints.common import StatusModel
 from pytoyoda.utils.helpers import add_with_none
-from pytoyoda.utils.models import CustomBaseModel
+from pytoyoda.utils.models import CustomEndpointBaseModel
 
 
-class _SummaryBaseModel(CustomBaseModel):
+class _SummaryBaseModel(CustomEndpointBaseModel):
     length: Optional[int]
     duration: Optional[int]
     duration_idle: Optional[int] = Field(alias="durationIdle")
@@ -65,13 +65,13 @@ class _SummaryModel(_SummaryBaseModel):
     night_trip: Optional[bool] = Field(alias="nightTrip")
 
 
-class _CoachingMsgParamModel(CustomBaseModel):
+class _CoachingMsgParamModel(CustomEndpointBaseModel):
     name: Optional[str]
     unit: Optional[str]
     value: Optional[int]
 
 
-class _BehaviourModel(CustomBaseModel):
+class _BehaviourModel(CustomEndpointBaseModel):
     ts: Optional[datetime]
     type: Optional[str] = None
     coaching_msg_params: Optional[List[_CoachingMsgParamModel]] = Field(
@@ -79,7 +79,7 @@ class _BehaviourModel(CustomBaseModel):
     )
 
 
-class _ScoresModel(CustomBaseModel):
+class _ScoresModel(CustomEndpointBaseModel):
     global_: Optional[int] = Field(..., alias="global")
     acceleration: Optional[int] = None
     braking: Optional[int] = None
@@ -87,7 +87,7 @@ class _ScoresModel(CustomBaseModel):
     constant_speed: Optional[int] = Field(alias="constantSpeed", default=None)
 
 
-class _HDCModel(CustomBaseModel):
+class _HDCModel(CustomEndpointBaseModel):
     ev_time: Optional[int] = Field(alias="evTime", default=None)
     ev_distance: Optional[int] = Field(alias="evDistance", default=None)
     charge_time: Optional[int] = Field(alias="chargeTime", default=None)
@@ -119,7 +119,7 @@ class _HDCModel(CustomBaseModel):
         return self
 
 
-class _RouteModel(CustomBaseModel):
+class _RouteModel(CustomEndpointBaseModel):
     lat: Optional[float] = Field(repr=False)
     lon: Optional[float]
     overspeed: Optional[bool]
@@ -129,7 +129,7 @@ class _RouteModel(CustomBaseModel):
     is_ev: Optional[bool] = Field(alias="isEv")
 
 
-class _TripModel(CustomBaseModel):
+class _TripModel(CustomEndpointBaseModel):
     id: Optional[UUID]
     category: Optional[int]
     summary: Optional[_SummaryModel]
@@ -139,7 +139,7 @@ class _TripModel(CustomBaseModel):
     route: Optional[List[_RouteModel]] = None
 
 
-class _HistogramModel(CustomBaseModel):
+class _HistogramModel(CustomEndpointBaseModel):
     year: Optional[int]
     month: Optional[int]
     day: Optional[int]
@@ -148,7 +148,7 @@ class _HistogramModel(CustomBaseModel):
     hdc: Optional[_HDCModel] = None
 
 
-class _SummaryItemModel(CustomBaseModel):
+class _SummaryItemModel(CustomEndpointBaseModel):
     year: Optional[int]
     month: Optional[int]
     summary: Optional[_SummaryBaseModel]
@@ -157,7 +157,7 @@ class _SummaryItemModel(CustomBaseModel):
     histograms: List[_HistogramModel]
 
 
-class _PaginationModel(CustomBaseModel):
+class _PaginationModel(CustomEndpointBaseModel):
     limit: Optional[int]
     offset: Optional[int]
     previous_offset: Optional[Any] = Field(alias="previousOffset", default=None)
@@ -167,17 +167,17 @@ class _PaginationModel(CustomBaseModel):
     page_count: Optional[int] = Field(alias="pageCount")
 
 
-class _SortedByItemModel(CustomBaseModel):
+class _SortedByItemModel(CustomEndpointBaseModel):
     field: Optional[str]
     order: Optional[str]
 
 
-class _MetadataModel(CustomBaseModel):
+class _MetadataModel(CustomEndpointBaseModel):
     pagination: Optional[_PaginationModel]
     sorted_by: Optional[List[_SortedByItemModel]] = Field(alias="sortedBy")
 
 
-class TripsModel(CustomBaseModel):
+class TripsModel(CustomEndpointBaseModel):
     r"""Model representing trips data.
 
     Attributes:

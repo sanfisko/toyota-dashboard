@@ -6,10 +6,10 @@ from typing import Optional
 from pydantic import Field
 
 from pytoyoda.models.endpoints.common import StatusModel, UnitValueModel
-from pytoyoda.utils.models import CustomBaseModel
+from pytoyoda.utils.models import CustomEndpointBaseModel
 
 
-class ElectricStatusModel(CustomBaseModel):
+class ElectricStatusModel(CustomEndpointBaseModel):
     r"""Model representing the status of an electric vehicle.
 
     Attributes:

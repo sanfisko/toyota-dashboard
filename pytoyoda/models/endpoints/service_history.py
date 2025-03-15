@@ -6,10 +6,10 @@ from typing import Any, List, Optional
 from pydantic import Field
 
 from pytoyoda.models.endpoints.common import StatusModel
-from pytoyoda.utils.models import CustomBaseModel
+from pytoyoda.utils.models import CustomEndpointBaseModel
 
 
-class ServiceHistoryModel(CustomBaseModel):
+class ServiceHistoryModel(CustomEndpointBaseModel):
     """Represents a service history record.
 
     Attributes:
@@ -41,7 +41,7 @@ class ServiceHistoryModel(CustomBaseModel):
     unit: Optional[str] = None
 
 
-class ServiceHistoriesModel(CustomBaseModel):
+class ServiceHistoriesModel(CustomEndpointBaseModel):
     r"""Model representing a list of service histories.
 
     Attributes:

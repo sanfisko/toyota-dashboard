@@ -5,7 +5,7 @@ from typing import Optional
 
 from pydantic import ConfigDict, Field
 
-from pytoyoda.utils.models import CustomBaseModel
+from pytoyoda.utils.models import CustomEndpointBaseModel
 
 
 class CommandType(str, Enum):
@@ -30,7 +30,7 @@ class CommandType(str, Enum):
     HEADLIGHT_OFF = "headlight-off"
 
 
-class RemoteCommandModel(CustomBaseModel):
+class RemoteCommandModel(CustomEndpointBaseModel):
     """Model representing an remote command."""
 
     beep_count: Optional[int] = Field(alias="beepCount", default=None)
