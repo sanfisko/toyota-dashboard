@@ -91,7 +91,9 @@ async def get_information():
             f"Electric Status: {car.electric_status.model_dump_json(indent=4) if car.electric_status else None}"  # noqa: E501
         )
         # Location Information
-        logger.info(pformat(f"Location: {car.location}"))
+        logger.info(
+            f"Location: {car.location.model_dump_json(indent=4) if car.location else None}"  # noqa: E501
+        )
         # Lock Status
         logger.info(pformat(f"Lock Status: {car.lock_status}"))
         # Notifications
