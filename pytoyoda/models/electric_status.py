@@ -47,7 +47,7 @@ class ElectricStatus(CustomAPIBaseModel[Any]):
         """Battery level of the vehicle.
 
         Returns:
-            Optional[float]: Battery level of the vehicle in percentage.
+            float: Battery level of the vehicle in percentage.
 
         """
         return self._electric_status.battery_level if self._electric_status else None
@@ -58,7 +58,7 @@ class ElectricStatus(CustomAPIBaseModel[Any]):
         """Charging status of the vehicle.
 
         Returns:
-            Optional[str]: Charging status of the vehicle.
+            str: Charging status of the vehicle.
 
         """
         return self._electric_status.charging_status
@@ -69,7 +69,7 @@ class ElectricStatus(CustomAPIBaseModel[Any]):
         """Remaining time to full charge in minutes.
 
         Returns:
-            Optional[int]: Remaining time to full charge in minutes.
+            int: Remaining time to full charge in minutes.
 
         """
         return self._electric_status.remaining_charge_time
@@ -80,7 +80,7 @@ class ElectricStatus(CustomAPIBaseModel[Any]):
         """Electric vehicle range.
 
         Returns:
-            Optional[float]: Electric vehicle range in the current selected units.
+            float: Electric vehicle range in the current selected units.
 
         """
         if self._electric_status:
@@ -110,7 +110,7 @@ class ElectricStatus(CustomAPIBaseModel[Any]):
         """Electric vehicle range with AC.
 
         Returns:
-            Optional[float]: Electric vehicle range with AC in the
+            float: Electric vehicle range with AC in the
                 current selected units.
 
         """
@@ -141,7 +141,7 @@ class ElectricStatus(CustomAPIBaseModel[Any]):
         """Can set next charging event.
 
         Returns:
-            Optional[bool]: Can set next charging event.
+            bool: Can set next charging event.
 
         """
         return (
@@ -156,7 +156,7 @@ class ElectricStatus(CustomAPIBaseModel[Any]):
         """Last update timestamp.
 
         Returns:
-            Optional[date]: Last update timestamp.
+            date: Last update timestamp.
 
         """
         return (
