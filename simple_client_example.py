@@ -97,7 +97,9 @@ async def get_information():
         # Lock Status
         logger.info(pformat(f"Lock Status: {car.lock_status}"))
         # Notifications
-        logger.info(pformat(f"Notifications: {[[x] for x in car.notifications]}"))
+        logger.info(
+            f"Notifications: {[[x.model_dump_json(indent=4)] for x in car.notifications]}"  # noqa: E501
+        )
         # Service history
         logger.info(pformat(f"Latest service: {car.get_latest_service_history()}"))
         # Last trip distance
