@@ -3,6 +3,8 @@
 from datetime import datetime, timedelta
 from typing import Any, List, Optional
 
+from pydantic import computed_field
+
 from pytoyoda.models.endpoints.climate import (
     ACOperations,
     ACParameters,
@@ -26,6 +28,7 @@ class ClimateOptionStatus(CustomAPIBaseModel[ClimateOptions]):
         """
         super().__init__(data=options, **kwargs)
 
+    @computed_field
     @property
     def front_defogger(self) -> bool:
         """The front defogger status.
@@ -36,6 +39,7 @@ class ClimateOptionStatus(CustomAPIBaseModel[ClimateOptions]):
         """
         return self._data.front_defogger
 
+    @computed_field
     @property
     def rear_defogger(self) -> bool:
         """The rear defogger status.
@@ -61,6 +65,7 @@ class ClimateStatus(CustomAPIBaseModel[ClimateStatusModel]):
         """
         super().__init__(data=climate_status.payload, **kwargs)
 
+    @computed_field
     @property
     def type(self) -> str:
         """The type.
@@ -71,6 +76,7 @@ class ClimateStatus(CustomAPIBaseModel[ClimateStatusModel]):
         """
         return self._data.type
 
+    @computed_field
     @property
     def status(self) -> bool:
         """The status.
@@ -81,6 +87,7 @@ class ClimateStatus(CustomAPIBaseModel[ClimateStatusModel]):
         """
         return self._data.status
 
+    @computed_field
     @property
     def start_time(self) -> Optional[datetime]:
         """Start time.
@@ -91,6 +98,7 @@ class ClimateStatus(CustomAPIBaseModel[ClimateStatusModel]):
         """
         return self._data.started_at
 
+    @computed_field
     @property
     def duration(self) -> Optional[timedelta]:
         """The duration.
@@ -104,6 +112,7 @@ class ClimateStatus(CustomAPIBaseModel[ClimateStatusModel]):
 
         return timedelta(seconds=self._data.duration)
 
+    @computed_field
     @property
     def current_temperature(self) -> Optional[Temperature]:
         """The current temperature.
@@ -120,6 +129,7 @@ class ClimateStatus(CustomAPIBaseModel[ClimateStatusModel]):
             unit=self._data.current_temperature.unit,
         )
 
+    @computed_field
     @property
     def target_temperature(self) -> Optional[Temperature]:
         """The target temperature.
@@ -136,6 +146,7 @@ class ClimateStatus(CustomAPIBaseModel[ClimateStatusModel]):
             unit=self._data.target_temperature.unit,
         )
 
+    @computed_field
     @property
     def options(self) -> Optional[ClimateOptionStatus]:
         """The status of climate options.
@@ -163,6 +174,7 @@ class ClimateSettingsParameter(CustomAPIBaseModel[ACParameters]):
         """
         super().__init__(data=parameter, **kwargs)
 
+    @computed_field
     @property
     def available(self) -> Optional[bool]:
         """The parameter availability.
@@ -173,6 +185,7 @@ class ClimateSettingsParameter(CustomAPIBaseModel[ACParameters]):
         """
         return self._data.available
 
+    @computed_field
     @property
     def enabled(self) -> bool:
         """The parameter enable.
@@ -183,6 +196,7 @@ class ClimateSettingsParameter(CustomAPIBaseModel[ACParameters]):
         """
         return self._data.enabled
 
+    @computed_field
     @property
     def display_name(self) -> Optional[str]:
         """The parameter display name.
@@ -193,6 +207,7 @@ class ClimateSettingsParameter(CustomAPIBaseModel[ACParameters]):
         """
         return self._data.display_name
 
+    @computed_field
     @property
     def name(self) -> str:
         """The parameter name.
@@ -203,6 +218,7 @@ class ClimateSettingsParameter(CustomAPIBaseModel[ACParameters]):
         """
         return self._data.name
 
+    @computed_field
     @property
     def icon_url(self) -> Optional[str]:
         """The parameter icon url.
@@ -227,6 +243,7 @@ class ClimateSettingsOperation(CustomAPIBaseModel[ACOperations]):
         """
         super().__init__(data=operations, **kwargs)
 
+    @computed_field
     @property
     def available(self) -> Optional[bool]:
         """The operation availability.
@@ -237,6 +254,7 @@ class ClimateSettingsOperation(CustomAPIBaseModel[ACOperations]):
         """
         return self._data.available
 
+    @computed_field
     @property
     def category_name(self) -> str:
         """The operation category name.
@@ -247,6 +265,7 @@ class ClimateSettingsOperation(CustomAPIBaseModel[ACOperations]):
         """
         return self._data.category_name
 
+    @computed_field
     @property
     def category_display_name(self) -> Optional[str]:
         """The operation category display name.
@@ -257,6 +276,7 @@ class ClimateSettingsOperation(CustomAPIBaseModel[ACOperations]):
         """
         return self._data.category_display_name
 
+    @computed_field
     @property
     def parameters(self) -> Optional[List[ClimateSettingsParameter]]:
         """The operation parameter.
@@ -285,6 +305,7 @@ class ClimateSettings(CustomAPIBaseModel[Any]):
         """
         super().__init__(data=climate_settings.payload, **kwargs)
 
+    @computed_field
     @property
     def settings_on(self) -> bool:
         """The settings on value.
@@ -295,6 +316,7 @@ class ClimateSettings(CustomAPIBaseModel[Any]):
         """
         return self._data.settings_on
 
+    @computed_field
     @property
     def temp_interval(self) -> Optional[float]:
         """The temperature interval.
@@ -305,6 +327,7 @@ class ClimateSettings(CustomAPIBaseModel[Any]):
         """
         return self._data.temp_interval
 
+    @computed_field
     @property
     def min_temp(self) -> Optional[float]:
         """The min temperature.
@@ -315,6 +338,7 @@ class ClimateSettings(CustomAPIBaseModel[Any]):
         """
         return self._data.min_temp
 
+    @computed_field
     @property
     def max_temp(self) -> Optional[float]:
         """The max temperature.
@@ -325,6 +349,7 @@ class ClimateSettings(CustomAPIBaseModel[Any]):
         """
         return self._data.max_temp
 
+    @computed_field
     @property
     def temperature(self) -> Temperature:
         """The temperature.
@@ -338,6 +363,7 @@ class ClimateSettings(CustomAPIBaseModel[Any]):
             unit=self._data.temperature_unit,
         )
 
+    @computed_field
     @property
     def operations(self) -> Optional[List[ClimateSettingsOperation]]:
         """The climate operation settings.

@@ -3,6 +3,8 @@
 from datetime import timedelta
 from typing import Any, List, Optional
 
+from pydantic import computed_field
+
 from pytoyoda.const import KILOMETERS_UNIT, MILES_UNIT
 from pytoyoda.models.endpoints.electric import (
     ElectricResponseModel,
@@ -58,6 +60,7 @@ class Dashboard(CustomAPIBaseModel[Any]):
         self._health: Optional[VehicleHealthModel] = health.payload if health else None
         self._distance_unit: str = KILOMETERS_UNIT if metric else MILES_UNIT
 
+    @computed_field
     @property
     def odometer(self) -> Optional[float]:
         """Odometer distance.
@@ -74,6 +77,7 @@ class Dashboard(CustomAPIBaseModel[Any]):
             )
         return None
 
+    @computed_field
     @property
     def odometer_with_unit(self) -> Optional[Distance]:
         """Odometer distance with unit.
@@ -86,6 +90,7 @@ class Dashboard(CustomAPIBaseModel[Any]):
             return Distance(value=value, unit=self._distance_unit)
         return None
 
+    @computed_field
     @property
     def fuel_level(self) -> Optional[int]:
         """Fuel level.
@@ -96,6 +101,7 @@ class Dashboard(CustomAPIBaseModel[Any]):
         """
         return self._telemetry.fuel_level if self._telemetry else None
 
+    @computed_field
     @property
     def battery_level(self) -> Optional[float]:
         """Shows the battery level if available.
@@ -106,6 +112,7 @@ class Dashboard(CustomAPIBaseModel[Any]):
         """
         return self._electric.battery_level if self._electric else None
 
+    @computed_field
     @property
     def fuel_range(self) -> Optional[float]:
         """The range using _only_ fuel.
@@ -131,6 +138,7 @@ class Dashboard(CustomAPIBaseModel[Any]):
 
         return None
 
+    @computed_field
     @property
     def fuel_range_with_unit(self) -> Optional[Distance]:
         """The range using _only_ fuel with unit.
@@ -143,6 +151,7 @@ class Dashboard(CustomAPIBaseModel[Any]):
             return Distance(value=value, unit=self._distance_unit)
         return None
 
+    @computed_field
     @property
     def battery_range(self) -> Optional[float]:
         """The range using _only_ EV.
@@ -162,6 +171,7 @@ class Dashboard(CustomAPIBaseModel[Any]):
 
         return None
 
+    @computed_field
     @property
     def battery_range_with_unit(self) -> Optional[Distance]:
         """The range using _only_ EV with unit.
@@ -174,6 +184,7 @@ class Dashboard(CustomAPIBaseModel[Any]):
             return Distance(value=value, unit=self._distance_unit)
         return None
 
+    @computed_field
     @property
     def battery_range_with_ac(self) -> Optional[float]:
         """The range using _only_ EV when using AC.
@@ -193,6 +204,7 @@ class Dashboard(CustomAPIBaseModel[Any]):
 
         return None
 
+    @computed_field
     @property
     def battery_range_with_ac_with_unit(self) -> Optional[Distance]:
         """The range using _only_ EV when using AC with unit.
@@ -205,6 +217,7 @@ class Dashboard(CustomAPIBaseModel[Any]):
             return Distance(value=value, unit=self._distance_unit)
         return None
 
+    @computed_field
     @property
     def range(self) -> Optional[float]:
         """The range using all available fuel & EV.
@@ -226,6 +239,7 @@ class Dashboard(CustomAPIBaseModel[Any]):
 
         return None
 
+    @computed_field
     @property
     def range_with_unit(self) -> Optional[Distance]:
         """The range using all available fuel & EV with unit.
@@ -238,6 +252,7 @@ class Dashboard(CustomAPIBaseModel[Any]):
             return Distance(value=value, unit=self._distance_unit)
         return None
 
+    @computed_field
     @property
     def charging_status(self) -> Optional[str]:
         """Current charging status.
@@ -249,6 +264,7 @@ class Dashboard(CustomAPIBaseModel[Any]):
         """
         return self._electric.charging_status if self._electric else None
 
+    @computed_field
     @property
     def remaining_charge_time(self) -> Optional[timedelta]:
         """Time left until charge is complete.
@@ -265,6 +281,7 @@ class Dashboard(CustomAPIBaseModel[Any]):
             else None
         )
 
+    @computed_field
     @property
     def warning_lights(self) -> Optional[List[Any]]:
         """Dashboard Warning Lights.

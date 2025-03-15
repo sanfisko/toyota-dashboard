@@ -83,7 +83,7 @@ async def get_information():
         await car.update()
 
         # Dashboard Information
-        logger.info(pformat(f"Dashboard: {car.dashboard}"))
+        logger.info(f"Dashboard: {car.dashboard.model_dump_json(indent=4)}")
         # Electric Status Information
         logger.info(pformat(f"Electric Status: {car.electric_status}"))
         # Location Information
