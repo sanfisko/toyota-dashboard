@@ -25,3 +25,7 @@ VEHICLE_CLIMATE_SETTINGS_ENDPOINT = "/v1/global/remote/climate-settings"
 VEHICLE_CLIMATE_STATUS_ENDPOINT = "/v1/global/remote/climate-status"
 VEHICLE_CLIMATE_STATUS_REFRESH_ENDPOINT = "/v1/global/remote/refresh-climate-status"
 VEHICLE_COMMAND_ENDPOINT = "/v1/global/remote/command"
+
+# Units
+KILOMETERS_UNIT = "km"
+MILES_UNIT = "mi"

@@ -89,3 +89,25 @@ class CustomAPIBaseModel(BaseModel, Generic[T]):
                 if isinstance(v, property)
             ],
         )
+
+
+class Temperature(BaseModel):
+    """Temperature value with unit."""
+
+    value: float
+    unit: str
+
+    def __str__(self) -> str:
+        """Represent Temperature model as string."""
+        return f"{self.value}{self.unit}"
+
+
+class Distance(BaseModel):
+    """Distance value with unit."""
+
+    value: float
+    unit: str
+
+    def __str__(self) -> str:
+        """Represent Distance model as string."""
+        return f"{self.value} {self.unit}"

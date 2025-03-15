@@ -3,8 +3,6 @@
 from datetime import datetime, timedelta
 from typing import Any, List, Optional
 
-from pydantic import BaseModel
-
 from pytoyoda.models.endpoints.climate import (
     ACOperations,
     ACParameters,
@@ -12,18 +10,7 @@ from pytoyoda.models.endpoints.climate import (
     ClimateSettingsModel,
     ClimateStatusModel,
 )
-from pytoyoda.utils.models import CustomAPIBaseModel
-
-
-class Temperature(BaseModel):
-    """Temperature value with unit."""
-
-    value: float
-    unit: str
-
-    def __str__(self) -> str:
-        """Represent Temperature model as string."""
-        return f"{self.value}{self.unit}"
+from pytoyoda.utils.models import CustomAPIBaseModel, Temperature
 
 
 class ClimateOptionStatus(CustomAPIBaseModel[ClimateOptions]):
