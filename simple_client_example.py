@@ -83,9 +83,13 @@ async def get_information():
         await car.update()
 
         # Dashboard Information
-        logger.info(f"Dashboard: {car.dashboard.model_dump_json(indent=4)}")
+        logger.info(
+            f"Dashboard: {car.dashboard.model_dump_json(indent=4) if car.dashboard else None}"  # noqa: E501
+        )
         # Electric Status Information
-        logger.info(f"Electric Status: {car.electric_status.model_dump_json(indent=4)}")
+        logger.info(
+            f"Electric Status: {car.electric_status.model_dump_json(indent=4) if car.electric_status else None}"  # noqa: E501
+        )
         # Location Information
         logger.info(pformat(f"Location: {car.location}"))
         # Lock Status
