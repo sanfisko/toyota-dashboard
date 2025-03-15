@@ -85,7 +85,7 @@ async def get_information():
         # Dashboard Information
         logger.info(f"Dashboard: {car.dashboard.model_dump_json(indent=4)}")
         # Electric Status Information
-        logger.info(pformat(f"Electric Status: {car.electric_status}"))
+        logger.info(f"Electric Status: {car.electric_status.model_dump_json(indent=4)}")
         # Location Information
         logger.info(pformat(f"Location: {car.location}"))
         # Lock Status

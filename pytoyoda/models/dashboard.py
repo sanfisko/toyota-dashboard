@@ -47,7 +47,6 @@ class Dashboard(CustomAPIBaseModel[Any]):
             "health": health,
             "metric": metric,
         }
-
         super().__init__(data=data, **kwargs)
 
         # Get payload data from models

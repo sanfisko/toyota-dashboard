@@ -1,36 +1,47 @@
 """Models for vehicle electric status."""
 
 from datetime import date
-from typing import Optional
+from typing import Any, Optional
 
+from pydantic import computed_field
+
+from pytoyoda.const import KILOMETERS_UNIT, MILES_UNIT
 from pytoyoda.models.endpoints.electric import ElectricStatusModel
 from pytoyoda.utils.conversions import convert_distance
+from pytoyoda.utils.models import CustomAPIBaseModel, Distance
 
 
-class ElectricStatus:
+class ElectricStatus(CustomAPIBaseModel[Any]):
     """ElectricStatus."""
 
     def __init__(
         self,
         electric_status: ElectricStatusModel = None,
         metric: bool = True,
+        **kwargs,
     ):
-        """Initialise ElectricStatus."""
+        """Initialise Dashboard.
+
+        Args:
+            electric_status (Optional[ElectricStatusModel]): Electric status model
+            metric (bool): Report distances in metric(or imperial)
+            **kwargs: Additional keyword arguments passed to the parent class
+
+        """
+        # Create temporary object for data
+        data = {
+            "electric_status": electric_status,
+            "metric": metric,
+        }
+        super().__init__(data=data, **kwargs)
+
+        # Get payload data from models
         self._electric_status: Optional[ElectricStatusModel] = (
             electric_status.payload if electric_status else None
         )
-        self._distance_unit: str = "km" if metric else "mi"
+        self._distance_unit: str = KILOMETERS_UNIT if metric else MILES_UNIT
 
-    def __repr__(self):
-        """Representation of the model."""
-        return " ".join(
-            [
-                f"{k}={getattr(self, k)!s}"
-                for k, v in type(self).__dict__.items()
-                if isinstance(v, property)
-            ],
-        )
-
+    @computed_field
     @property
     def battery_level(self) -> Optional[float]:
         """Battery level of the vehicle.
@@ -41,15 +52,18 @@ class ElectricStatus:
         """
         return self._electric_status.battery_level if self._electric_status else None
 
+    @computed_field
     @property
     def charging_status(self) -> Optional[str]:
         """Charging status of the vehicle.
 
-        Returns     Optional[str]: Charging status of the vehicle.
+        Returns:
+            Optional[str]: Charging status of the vehicle.
 
         """
         return self._electric_status.charging_status
 
+    @computed_field
     @property
     def remaining_charge_time(self) -> Optional[int]:
         """Remaining time to full charge in minutes.
@@ -60,6 +74,7 @@ class ElectricStatus:
         """
         return self._electric_status.remaining_charge_time
 
+    @computed_field
     @property
     def ev_range(self) -> Optional[float]:
         """Electric vehicle range.
@@ -76,6 +91,20 @@ class ElectricStatus:
             )
         return None
 
+    @computed_field
+    @property
+    def ev_range_with_unit(self) -> Optional[Distance]:
+        """Electric vehicle range with unit.
+
+        Returns:
+            Distance: The range with current unit
+
+        """
+        if value := self.ev_range:
+            return Distance(value=value, unit=self._distance_unit)
+        return None
+
+    @computed_field
     @property
     def ev_range_with_ac(self) -> Optional[float]:
         """Electric vehicle range with AC.
@@ -93,6 +122,20 @@ class ElectricStatus:
             )
         return None
 
+    @computed_field
+    @property
+    def ev_range_with_ac_with_unit(self) -> Optional[Distance]:
+        """Electric vehicle range with ac with unit.
+
+        Returns:
+            Distance: The range with current unit
+
+        """
+        if value := self.ev_range_with_ac:
+            return Distance(value=value, unit=self._distance_unit)
+        return None
+
+    @computed_field
     @property
     def can_set_next_charging_event(self) -> Optional[bool]:
         """Can set next charging event.
@@ -107,6 +150,7 @@ class ElectricStatus:
             else None
         )
 
+    @computed_field
     @property
     def last_update_timestamp(self) -> Optional[date]:
         """Last update timestamp.
