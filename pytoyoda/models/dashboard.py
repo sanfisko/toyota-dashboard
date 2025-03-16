@@ -1,7 +1,7 @@
 """Models for vehicle sensors."""
 
 from datetime import timedelta
-from typing import Any, List, Optional
+from typing import Any, List, Optional, Type, TypeVar, Union
 
 from pydantic import computed_field
 
@@ -18,8 +18,15 @@ from pytoyoda.models.endpoints.vehicle_health import (
 from pytoyoda.utils.conversions import convert_distance
 from pytoyoda.utils.models import CustomAPIBaseModel, Distance
 
+T = TypeVar(
+    "T",
+    bound=Union[
+        TelemetryResponseModel, ElectricResponseModel, VehicleHealthResponseModel, bool
+    ],
+)
 
-class Dashboard(CustomAPIBaseModel[Any]):
+
+class Dashboard(CustomAPIBaseModel[Type[T]]):
     """Information that may be found on a vehicles dashboard."""
 
     def __init__(

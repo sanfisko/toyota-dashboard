@@ -1,7 +1,7 @@
 """Models for vehicle electric status."""
 
 from datetime import date
-from typing import Any, Optional
+from typing import Optional, Type, TypeVar, Union
 
 from pydantic import computed_field
 
@@ -10,8 +10,13 @@ from pytoyoda.models.endpoints.electric import ElectricStatusModel
 from pytoyoda.utils.conversions import convert_distance
 from pytoyoda.utils.models import CustomAPIBaseModel, Distance
 
+T = TypeVar(
+    "T",
+    bound=Union[ElectricStatusModel, bool],
+)
 
-class ElectricStatus(CustomAPIBaseModel[Any]):
+
+class ElectricStatus(CustomAPIBaseModel[Type[T]]):
     """ElectricStatus."""
 
     def __init__(
