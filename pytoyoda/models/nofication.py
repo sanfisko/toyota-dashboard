@@ -26,9 +26,9 @@ class Notification(CustomAPIBaseModel[NotificationModel]):
             **kwargs,
         )
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
-    def category(self) -> str:
+    def category(self) -> Optional[str]:
         """Category of notification.
 
         For example, ChargingAlert, RemoteCommand
@@ -39,7 +39,7 @@ class Notification(CustomAPIBaseModel[NotificationModel]):
         """
         return self._data.category
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def read(self) -> Optional[datetime]:
         """Notification has been read.
@@ -50,9 +50,9 @@ class Notification(CustomAPIBaseModel[NotificationModel]):
         """
         return self._data.read_timestamp
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
-    def message(self) -> str:
+    def message(self) -> Optional[str]:
         """Notification message.
 
         Returns:
@@ -61,9 +61,9 @@ class Notification(CustomAPIBaseModel[NotificationModel]):
         """
         return self._data.message
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
-    def type(self) -> str:
+    def type(self) -> Optional[str]:
         """Type.
 
         For example, Alert
@@ -74,9 +74,9 @@ class Notification(CustomAPIBaseModel[NotificationModel]):
         """
         return self._data.type
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
-    def date(self) -> datetime:
+    def date(self) -> Optional[datetime]:
         """Notification Date.
 
         Returns:
