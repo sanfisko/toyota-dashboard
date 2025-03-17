@@ -41,7 +41,7 @@ class ElectricStatus(CustomAPIBaseModel[Type[T]]):
             "electric_status": electric_status,
             "metric": metric,
         }
-        super().__init__(data=data, **kwargs)
+        super().__init__(data=data, **kwargs)  # type: ignore[reportArgumentType, arg-type]
 
         # Get payload data from models
         self._electric_status: Optional[ElectricStatusModel] = (
@@ -49,7 +49,7 @@ class ElectricStatus(CustomAPIBaseModel[Type[T]]):
         )
         self._distance_unit: str = KILOMETERS_UNIT if metric else MILES_UNIT
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def battery_level(self) -> Optional[float]:
         """Battery level of the vehicle.
@@ -60,7 +60,7 @@ class ElectricStatus(CustomAPIBaseModel[Type[T]]):
         """
         return self._electric_status.battery_level if self._electric_status else None
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def charging_status(self) -> Optional[str]:
         """Charging status of the vehicle.
@@ -71,7 +71,7 @@ class ElectricStatus(CustomAPIBaseModel[Type[T]]):
         """
         return self._electric_status.charging_status if self._electric_status else None
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def remaining_charge_time(self) -> Optional[int]:
         """Remaining time to full charge in minutes.
@@ -86,7 +86,7 @@ class ElectricStatus(CustomAPIBaseModel[Type[T]]):
             else None
         )
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def ev_range(self) -> Optional[float]:
         """Electric vehicle range.
@@ -110,7 +110,7 @@ class ElectricStatus(CustomAPIBaseModel[Type[T]]):
             )
         return None
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def ev_range_with_unit(self) -> Optional[Distance]:
         """Electric vehicle range with unit.
@@ -123,7 +123,7 @@ class ElectricStatus(CustomAPIBaseModel[Type[T]]):
             return Distance(value=value, unit=self._distance_unit)
         return None
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def ev_range_with_ac(self) -> Optional[float]:
         """Electric vehicle range with AC.
@@ -148,7 +148,7 @@ class ElectricStatus(CustomAPIBaseModel[Type[T]]):
             )
         return None
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def ev_range_with_ac_with_unit(self) -> Optional[Distance]:
         """Electric vehicle range with ac with unit.
@@ -161,7 +161,7 @@ class ElectricStatus(CustomAPIBaseModel[Type[T]]):
             return Distance(value=value, unit=self._distance_unit)
         return None
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def can_set_next_charging_event(self) -> Optional[bool]:
         """Can set next charging event.
@@ -176,7 +176,7 @@ class ElectricStatus(CustomAPIBaseModel[Type[T]]):
             else None
         )
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def last_update_timestamp(self) -> Optional[date]:
         """Last update timestamp.

@@ -29,7 +29,7 @@ class ClimateOptionStatus(CustomAPIBaseModel[ClimateOptions]):
         """
         super().__init__(data=options, **kwargs)
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def front_defogger(self) -> bool:
         """The front defogger status.
@@ -40,7 +40,7 @@ class ClimateOptionStatus(CustomAPIBaseModel[ClimateOptions]):
         """
         return self._data.front_defogger
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def rear_defogger(self) -> bool:
         """The rear defogger status.
@@ -66,7 +66,7 @@ class ClimateStatus(CustomAPIBaseModel[ClimateStatusModel]):
         """
         super().__init__(data=climate_status, **kwargs)
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def type(self) -> str:
         """The type.
@@ -77,7 +77,7 @@ class ClimateStatus(CustomAPIBaseModel[ClimateStatusModel]):
         """
         return self._data.type
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def status(self) -> bool:
         """The status.
@@ -88,7 +88,7 @@ class ClimateStatus(CustomAPIBaseModel[ClimateStatusModel]):
         """
         return self._data.status
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def start_time(self) -> Optional[datetime]:
         """Start time.
@@ -99,7 +99,7 @@ class ClimateStatus(CustomAPIBaseModel[ClimateStatusModel]):
         """
         return self._data.started_at
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def duration(self) -> Optional[timedelta]:
         """The duration.
@@ -113,7 +113,7 @@ class ClimateStatus(CustomAPIBaseModel[ClimateStatusModel]):
 
         return timedelta(seconds=self._data.duration)
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def current_temperature(self) -> Optional[Temperature]:
         """The current temperature.
@@ -130,7 +130,7 @@ class ClimateStatus(CustomAPIBaseModel[ClimateStatusModel]):
             unit=self._data.current_temperature.unit,
         )
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def target_temperature(self) -> Optional[Temperature]:
         """The target temperature.
@@ -147,7 +147,7 @@ class ClimateStatus(CustomAPIBaseModel[ClimateStatusModel]):
             unit=self._data.target_temperature.unit,
         )
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def options(self) -> Optional[ClimateOptionStatus]:
         """The status of climate options.
@@ -175,7 +175,7 @@ class ClimateSettingsParameter(CustomAPIBaseModel[ACParameters]):
         """
         super().__init__(data=parameter, **kwargs)
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def available(self) -> Optional[bool]:
         """The parameter availability.
@@ -186,7 +186,7 @@ class ClimateSettingsParameter(CustomAPIBaseModel[ACParameters]):
         """
         return self._data.available
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def enabled(self) -> bool:
         """The parameter enable.
@@ -197,7 +197,7 @@ class ClimateSettingsParameter(CustomAPIBaseModel[ACParameters]):
         """
         return self._data.enabled
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def display_name(self) -> Optional[str]:
         """The parameter display name.
@@ -208,7 +208,7 @@ class ClimateSettingsParameter(CustomAPIBaseModel[ACParameters]):
         """
         return self._data.display_name
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def name(self) -> str:
         """The parameter name.
@@ -219,7 +219,7 @@ class ClimateSettingsParameter(CustomAPIBaseModel[ACParameters]):
         """
         return self._data.name
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def icon_url(self) -> Optional[str]:
         """The parameter icon url.
@@ -244,7 +244,7 @@ class ClimateSettingsOperation(CustomAPIBaseModel[ACOperations]):
         """
         super().__init__(data=operations, **kwargs)
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def available(self) -> Optional[bool]:
         """The operation availability.
@@ -255,7 +255,7 @@ class ClimateSettingsOperation(CustomAPIBaseModel[ACOperations]):
         """
         return self._data.available
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def category_name(self) -> str:
         """The operation category name.
@@ -266,7 +266,7 @@ class ClimateSettingsOperation(CustomAPIBaseModel[ACOperations]):
         """
         return self._data.category_name
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def category_display_name(self) -> Optional[str]:
         """The operation category display name.
@@ -277,7 +277,7 @@ class ClimateSettingsOperation(CustomAPIBaseModel[ACOperations]):
         """
         return self._data.category_display_name
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def parameters(self) -> Optional[List[ClimateSettingsParameter]]:
         """The operation parameter.
@@ -309,7 +309,7 @@ class ClimateSettings(CustomAPIBaseModel[ClimateSettingsResponseModel]):
             self._data.payload if self._data else None
         )
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def settings_on(self) -> Optional[bool]:
         """The settings on value.
@@ -320,7 +320,7 @@ class ClimateSettings(CustomAPIBaseModel[ClimateSettingsResponseModel]):
         """
         return self._climate_settings.settings_on if self._climate_settings else None
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def temp_interval(self) -> Optional[float]:
         """The temperature interval.
@@ -331,7 +331,7 @@ class ClimateSettings(CustomAPIBaseModel[ClimateSettingsResponseModel]):
         """
         return self._climate_settings.temp_interval if self._climate_settings else None
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def min_temp(self) -> Optional[float]:
         """The min temperature.
@@ -342,7 +342,7 @@ class ClimateSettings(CustomAPIBaseModel[ClimateSettingsResponseModel]):
         """
         return self._climate_settings.min_temp if self._climate_settings else None
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def max_temp(self) -> Optional[float]:
         """The max temperature.
@@ -353,7 +353,7 @@ class ClimateSettings(CustomAPIBaseModel[ClimateSettingsResponseModel]):
         """
         return self._climate_settings.max_temp if self._climate_settings else None
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def temperature(self) -> Optional[Temperature]:
         """The temperature.
@@ -369,7 +369,7 @@ class ClimateSettings(CustomAPIBaseModel[ClimateSettingsResponseModel]):
             )
         return None
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def operations(self) -> Optional[List[ClimateSettingsOperation]]:
         """The climate operation settings.
