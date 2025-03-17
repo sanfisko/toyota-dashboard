@@ -104,7 +104,9 @@ async def get_information():
                 f"Notifications: {[x.model_dump_json(indent=4) for x in car.notifications] if car.notifications else None}"  # noqa: E501
             )
             # Service history
-            logger.info(pformat(f"Latest service: {car.get_latest_service_history()}"))
+            logger.info(
+                f"Latest service: {car.get_latest_service_history().model_dump_json(indent=4) if car.get_latest_service_history() else None}"  # noqa: E501
+            )
             # Last trip distance
             logger.info(pformat(f"Last trip distance: {car.last_trip.distance}"))
             # Summary
