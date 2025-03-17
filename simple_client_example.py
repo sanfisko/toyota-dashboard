@@ -121,7 +121,7 @@ async def get_information():
                 logger.info(x.model_dump_json(indent=4))
 
             # Trips
-            # Uncommenting this ca nlead to a very long list of route positions
+            # Uncommenting this can lead to a very long list of route positions
             # trips = await car.get_trips(date.today() - timedelta(days=1), date.today(), full_route=True)   # noqa: E501
             # logger.info(f"Trips: {[x.model_dump_json(indent=4) for x in trips] if trips else None}")   # noqa: E501
 
