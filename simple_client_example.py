@@ -4,7 +4,6 @@ import asyncio
 import json
 import sys
 from datetime import date, timedelta
-from pprint import pformat
 
 from loguru import logger
 
@@ -108,22 +107,13 @@ async def get_information():
                 f"Latest service: {car.get_latest_service_history().model_dump_json(indent=4) if car.get_latest_service_history() else None}"  # noqa: E501
             )
             # Last trip distance
-            logger.info(pformat(f"Last trip distance: {car.last_trip.distance}"))
-            # Summary
-            # logger.info(pformat(
-            #    f"Daily summary: {[[x] for x in await car.get_summary(date.today() - timedelta(days=7), date.today(), summary_type=SummaryType.DAILY)]}"  # noqa: E501 # pylint: disable=C0301
-            # ))
-            # logger.info(pformat(
-            #    f"Weekly summary: {[[x] for x in await car.get_summary(date.today() - timedelta(days=7 * 4), date.today(), summary_type=SummaryType.WEEKLY)]}"  # noqa: E501 # pylint: disable=C0301
-            # ))
             logger.info(
-                pformat(
-                    f"Monthly summary: {[[x] for x in await car.get_summary(date.today() - timedelta(days=6 * 30), date.today(), summary_type=SummaryType.MONTHLY)]}"  # noqa: E501
-                )
+                f"Last trip distance: {car.last_trip.distance if car.last_trip else None}"  # noqa: E501
             )
-            # logger.info(pformat(
-            #    f"Yearly summary: {[[x] for x in await car.get_summary(date.today() - timedelta(days=365), date.today(), summary_type=SummaryType.YEARLY)]}"  # noqa: E501 # pylint: disable=C0301
-            # ))
+            # Summary
+            logger.info(
+                f"Monthly summary: {[[x.model_dump_json(indent=4)] for x in await car.get_summary(date.today() - timedelta(days=6 * 30), date.today(), summary_type=SummaryType.MONTHLY)]}"  # noqa: E501
+            )
 
             # Trips
             # logger.info(pformat(
