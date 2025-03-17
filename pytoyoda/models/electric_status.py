@@ -133,7 +133,14 @@ class ElectricStatus(CustomAPIBaseModel[Type[T]]):
                 current selected units.
 
         """
-        if self._electric_status:
+        if (
+            self._electric_status
+            and self._electric_status.ev_range_with_ac
+            and (
+                self._electric_status.ev_range_with_ac.unit
+                and self._electric_status.ev_range_with_ac.value
+            )
+        ):
             return convert_distance(
                 self._distance_unit,
                 self._electric_status.ev_range_with_ac.unit,
