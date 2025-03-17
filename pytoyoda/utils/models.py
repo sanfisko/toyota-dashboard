@@ -1,7 +1,7 @@
 """Utilities for manipulating or extending pydantic models."""
 
 from collections.abc import Callable
-from typing import Annotated, Any, Generic, TypeVar, get_args, get_origin
+from typing import Annotated, Any, Generic, Optional, TypeVar, get_args, get_origin
 
 from pydantic import BaseModel, ConfigDict, ValidationError, WrapValidator
 
@@ -94,8 +94,8 @@ class CustomAPIBaseModel(BaseModel, Generic[T]):
 class Temperature(BaseModel):
     """Temperature value with unit."""
 
-    value: float
-    unit: str
+    value: Optional[float]
+    unit: Optional[str]
 
     def __str__(self) -> str:
         """Represent Temperature model as string."""
@@ -105,8 +105,8 @@ class Temperature(BaseModel):
 class Distance(BaseModel):
     """Distance value with unit."""
 
-    value: float
-    unit: str
+    value: Optional[float]
+    unit: Optional[str]
 
     def __str__(self) -> str:
         """Represent Distance model as string."""

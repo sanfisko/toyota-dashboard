@@ -56,7 +56,6 @@ class Dashboard(CustomAPIBaseModel[Type[T]]):
         }
         super().__init__(data=data, **kwargs)
 
-        # Get payload data from models
         self._electric: Optional[ElectricStatusModel] = (
             electric.payload if electric else None
         )

@@ -6,13 +6,16 @@ from typing import Optional, Type, TypeVar, Union
 from pydantic import computed_field
 
 from pytoyoda.const import KILOMETERS_UNIT, MILES_UNIT
-from pytoyoda.models.endpoints.electric import ElectricStatusModel
+from pytoyoda.models.endpoints.electric import (
+    ElectricResponseModel,
+    ElectricStatusModel,
+)
 from pytoyoda.utils.conversions import convert_distance
 from pytoyoda.utils.models import CustomAPIBaseModel, Distance
 
 T = TypeVar(
     "T",
-    bound=Union[ElectricStatusModel, bool],
+    bound=Union[ElectricResponseModel, bool],
 )
 
 
@@ -21,7 +24,7 @@ class ElectricStatus(CustomAPIBaseModel[Type[T]]):
 
     def __init__(
         self,
-        electric_status: ElectricStatusModel = None,
+        electric_status: Optional[ElectricResponseModel] = None,
         metric: bool = True,
         **kwargs,
     ):
@@ -66,7 +69,7 @@ class ElectricStatus(CustomAPIBaseModel[Type[T]]):
             str: Charging status of the vehicle.
 
         """
-        return self._electric_status.charging_status
+        return self._electric_status.charging_status if self._electric_status else None
 
     @computed_field
     @property
@@ -77,7 +80,11 @@ class ElectricStatus(CustomAPIBaseModel[Type[T]]):
             int: Remaining time to full charge in minutes.
 
         """
-        return self._electric_status.remaining_charge_time
+        return (
+            self._electric_status.remaining_charge_time
+            if self._electric_status
+            else None
+        )
 
     @computed_field
     @property
@@ -88,7 +95,14 @@ class ElectricStatus(CustomAPIBaseModel[Type[T]]):
             float: Electric vehicle range in the current selected units.
 
         """
-        if self._electric_status:
+        if (
+            self._electric_status
+            and self._electric_status.ev_range
+            and (
+                self._electric_status.ev_range.unit
+                and self._electric_status.ev_range.value
+            )
+        ):
             return convert_distance(
                 self._distance_unit,
                 self._electric_status.ev_range.unit,

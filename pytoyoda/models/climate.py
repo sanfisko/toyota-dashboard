@@ -63,7 +63,7 @@ class ClimateStatus(CustomAPIBaseModel[ClimateStatusModel]):
             **kwargs: Additional keyword arguments passed to the parent class
 
         """
-        super().__init__(data=climate_status.payload, **kwargs)
+        super().__init__(data=climate_status, **kwargs)
 
     @computed_field
     @property
