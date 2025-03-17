@@ -5,7 +5,10 @@ from typing import Optional
 
 from pydantic import computed_field
 
-from pytoyoda.models.endpoints.location import LocationResponseModel
+from pytoyoda.models.endpoints.location import (
+    LocationResponseModel,
+    _VehicleLocationModel,
+)
 from pytoyoda.utils.models import CustomAPIBaseModel
 
 
@@ -22,13 +25,16 @@ class Location(CustomAPIBaseModel[LocationResponseModel]):
 
         """
         super().__init__(
-            data=location.payload.vehicle_location
-            if location and location.payload
-            else None,
+            data=location,
             **kwargs,
         )
+        self._location: Optional[_VehicleLocationModel] = (
+            self._data.payload.vehicle_location
+            if self._data.payload and self._data.payload
+            else None
+        )
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def latitude(self) -> Optional[float]:
         """Latitude.
@@ -37,9 +43,9 @@ class Location(CustomAPIBaseModel[LocationResponseModel]):
             float: Latest latitude or None. _Not always available_.
 
         """
-        return self._data.latitude if self._data else None
+        return self._location.latitude if self._location else None
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def longitude(self) -> Optional[float]:
         """Longitude.
@@ -48,9 +54,9 @@ class Location(CustomAPIBaseModel[LocationResponseModel]):
             float: Latest longitude or None. _Not always available_.
 
         """
-        return self._data.longitude if self._data else None
+        return self._location.longitude if self._location else None
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def timestamp(self) -> Optional[datetime]:
         """Timestamp.
@@ -60,15 +66,15 @@ class Location(CustomAPIBaseModel[LocationResponseModel]):
                 _Not always available_.
 
         """
-        return self._data.location_acquisition_datetime if self._data else None
+        return self._location.location_acquisition_datetime if self._location else None
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
-    def state(self) -> str:
+    def state(self) -> Optional[str]:
         """State.
 
         Returns:
             str: The state of the position or None. _Not always available_.
 
         """
-        return self._data.display_name if self._data else None
+        return self._location.display_name if self._location else None
