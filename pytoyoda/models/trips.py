@@ -3,6 +3,11 @@
 from datetime import datetime, timedelta
 from typing import List, Optional, Tuple
 
+from pytoyoda.const import (
+    ML_GAL_FACTOR,
+    ML_L_FACTOR,
+    MPG_FACTOR,
+)
 from pytoyoda.models.endpoints.trips import _TripModel
 from pytoyoda.utils.conversions import convert_distance
 
@@ -130,9 +135,9 @@ class Trip:
         """
         if self._trip.summary.fuel_consumption:
             return (
-                round(self._trip.summary.fuel_consumption / 1000.0, 3)
+                round(self._trip.summary.fuel_consumption / ML_L_FACTOR, 3)
                 if self._metric
-                else round(self._trip.summary.fuel_consumption / 3785.0, 3)
+                else round(self._trip.summary.fuel_consumption / ML_GAL_FACTOR, 3)
             )
 
         return 0.0
@@ -152,7 +157,7 @@ class Trip:
             return (
                 round(avg_fuel_consumed, 3)
                 if self._metric
-                else round(235.215 / avg_fuel_consumed, 3)
+                else round(MPG_FACTOR / avg_fuel_consumed, 3)
             )
 
         return 0.0

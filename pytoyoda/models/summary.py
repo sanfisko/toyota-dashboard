@@ -2,10 +2,25 @@
 
 from datetime import date, timedelta
 from enum import IntEnum
-from typing import List, Optional
+from typing import List, Optional, Type, TypeVar, Union
 
+from pydantic import computed_field
+
+from pytoyoda.const import (
+    KILOMETERS_UNIT,
+    MILES_UNIT,
+    ML_GAL_FACTOR,
+    ML_L_FACTOR,
+    MPG_FACTOR,
+)
 from pytoyoda.models.endpoints.trips import _HDCModel, _SummaryBaseModel
 from pytoyoda.utils.conversions import convert_distance
+from pytoyoda.utils.models import CustomAPIBaseModel
+
+T = TypeVar(
+    "T",
+    bound=Union[_SummaryBaseModel, bool, date, _HDCModel],
+)
 
 
 class SummaryType(IntEnum):
@@ -17,7 +32,7 @@ class SummaryType(IntEnum):
     YEARLY = 4
 
 
-class Summary:
+class Summary(CustomAPIBaseModel[Type[T]]):
     """Base class of Daily, Weekly, Monthly, Yearly summary."""
 
     def __init__(
@@ -27,6 +42,7 @@ class Summary:
         from_date: date,
         to_date: date,
         hdc: Optional[_HDCModel] = None,
+        **kwargs,
     ):
         """Initialise Class.
 
@@ -36,27 +52,28 @@ class Summary:
             from_date (date, required): Start date for this summary
             to_date (date, required): End date for this summary
             hdc: (_HDCModel, optional): Hybrid data if available
+            **kwargs: Additional keyword arguments passed to the parent class
 
         """
+        data = {
+            "summary": summary,
+            "metric": metric,
+            "from_date": from_date,
+            "to_date": to_date,
+            "hdc": hdc,
+        }
+        super().__init__(data=data, **kwargs)  # type: ignore[reportArgumentType, arg-type]
+
         self._summary: _SummaryBaseModel = summary
-        self._hdc: Optional[_HDCModel] = hdc
         self._metric: bool = metric
-        self._distance_unit: str = "km" if metric else "mi"
         self._from_date: date = from_date
         self._to_date: date = to_date
+        self._hdc: Optional[_HDCModel] = hdc
+        self._distance_unit: str = KILOMETERS_UNIT if metric else MILES_UNIT
 
-    def __repr__(self):
-        """Representation of Summary."""
-        return " ".join(
-            [
-                f"{k}={getattr(self, k)!s}"
-                for k, v in type(self).__dict__.items()
-                if isinstance(v, property)
-            ],
-        )
-
+    @computed_field  # type: ignore[prop-decorator]
     @property
-    def average_speed(self) -> float:
+    def average_speed(self) -> Optional[float]:
         """Average speed.
 
         Returns:
@@ -64,10 +81,16 @@ class Summary:
                 Return information on all trips made between the provided dates.
 
         """
-        return convert_distance(self._distance_unit, "km", self._summary.average_speed)
+        if self._summary.average_speed:
+            return convert_distance(
+                self._distance_unit, KILOMETERS_UNIT, self._summary.average_speed
+            )
+        else:
+            return None
 
+    @computed_field  # type: ignore[prop-decorator]
     @property
-    def countries(self) -> List[str]:
+    def countries(self) -> Optional[List[str]]:
         """Countries visited.
 
         Returns:
@@ -75,30 +98,39 @@ class Summary:
                 two-letter country codes format.
 
         """
-        return self._summary.countries
+        return self._summary.countries or None
 
+    @computed_field  # type: ignore[prop-decorator]
     @property
-    def duration(self) -> timedelta:
+    def duration(self) -> Optional[timedelta]:
         """The total time driving.
 
         Returns:
             timedelta: The amount of time driving
 
         """
-        return timedelta(seconds=self._summary.duration)
+        if self._summary.duration:
+            return timedelta(seconds=self._summary.duration)
+        else:
+            return None
 
+    @computed_field  # type: ignore[prop-decorator]
     @property
-    def distance(self) -> float:
+    def distance(self) -> Optional[float]:
         """The total distance covered.
 
         Returns:
             float: Distance covered in the selected metric
 
         """
-        return convert_distance(
-            self._distance_unit, "km", self._summary.length / 1000.0
-        )
+        if self._summary.length:
+            return convert_distance(
+                self._distance_unit, KILOMETERS_UNIT, self._summary.length / 1000.0
+            )
+        else:
+            return None
 
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def ev_duration(self) -> Optional[timedelta]:
         """The total time driving using EV.
@@ -112,6 +144,7 @@ class Summary:
             return timedelta(seconds=self._hdc.ev_time)
         return None
 
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def ev_distance(self) -> Optional[float]:
         """The total time distance driven using EV.
@@ -123,10 +156,11 @@ class Summary:
         """
         if self._hdc and self._hdc.ev_distance:
             return convert_distance(
-                self._distance_unit, "km", self._hdc.ev_distance / 1000.0
+                self._distance_unit, KILOMETERS_UNIT, self._hdc.ev_distance / 1000.0
             )
         return None
 
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def from_date(self) -> date:
         """The date the summary started.
@@ -137,6 +171,7 @@ class Summary:
         """
         return self._from_date
 
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def to_date(self) -> date:
         """The date the summary ended.
@@ -147,6 +182,7 @@ class Summary:
         """
         return self._to_date
 
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def fuel_consumed(self) -> float:
         """The total amount of fuel consumed.
@@ -157,13 +193,14 @@ class Summary:
         """
         if self._summary.fuel_consumption:
             return (
-                round(self._summary.fuel_consumption / 1000.0, 3)
+                round(self._summary.fuel_consumption / ML_L_FACTOR, 3)
                 if self._metric
-                else round(self._summary.fuel_consumption / 3785.0, 3)
+                else round(self._summary.fuel_consumption / ML_GAL_FACTOR, 3)
             )
 
         return 0.0
 
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def average_fuel_consumed(self) -> float:
         """The average amount of fuel consumed.
@@ -172,14 +209,14 @@ class Summary:
             float: The average amount of fuel consumed in l/100km if metric or mpg
 
         """
-        if self._summary.fuel_consumption:
+        if self._summary.fuel_consumption and self._summary.length:
             avg_fuel_consumed = (
                 self._summary.fuel_consumption / self._summary.length
             ) * 100
             return (
                 round(avg_fuel_consumed, 3)
                 if self._metric
-                else round(235.215 / avg_fuel_consumed, 3)
+                else round(MPG_FACTOR / avg_fuel_consumed, 3)
             )
 
         return 0.0
