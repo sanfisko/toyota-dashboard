@@ -225,7 +225,6 @@ class Vehicle(CustomAPIBaseModel[Any]):
                 "ev" if full electric vehicle
 
         """
-        # TODO enum
         # TODO currently guessing until we see a mild hybrid and full EV
         # TODO should probably use electricalPlatformCode but values currently unknown
         # TODO list of fuel types. ?: G=Petrol Only, I=Hybrid
