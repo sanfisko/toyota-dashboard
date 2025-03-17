@@ -9,7 +9,7 @@ from enum import Enum, auto
 from functools import partial
 from itertools import groupby
 from operator import attrgetter
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple, Type, TypeVar, Union
 
 from arrow import Arrow
 from pydantic import computed_field
@@ -30,6 +30,11 @@ from pytoyoda.models.trips import Trip
 from pytoyoda.utils.helpers import add_with_none
 from pytoyoda.utils.log_utils import censor_all
 from pytoyoda.utils.models import CustomAPIBaseModel
+
+T = TypeVar(
+    "T",
+    bound=Union[Api, VehicleGuidModel, bool],
+)
 
 
 class VehicleType(Enum):
@@ -59,7 +64,7 @@ class EndpointDefinition:
     function: Callable
 
 
-class Vehicle(CustomAPIBaseModel[Any]):
+class Vehicle(CustomAPIBaseModel[Type[T]]):
     """Vehicle data representation."""
 
     def __init__(
