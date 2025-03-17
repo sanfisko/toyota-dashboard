@@ -4,7 +4,6 @@ import asyncio
 import json
 import sys
 from datetime import date, timedelta
-from pprint import pformat
 
 from loguru import logger
 
@@ -80,45 +79,54 @@ async def get_information():
         # print(response)
         # return
 
-        await car.update()
+        if car:
+            await car.update()
 
-        # Dashboard Information
-        logger.info(pformat(f"Dashboard: {car.dashboard}"))
-        # Electric Status Information
-        logger.info(pformat(f"Electric Status: {car.electric_status}"))
-        # Location Information
-        logger.info(pformat(f"Location: {car.location}"))
-        # Lock Status
-        logger.info(pformat(f"Lock Status: {car.lock_status}"))
-        # Notifications
-        logger.info(pformat(f"Notifications: {[[x] for x in car.notifications]}"))
-        # Service history
-        logger.info(pformat(f"Latest service: {car.get_latest_service_history()}"))
-        # Last trip distance
-        logger.info(pformat(f"Last trip distance: {car.last_trip.distance}"))
-        # Summary
-        # logger.info(pformat(
-        #    f"Daily summary: {[[x] for x in await car.get_summary(date.today() - timedelta(days=7), date.today(), summary_type=SummaryType.DAILY)]}"  # noqa: E501 # pylint: disable=C0301
-        # ))
-        # logger.info(pformat(
-        #    f"Weekly summary: {[[x] for x in await car.get_summary(date.today() - timedelta(days=7 * 4), date.today(), summary_type=SummaryType.WEEKLY)]}"  # noqa: E501 # pylint: disable=C0301
-        # ))
-        logger.info(
-            pformat(
-                f"Monthly summary: {[[x] for x in await car.get_summary(date.today() - timedelta(days=6 * 30), date.today(), summary_type=SummaryType.MONTHLY)]}"  # noqa: E501
+            # Dashboard Information
+            logger.info(
+                f"Dashboard: {car.dashboard.model_dump_json(indent=4) if car.dashboard else None}"  # noqa: E501
             )
-        )
-        # logger.info(pformat(
-        #    f"Yearly summary: {[[x] for x in await car.get_summary(date.today() - timedelta(days=365), date.today(), summary_type=SummaryType.YEARLY)]}"  # noqa: E501 # pylint: disable=C0301
-        # ))
+            # Electric Status Information
+            logger.info(
+                f"Electric Status: {car.electric_status.model_dump_json(indent=4) if car.electric_status else None}"  # noqa: E501
+            )
+            # Location Information
+            logger.info(
+                f"Location: {car.location.model_dump_json(indent=4) if car.location else None}"  # noqa: E501
+            )
+            # Lock Status
+            logger.info(
+                f"Lock Status: {car.lock_status.model_dump_json(indent=4) if car.lock_status else None}"  # noqa: E501
+            )
+            # Notifications
+            logger.info(
+                f"Notifications: {[x.model_dump_json(indent=4) for x in car.notifications] if car.notifications else None}"  # noqa: E501
+            )
+            # Service history
+            logger.info(
+                f"Latest service: {car.get_latest_service_history().model_dump_json(indent=4) if car.get_latest_service_history() else None}"  # noqa: E501
+            )
+            # Last trip
+            logger.info(
+                f"Last trip: {car.last_trip.model_dump_json(indent=4) if car.last_trip else None}"  # noqa: E501
+            )
+            # Summary
+            summaries = await car.get_summary(
+                date.today() - timedelta(days=6 * 30),
+                date.today(),
+                summary_type=SummaryType.MONTHLY,
+            )
+            logger.info("Monthly summaries:")
+            for x in summaries:
+                logger.info(x.model_dump_json(indent=4))
 
-        # Trips
-        # logger.info(pformat(
-        #    f"Trips: f{await car.get_trips(date.today() - timedelta(days=7), date.today(), full_route=True)}"  # noqa: E501
-        # ))
+            # Trips
+            # Uncommenting this can lead to a very long list of route positions
+            # trips = await car.get_trips(date.today() - timedelta(days=1), date.today(), full_route=True)   # noqa: E501
+            # logger.info(f"Trips: {[x.model_dump_json(indent=4) for x in trips] if trips else None}")   # noqa: E501
 
-        # Dump all the information collected so far:
-        # logger.info(pformat(car._dump_all()))
+            # Dump all the information collected so far:
+            # logger.info(pformat(car._dump_all()))
 
 
 loop = asyncio.new_event_loop()

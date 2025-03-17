@@ -3,13 +3,16 @@
 import asyncio
 import copy
 import json
+from dataclasses import dataclass
 from datetime import date, timedelta
+from enum import Enum, auto
 from functools import partial
 from itertools import groupby
 from operator import attrgetter
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple, Type, TypeVar, Union
 
 from arrow import Arrow
+from pydantic import computed_field
 
 from pytoyoda.api import Api
 from pytoyoda.models.climate import ClimateSettings, ClimateStatus
@@ -26,85 +29,132 @@ from pytoyoda.models.summary import Summary, SummaryType
 from pytoyoda.models.trips import Trip
 from pytoyoda.utils.helpers import add_with_none
 from pytoyoda.utils.log_utils import censor_all
+from pytoyoda.utils.models import CustomAPIBaseModel
+
+T = TypeVar(
+    "T",
+    bound=Union[Api, VehicleGuidModel, bool],
+)
 
 
-class Vehicle:
+class VehicleType(Enum):
+    """Vehicle types."""
+
+    PLUG_IN_HYBRID = auto()
+    ELECTRIC = auto()
+    FUEL_ONLY = auto()
+
+    @classmethod
+    def from_vehicle_info(cls, info: VehicleGuidModel) -> "VehicleType":
+        """Get vehicle type from the vehicle information."""
+        if info.ev_vehicle and info.fuel_type:
+            return cls.PLUG_IN_HYBRID
+        elif info.ev_vehicle:
+            return cls.ELECTRIC
+        else:
+            return cls.FUEL_ONLY
+
+
+@dataclass
+class EndpointDefinition:
+    """Definition of an API endpoint."""
+
+    name: str
+    capable: bool
+    function: Callable
+
+
+class Vehicle(CustomAPIBaseModel[Type[T]]):
     """Vehicle data representation."""
 
     def __init__(
-        self, api: Api, vehicle_info: VehicleGuidModel, metric: bool = True
+        self,
+        api: Api,
+        vehicle_info: VehicleGuidModel,
+        metric: bool = True,
+        **kwargs,
     ) -> None:
         """Initialise the Vehicle data representation."""
-        self._vehicle_info = vehicle_info
+        data = {
+            "api": api,
+            "vehicle_info": vehicle_info,
+            "metric": metric,
+        }
+        super().__init__(data=data, **kwargs)  # type: ignore[reportArgumentType, arg-type]
         self._api = api
-        self._endpoint_data: Dict[str, Any] = {}
+        self._vehicle_info = vehicle_info
         self._metric = metric
+        self._endpoint_data: Dict[str, Any] = {}
 
-        # Endpoint Name, Function to check if car supports the endpoint,
-        # endpoint to call to update
-        api_endpoints = [
-            {
-                "name": "location",
-                "capable": vehicle_info.extended_capabilities.last_parked_capable
-                or vehicle_info.features.last_parked,
-                "function": partial(self._api.get_location, vin=vehicle_info.vin),
-            },
-            {
-                "name": "health_status",
-                "capable": True,  # TODO Unsure of the required capability
-                "function": partial(
+        self._api_endpoints: List[EndpointDefinition] = [
+            EndpointDefinition(
+                name="location",
+                capable=self._vehicle_info.extended_capabilities.last_parked_capable
+                or self._vehicle_info.features.last_parked,
+                function=partial(self._api.get_location, vin=self._vehicle_info.vin),
+            ),
+            EndpointDefinition(
+                name="health_status",
+                capable=True,  # TODO Unsure of the required capability
+                function=partial(
                     self._api.get_vehicle_health_status,
-                    vin=vehicle_info.vin,
+                    vin=self._vehicle_info.vin,
                 ),
-            },
-            {
-                "name": "electric_status",
-                "capable": vehicle_info.extended_capabilities.econnect_vehicle_status_capable,  # noqa: E501
-                "function": partial(
+            ),
+            EndpointDefinition(
+                name="electric_status",
+                capable=self._vehicle_info.extended_capabilities.econnect_vehicle_status_capable,
+                function=partial(
                     self._api.get_vehicle_electric_status,
-                    vin=vehicle_info.vin,
+                    vin=self._vehicle_info.vin,
                 ),
-            },
-            {
-                "name": "telemetry",
-                "capable": vehicle_info.extended_capabilities.telemetry_capable,
-                "function": partial(self._api.get_telemetry, vin=vehicle_info.vin),
-            },
-            {
-                "name": "notifications",
-                "capable": True,  # TODO Unsure of the required capability
-                "function": partial(self._api.get_notifications, vin=vehicle_info.vin),
-            },
-            {
-                "name": "status",
-                "capable": vehicle_info.extended_capabilities.vehicle_status,
-                "function": partial(self._api.get_remote_status, vin=vehicle_info.vin),
-            },
-            {
-                "name": "service_history",
-                "capable": vehicle_info.features.service_history,
-                "function": partial(
-                    self._api.get_service_history, vin=vehicle_info.vin
+            ),
+            EndpointDefinition(
+                name="telemetry",
+                capable=self._vehicle_info.extended_capabilities.telemetry_capable,
+                function=partial(self._api.get_telemetry, vin=self._vehicle_info.vin),
+            ),
+            EndpointDefinition(
+                name="notifications",
+                capable=True,  # TODO Unsure of the required capability
+                function=partial(
+                    self._api.get_notifications, vin=self._vehicle_info.vin
                 ),
-            },
-            {
-                "name": "climate_settings",
-                "capable": vehicle_info.features.climate_start_engine,
-                "function": partial(
-                    self._api.get_climate_settings, vin=vehicle_info.vin
+            ),
+            EndpointDefinition(
+                name="status",
+                capable=self._vehicle_info.extended_capabilities.vehicle_status,
+                function=partial(
+                    self._api.get_remote_status, vin=self._vehicle_info.vin
                 ),
-            },
-            {
-                "name": "climate_status",
-                "capable": vehicle_info.features.climate_start_engine,
-                "function": partial(self._api.get_climate_status, vin=vehicle_info.vin),
-            },
-            {
-                "name": "trip_history",
-                "capable": True,
-                "function": partial(
+            ),
+            EndpointDefinition(
+                name="service_history",
+                capable=self._vehicle_info.features.service_history,
+                function=partial(
+                    self._api.get_service_history, vin=self._vehicle_info.vin
+                ),
+            ),
+            EndpointDefinition(
+                name="climate_settings",
+                capable=self._vehicle_info.features.climate_start_engine,
+                function=partial(
+                    self._api.get_climate_settings, vin=self._vehicle_info.vin
+                ),
+            ),
+            EndpointDefinition(
+                name="climate_status",
+                capable=self._vehicle_info.features.climate_start_engine,
+                function=partial(
+                    self._api.get_climate_status, vin=self._vehicle_info.vin
+                ),
+            ),
+            EndpointDefinition(
+                name="trip_history",
+                capable=True,
+                function=partial(
                     self._api.get_trips,
-                    vin=vehicle_info.vin,
+                    vin=self._vehicle_info.vin,
                     from_date=(date.today() - timedelta(days=90)),
                     to_date=date.today(),
                     summary=True,
@@ -112,12 +162,12 @@ class Vehicle:
                     offset=0,
                     route=False,
                 ),
-            },
+            ),
         ]
         self._endpoint_collect = [
-            (endpoint["name"], endpoint["function"])
-            for endpoint in api_endpoints
-            if endpoint["capable"]
+            (endpoint.name, endpoint.function)
+            for endpoint in self._api_endpoints
+            if endpoint.capable
         ]
 
     async def update(self) -> None:
@@ -146,6 +196,7 @@ class Vehicle:
         for name, data in await responses:
             self._endpoint_data[name] = data
 
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def vin(self) -> Optional[str]:
         """Return the vehicles VIN number.
@@ -156,6 +207,7 @@ class Vehicle:
         """
         return self._vehicle_info.vin
 
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def alias(self) -> Optional[str]:
         """Vehicle's alias.
@@ -166,6 +218,7 @@ class Vehicle:
         """
         return self._vehicle_info.nickname
 
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def type(self) -> Optional[str]:
         """Returns the "type" of vehicle.
@@ -177,16 +230,13 @@ class Vehicle:
                 "ev" if full electric vehicle
 
         """
-        # TODO enum
         # TODO currently guessing until we see a mild hybrid and full EV
         # TODO should probably use electricalPlatformCode but values currently unknown
         # TODO list of fuel types. ?: G=Petrol Only, I=Hybrid
-        return (
-            "phev"
-            if self._vehicle_info.ev_vehicle and self._vehicle_info.fuel_type
-            else "ev"
-        )
+        vehicle_type = VehicleType.from_vehicle_info(self._vehicle_info)
+        return vehicle_type.name.lower()
 
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def dashboard(self) -> Optional[Dashboard]:
         """Returns the Vehicle dashboard.
@@ -200,18 +250,13 @@ class Vehicle:
         """
         # Always returns a Dashboard object as we can always get the odometer value
         return Dashboard(
-            self._endpoint_data["telemetry"]
-            if "telemetry" in self._endpoint_data
-            else None,
-            self._endpoint_data["electric_status"]
-            if "electric_status" in self._endpoint_data
-            else None,
-            self._endpoint_data["health_status"]
-            if "health_status" in self._endpoint_data
-            else None,
+            self._endpoint_data.get("telemetry", None),
+            self._endpoint_data.get("electric_status", None),
+            self._endpoint_data.get("health_status", None),
             self._metric,
         )
 
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def climate_settings(self) -> Optional[ClimateSettings]:
         """Return the vehicle climate settings.
@@ -222,6 +267,7 @@ class Vehicle:
         """
         return ClimateSettings(self._endpoint_data.get("climate_settings", None))
 
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def climate_status(self) -> Optional[ClimateStatus]:
         """Return the vehicle climate status.
@@ -232,6 +278,7 @@ class Vehicle:
         """
         return ClimateStatus(self._endpoint_data.get("climate_status", None))
 
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def electric_status(self) -> Optional[ElectricStatus]:
         """Returns the Electric Status of the vehicle.
@@ -240,12 +287,9 @@ class Vehicle:
             Optional[ElectricStatus]: Electric Status
 
         """
-        return (
-            ElectricStatus(self._endpoint_data["electric_status"])
-            if "electric_status" in self._endpoint_data
-            else None
-        )
+        return ElectricStatus(self._endpoint_data.get("electric_status", None))
 
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def location(self) -> Optional[Location]:
         """Return the vehicles latest reported Location.
@@ -257,13 +301,10 @@ class Vehicle:
                 supports location but none is currently available.
 
         """
-        return (
-            Location(self._endpoint_data["location"])
-            if "location" in self._endpoint_data
-            else None
-        )
+        return Location(self._endpoint_data.get("location", None))
 
-    @property  # TODO: Cant have a property with parameters! Split into two methods?
+    @computed_field  # type: ignore[prop-decorator]
+    @property
     def notifications(self) -> Optional[List[Notification]]:
         r"""Returns a list of notifications for the vehicle.
 
@@ -280,6 +321,7 @@ class Vehicle:
 
         return None
 
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def service_history(self) -> Optional[List[ServiceHistory]]:
         r"""Returns a list of service history entries for the vehicle.
@@ -314,6 +356,7 @@ class Vehicle:
             )
         return None
 
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def lock_status(self) -> Optional[LockStatus]:
         """Returns the latest lock status of Doors & Windows.
@@ -323,10 +366,9 @@ class Vehicle:
                 or None if not supported.
 
         """
-        return LockStatus(
-            self._endpoint_data["status"] if "status" in self._endpoint_data else None
-        )
+        return LockStatus(self._endpoint_data.get("status", None))
 
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def last_trip(self) -> Optional[Trip]:
         """Returns the Vehicle last trip.
@@ -339,11 +381,9 @@ class Vehicle:
         if "trip_history" in self._endpoint_data:
             ret = next(iter(self._endpoint_data["trip_history"].payload.trips), None)
 
-        if ret is None:
-            return None
+        return None if ret is None else Trip(ret, self._metric)
 
-        return Trip(ret, self._metric)
-
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def trip_history(self) -> Optional[List[Trip]]:
         """Returns the Vehicle trips.
@@ -411,6 +451,8 @@ class Vehicle:
         else:
             raise AssertionError("No such SummaryType")
 
+    @computed_field  # type: ignore[prop-decorator]
+    @property
     async def get_current_day_summary(self) -> Optional[Summary]:
         """Return a summary for the current day.
 
@@ -426,6 +468,8 @@ class Vehicle:
         assert len(summary) < 2
         return summary[0] if len(summary) > 0 else None
 
+    @computed_field  # type: ignore[prop-decorator]
+    @property
     async def get_current_week_summary(self) -> Optional[Summary]:
         """Return a summary for the current week.
 
@@ -441,6 +485,8 @@ class Vehicle:
         assert len(summary) < 2
         return summary[0] if len(summary) > 0 else None
 
+    @computed_field  # type: ignore[prop-decorator]
+    @property
     async def get_current_month_summary(self) -> Optional[Summary]:
         """Return a summary for the current month.
 
@@ -456,6 +502,8 @@ class Vehicle:
         assert len(summary) < 2
         return summary[0] if len(summary) > 0 else None
 
+    @computed_field  # type: ignore[prop-decorator]
+    @property
     async def get_current_year_summary(self) -> Optional[Summary]:
         """Return a summary for the current year.
 

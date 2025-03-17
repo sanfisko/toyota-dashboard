@@ -7,34 +7,34 @@ from uuid import UUID
 from pydantic import Field
 
 from pytoyoda.models.endpoints.common import StatusModel
-from pytoyoda.utils.models import CustomBaseModel
+from pytoyoda.utils.models import CustomEndpointBaseModel
 
 
-class _TermsActivityModel(CustomBaseModel):
+class _TermsActivityModel(CustomEndpointBaseModel):
     time_stamp: Optional[datetime] = Field(alias="timeStamp")
     version: Optional[str]
 
 
-class _AdditionalAttributesModel(CustomBaseModel):
+class _AdditionalAttributesModel(CustomEndpointBaseModel):
     is_terms_accepted: Optional[bool] = Field(alias="isTermsAccepted")
     terms_activity: Optional[List[_TermsActivityModel]] = Field("termsActivity")
 
 
-class _EmailModel(CustomBaseModel):
+class _EmailModel(CustomEndpointBaseModel):
     email_address: Optional[str] = Field(alias="emailAddress")
     email_type: Optional[str] = Field(alias="emailType")
     email_verified: Optional[bool] = Field(alias="emailVerified")
     verification_date: Optional[datetime] = Field(alias="verificationDate")
 
 
-class _PhoneNumberModel(CustomBaseModel):
+class _PhoneNumberModel(CustomEndpointBaseModel):
     country_code: Optional[int] = Field(alias="countryCode")
     phone_number: Optional[int] = Field(alias="phoneNumber")
     phone_verified: Optional[bool] = Field(alias="phoneVerified")
     verification_date: Optional[datetime] = Field("verificationDate")
 
 
-class _CustomerModel(CustomBaseModel):
+class _CustomerModel(CustomEndpointBaseModel):
     account_status: Optional[str] = Field(alias="accountStatus")
     additional_attributes: Optional[_AdditionalAttributesModel] = Field(
         alias="additionalAttributes"
@@ -56,7 +56,7 @@ class _CustomerModel(CustomBaseModel):
     ui_language: Optional[str] = Field(alias="uiLanguage")
 
 
-class AccountModel(CustomBaseModel):
+class AccountModel(CustomEndpointBaseModel):
     """Model representing an account.
 
     Attributes:

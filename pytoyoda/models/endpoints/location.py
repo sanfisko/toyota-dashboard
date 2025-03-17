@@ -6,10 +6,10 @@ from typing import Optional
 from pydantic import Field
 
 from pytoyoda.models.endpoints.common import StatusModel
-from pytoyoda.utils.models import CustomBaseModel
+from pytoyoda.utils.models import CustomEndpointBaseModel
 
 
-class _VehicleLocationModel(CustomBaseModel):
+class _VehicleLocationModel(CustomEndpointBaseModel):
     display_name: Optional[str] = Field(alias="displayName")
     latitude: Optional[float]
     location_acquisition_datetime: Optional[datetime] = Field(
@@ -18,7 +18,7 @@ class _VehicleLocationModel(CustomBaseModel):
     longitude: Optional[float]
 
 
-class LocationModel(CustomBaseModel):
+class LocationModel(CustomEndpointBaseModel):
     r"""Model representing the location of a vehicle.
 
     Attributes:

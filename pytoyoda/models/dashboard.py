@@ -1,8 +1,11 @@
 """Models for vehicle sensors."""
 
 from datetime import timedelta
-from typing import Any, List, Optional
+from typing import Any, List, Optional, Type, TypeVar, Union
 
+from pydantic import computed_field
+
+from pytoyoda.const import KILOMETERS_UNIT, MILES_UNIT
 from pytoyoda.models.endpoints.electric import (
     ElectricResponseModel,
     ElectricStatusModel,
@@ -13,26 +16,46 @@ from pytoyoda.models.endpoints.vehicle_health import (
     VehicleHealthResponseModel,
 )
 from pytoyoda.utils.conversions import convert_distance
+from pytoyoda.utils.models import CustomAPIBaseModel, Distance
+
+T = TypeVar(
+    "T",
+    bound=Union[
+        TelemetryResponseModel, ElectricResponseModel, VehicleHealthResponseModel, bool
+    ],
+)
 
 
-class Dashboard:
+class Dashboard(CustomAPIBaseModel[Type[T]]):
     """Information that may be found on a vehicles dashboard."""
 
-    # TODO do we want to supply last update times?
-
-    def __init__(  # noqa: D417
+    def __init__(
         self,
         telemetry: Optional[TelemetryResponseModel] = None,
         electric: Optional[ElectricResponseModel] = None,
         health: Optional[VehicleHealthResponseModel] = None,
         metric: bool = True,
+        **kwargs,
     ):
-        """Initialise Dashboard.
+        """Initialise Dashboard model.
 
         Args:
+            telemetry (Optional[TelemetryResponseModel]): Telemetry response model
+            electric (Optional[ElectricResponseModel]): Electric response model
+            health (Optional[VehicleHealthResponseModel]): Vehicle health response model
             metric (bool): Report distances in metric(or imperial)
+            **kwargs: Additional keyword arguments passed to the parent class
 
         """
+        # Create temporary object for data
+        data = {
+            "telemetry": telemetry,
+            "electric": electric,
+            "health": health,
+            "metric": metric,
+        }
+        super().__init__(data=data, **kwargs)  # type: ignore[reportArgumentType, arg-type]
+
         self._electric: Optional[ElectricStatusModel] = (
             electric.payload if electric else None
         )
@@ -40,27 +63,22 @@ class Dashboard:
             telemetry.payload if telemetry else None
         )
         self._health: Optional[VehicleHealthModel] = health.payload if health else None
-        self._distance_unit: str = "km" if metric else "mi"
+        self._distance_unit: str = KILOMETERS_UNIT if metric else MILES_UNIT
 
-    def __repr__(self):
-        """Representation of the Dashboard model."""
-        return " ".join(
-            [
-                f"{k}={getattr(self, k)!s}"
-                for k, v in type(self).__dict__.items()
-                if isinstance(v, property)
-            ],
-        )
-
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def odometer(self) -> Optional[float]:
         """Odometer distance.
 
         Returns:
-            Optional[float]: The latest odometer reading in the current selected units
+            float: The latest odometer reading in the current selected units
 
         """
-        if self._telemetry:
+        if (
+            self._telemetry
+            and self._telemetry.odometer
+            and (self._telemetry.odometer.unit and self._telemetry.odometer.value)
+        ):
             return convert_distance(
                 self._distance_unit,
                 self._telemetry.odometer.unit,
@@ -68,43 +86,70 @@ class Dashboard:
             )
         return None
 
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def odometer_with_unit(self) -> Optional[Distance]:
+        """Odometer distance with unit.
+
+        Returns:
+            Distance: The latest odometer reading with unit
+
+        """
+        if value := self.odometer:
+            return Distance(value=value, unit=self._distance_unit)
+        return None
+
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def fuel_level(self) -> Optional[int]:
         """Fuel level.
 
         Returns:
-            Optional[int]: A value as percentage
+            int: A value as percentage
 
         """
         return self._telemetry.fuel_level if self._telemetry else None
 
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def battery_level(self) -> Optional[float]:
         """Shows the battery level if available.
 
         Returns:
-            Optional[float]: A value as percentage
+            float: A value as percentage
 
         """
         return self._electric.battery_level if self._electric else None
 
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def fuel_range(self) -> Optional[float]:
         """The range using _only_ fuel.
 
         Returns:
-            Optional[float]: The range in the currently selected unit.
+            float: The range in the currently selected unit.
                 If vehicle is electric returns 0
                 If vehicle doesn't support fuel range returns None
 
         """
-        if self._electric and self._electric.fuel_range:
+        if (
+            self._electric
+            and self._electric.fuel_range
+            and (self._electric.fuel_range.unit and self._electric.fuel_range.value)
+        ):
             return convert_distance(
                 self._distance_unit,
                 self._electric.fuel_range.unit,
                 self._electric.fuel_range.value,
             )
-        if self._telemetry and self._telemetry.distance_to_empty:
+        elif (
+            self._telemetry
+            and self._telemetry.distance_to_empty
+            and (
+                self._telemetry.distance_to_empty.unit
+                and self._telemetry.distance_to_empty.value
+            )
+        ):
             return convert_distance(
                 self._distance_unit,
                 self._telemetry.distance_to_empty.unit,
@@ -113,17 +158,35 @@ class Dashboard:
 
         return None
 
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def fuel_range_with_unit(self) -> Optional[Distance]:
+        """The range using _only_ fuel with unit.
+
+        Returns:
+            Distance: The range with current unit
+
+        """
+        if value := self.fuel_range:
+            return Distance(value=value, unit=self._distance_unit)
+        return None
+
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def battery_range(self) -> Optional[float]:
         """The range using _only_ EV.
 
         Returns:
-            Optional[float]: The range in the currently selected unit.
+            float: The range in the currently selected unit.
                 If vehicle is fuel only returns None
                 If vehicle doesn't support battery range returns None
 
         """
-        if self._electric and self._electric.ev_range:
+        if (
+            self._electric
+            and self._electric.ev_range
+            and (self._electric.ev_range.unit and self._electric.ev_range.value)
+        ):
             return convert_distance(
                 self._distance_unit,
                 self._electric.ev_range.unit,
@@ -132,17 +195,38 @@ class Dashboard:
 
         return None
 
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def battery_range_with_unit(self) -> Optional[Distance]:
+        """The range using _only_ EV with unit.
+
+        Returns:
+            Distance: The range with current unit
+
+        """
+        if value := self.battery_range:
+            return Distance(value=value, unit=self._distance_unit)
+        return None
+
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def battery_range_with_ac(self) -> Optional[float]:
         """The range using _only_ EV when using AC.
 
         Returns:
-            Optional[float]: The range in the currently selected unit.
+            float: The range in the currently selected unit.
                 If vehicle is fuel only returns 0
                 If vehicle doesn't support battery range returns 0
 
         """
-        if self._electric and self._electric.ev_range_with_ac:
+        if (
+            self._electric
+            and self._electric.ev_range_with_ac
+            and (
+                self._electric.ev_range_with_ac.unit
+                and self._electric.ev_range_with_ac.value
+            )
+        ):
             return convert_distance(
                 self._distance_unit,
                 self._electric.ev_range_with_ac.unit,
@@ -151,19 +235,40 @@ class Dashboard:
 
         return None
 
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def battery_range_with_ac_with_unit(self) -> Optional[Distance]:
+        """The range using _only_ EV when using AC with unit.
+
+        Returns:
+            Distance: The range with current unit
+
+        """
+        if value := self.battery_range_with_ac:
+            return Distance(value=value, unit=self._distance_unit)
+        return None
+
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def range(self) -> Optional[float]:
         """The range using all available fuel & EV.
 
         Returns:
-            Optional[float]: The range in the currently selected unit.
+            float: The range in the currently selected unit.
                 fuel only == fuel_range
                 ev only == battery_range_with_ac
                 hybrid == fuel_range + battery_range_with_ac
                 None if not supported
 
         """
-        if self._telemetry and self._telemetry.distance_to_empty:
+        if (
+            self._telemetry
+            and self._telemetry.distance_to_empty
+            and (
+                self._telemetry.distance_to_empty.unit
+                and self._telemetry.distance_to_empty.value
+            )
+        ):
             return convert_distance(
                 self._distance_unit,
                 self._telemetry.distance_to_empty.unit,
@@ -172,23 +277,38 @@ class Dashboard:
 
         return None
 
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def range_with_unit(self) -> Optional[Distance]:
+        """The range using all available fuel & EV with unit.
+
+        Returns:
+            Distance: The range with current unit
+
+        """
+        if value := self.range:
+            return Distance(value=value, unit=self._distance_unit)
+        return None
+
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def charging_status(self) -> Optional[str]:
         """Current charging status.
 
         Returns:
-            Optional[str]: A string containing the charging status as reported
+            str: A string containing the charging status as reported
                 by the vehicle. None if vehicle doesn't support charging
 
         """
         return self._electric.charging_status if self._electric else None
 
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def remaining_charge_time(self) -> Optional[timedelta]:
         """Time left until charge is complete.
 
         Returns:
-            Optional[timedelta]: The amount of time left
+            timedelta: The amount of time left
                 None if vehicle is not currently charging.
                 None if vehicle doesn't support charging
 
@@ -199,12 +319,13 @@ class Dashboard:
             else None
         )
 
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def warning_lights(self) -> Optional[List[Any]]:
         """Dashboard Warning Lights.
 
         Returns:
-            Optional[List[Any]]: List of latest dashboard warning lights
+            List[Any]: List of latest dashboard warning lights
                 _Note_ Not fully understood
 
         """

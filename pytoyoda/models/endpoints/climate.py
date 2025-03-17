@@ -6,10 +6,10 @@ from typing import List, Optional
 from pydantic import Field
 
 from pytoyoda.models.endpoints.common import StatusModel, UnitValueModel
-from pytoyoda.utils.models import CustomBaseModel
+from pytoyoda.utils.models import CustomEndpointBaseModel
 
 
-class ACParameters(CustomBaseModel):
+class ACParameters(CustomEndpointBaseModel):
     """Model representing parameters for AC."""
 
     available: Optional[bool] = None
@@ -19,7 +19,7 @@ class ACParameters(CustomBaseModel):
     name: str
 
 
-class ACOperations(CustomBaseModel):
+class ACOperations(CustomEndpointBaseModel):
     """Model representing AC operations."""
 
     available: Optional[bool] = None
@@ -30,7 +30,7 @@ class ACOperations(CustomBaseModel):
     ac_parameters: List[ACParameters] = Field(alias="acParameters")
 
 
-class ClimateSettingsModel(CustomBaseModel):
+class ClimateSettingsModel(CustomEndpointBaseModel):
     """Model representing climate settings."""
 
     ac_operations: Optional[List[ACOperations]] = Field(alias="acOperations")
@@ -48,14 +48,14 @@ class CurrentTemperature(UnitValueModel):
     timestamp: datetime
 
 
-class ClimateOptions(CustomBaseModel):
+class ClimateOptions(CustomEndpointBaseModel):
     """Model representing climate options."""
 
     front_defogger: bool = Field(alias="frontDefogger")
     rear_defogger: bool = Field(alias="rearDefogger")
 
 
-class ClimateStatusModel(CustomBaseModel):
+class ClimateStatusModel(CustomEndpointBaseModel):
     """Model representing climate status."""
 
     current_temperature: Optional[CurrentTemperature] = Field(
@@ -69,13 +69,13 @@ class ClimateStatusModel(CustomBaseModel):
     type: str
 
 
-class RemoteHVACModel(CustomBaseModel):
+class RemoteHVACModel(CustomEndpointBaseModel):
     """Model representing remote HVAC."""
 
     engine_start_time: int = Field(alias="engineStartTime")
 
 
-class ClimateControlModel(CustomBaseModel):
+class ClimateControlModel(CustomEndpointBaseModel):
     """Model representing climate control."""
 
     command: str

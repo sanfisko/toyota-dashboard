@@ -6,15 +6,15 @@ from typing import List, Optional
 from pydantic import Field
 
 from pytoyoda.models.endpoints.common import StatusModel, UnitValueModel
-from pytoyoda.utils.models import CustomBaseModel
+from pytoyoda.utils.models import CustomEndpointBaseModel
 
 
-class _ValueStatusModel(CustomBaseModel):
+class _ValueStatusModel(CustomEndpointBaseModel):
     value: Optional[str]
     status: Optional[int]
 
 
-class SectionModel(CustomBaseModel):
+class SectionModel(CustomEndpointBaseModel):
     """Model representing the status category of a vehicle.
 
     Attributes:
@@ -28,7 +28,7 @@ class SectionModel(CustomBaseModel):
     values: Optional[List[_ValueStatusModel]]
 
 
-class VehicleStatusModel(CustomBaseModel):
+class VehicleStatusModel(CustomEndpointBaseModel):
     """Model representing the status category of a vehicle.
 
     Attributes:
@@ -44,13 +44,13 @@ class VehicleStatusModel(CustomBaseModel):
     sections: Optional[List[SectionModel]]
 
 
-class _TelemetryModel(CustomBaseModel):
+class _TelemetryModel(CustomEndpointBaseModel):
     fugage: Optional[UnitValueModel] = None
     rage: Optional[UnitValueModel] = None
     odo: Optional[UnitValueModel]
 
 
-class RemoteStatusModel(CustomBaseModel):
+class RemoteStatusModel(CustomEndpointBaseModel):
     """Model representing the remote status of a vehicle.
 
     Attributes:

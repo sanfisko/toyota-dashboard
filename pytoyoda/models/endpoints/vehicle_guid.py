@@ -7,16 +7,16 @@ from uuid import UUID
 from pydantic import Field
 
 from pytoyoda.models.endpoints.common import StatusModel
-from pytoyoda.utils.models import CustomBaseModel
+from pytoyoda.utils.models import CustomEndpointBaseModel
 
 
-class _TranslationModel(CustomBaseModel):
+class _TranslationModel(CustomEndpointBaseModel):
     english: Optional[Any]  # TODO unsure what this returns
     french: Optional[Any]  # TODO unsure what this returns
     spanish: Optional[Any]  # TODO unsure what this returns
 
 
-class _CapabilitiesModel(CustomBaseModel):
+class _CapabilitiesModel(CustomEndpointBaseModel):
     description: Optional[str]
     display: Optional[bool]
     display_name: Optional[Any] = Field(
@@ -26,7 +26,7 @@ class _CapabilitiesModel(CustomBaseModel):
     translation: Optional[_TranslationModel]
 
 
-class _ExtendedCapabilitiesModel(CustomBaseModel):
+class _ExtendedCapabilitiesModel(CustomEndpointBaseModel):
     c_scheduling: Optional[bool] = Field(alias="acScheduling")
     battery_status: Optional[bool] = Field(alias="batteryStatus")
     bonnet_status: Optional[bool] = Field(alias="bonnetStatus")
@@ -149,7 +149,7 @@ class _ExtendedCapabilitiesModel(CustomBaseModel):
     weekly_charge: Optional[bool] = Field(alias="weeklyCharge")
 
 
-class _LinksModel(CustomBaseModel):
+class _LinksModel(CustomEndpointBaseModel):
     body: Optional[str]  # TODO unsure what this returns
     button_text: Optional[str] = Field(alias="buttonText")
     image_url: Optional[str] = Field(alias="imageUrl", default=None)
@@ -157,7 +157,7 @@ class _LinksModel(CustomBaseModel):
     name: Optional[str]
 
 
-class _DcmModel(CustomBaseModel):  # Data connection model
+class _DcmModel(CustomEndpointBaseModel):  # Data connection model
     country_code: Optional[str] = Field(alias="countryCode", default=None)
     destination: Optional[str] = Field(alias="dcmDestination")
     grade: Optional[str] = Field(alias="dcmGrade")
@@ -171,7 +171,7 @@ class _DcmModel(CustomBaseModel):  # Data connection model
     )
 
 
-class _HeadUnitModel(CustomBaseModel):
+class _HeadUnitModel(CustomEndpointBaseModel):
     description: Optional[Any] = Field(
         alias="huDescription"
     )  # TODO unsure what this returns
@@ -187,7 +187,7 @@ class _HeadUnitModel(CustomBaseModel):
     )  # TODO unsure what this returns
 
 
-class _SubscriptionsModel(CustomBaseModel):
+class _SubscriptionsModel(CustomEndpointBaseModel):
     auto_renew: Optional[bool] = Field(alias="autoRenew")
     category: Optional[str]
     components: Optional[Any]  # TODO unsure what this returns
@@ -228,7 +228,7 @@ class _SubscriptionsModel(CustomBaseModel):
     type: Optional[str]
 
 
-class _RemoteServiceCapabilitiesModel(CustomBaseModel):
+class _RemoteServiceCapabilitiesModel(CustomEndpointBaseModel):
     acsetting_enabled: Optional[bool] = Field(alias="acsettingEnabled")
     allow_hvac_override_capable: Optional[bool] = Field(
         alias="allowHvacOverrideCapable"
@@ -250,14 +250,14 @@ class _RemoteServiceCapabilitiesModel(CustomBaseModel):
     ventilator_capable: Optional[bool] = Field(alias="ventilatorCapable")
 
 
-class _DataConsentModel(CustomBaseModel):
+class _DataConsentModel(CustomEndpointBaseModel):
     can_300: Optional[bool] = Field(alias="can300")
     dealer_contact: Optional[bool] = Field(alias="dealerContact")
     service_connect: Optional[bool] = Field(alias="serviceConnect")
     ubi: Optional[bool] = Field(alias="ubi")
 
 
-class _FeaturesModel(CustomBaseModel):
+class _FeaturesModel(CustomEndpointBaseModel):
     ach_payment: Optional[bool] = Field(alias="achPayment")
     add_service_record: Optional[bool] = Field(alias="addServiceRecord")
     auto_drive: Optional[bool] = Field(alias="autoDrive")
@@ -337,7 +337,7 @@ class _FeaturesModel(CustomBaseModel):
     xcapp: Optional[bool] = Field(alias="xcapp")
 
 
-class VehicleGuidModel(CustomBaseModel):
+class VehicleGuidModel(CustomEndpointBaseModel):
     """Model representing a vehicle with its associated information.
 
     Attributes:

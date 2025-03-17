@@ -6,10 +6,10 @@ from typing import Any, List, Optional
 from pydantic import Field
 
 from pytoyoda.models.endpoints.common import StatusModel
-from pytoyoda.utils.models import CustomBaseModel
+from pytoyoda.utils.models import CustomEndpointBaseModel
 
 
-class VehicleHealthModel(CustomBaseModel):
+class VehicleHealthModel(CustomEndpointBaseModel):
     r"""Model representing the health status of a vehicle.
 
     Attributes:

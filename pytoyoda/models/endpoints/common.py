@@ -4,10 +4,10 @@ from typing import List, Optional, Union
 
 from pydantic import Field
 
-from pytoyoda.utils.models import CustomBaseModel
+from pytoyoda.utils.models import CustomEndpointBaseModel
 
 
-class UnitValueModel(CustomBaseModel):
+class UnitValueModel(CustomEndpointBaseModel):
     """Model representing a unit and a value.
 
     Can be reused several times within other models.
@@ -22,7 +22,7 @@ class UnitValueModel(CustomBaseModel):
     value: Optional[float] = None
 
 
-class _MessageModel(CustomBaseModel):
+class _MessageModel(CustomEndpointBaseModel):
     description: Optional[str]
     detailed_description: Optional[str] = Field(
         alias="detailedDescription", default=None
@@ -30,11 +30,11 @@ class _MessageModel(CustomBaseModel):
     response_code: Optional[str] = Field(alias="responseCode")
 
 
-class _MessagesModel(CustomBaseModel):
+class _MessagesModel(CustomEndpointBaseModel):
     messages: Optional[List[_MessageModel]]
 
 
-class StatusModel(CustomBaseModel):
+class StatusModel(CustomEndpointBaseModel):
     """Model representing the status of an endpoint.
 
     Attributes:
