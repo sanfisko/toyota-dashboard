@@ -30,7 +30,7 @@ class Location(CustomAPIBaseModel[LocationResponseModel]):
         )
         self._location: Optional[_VehicleLocationModel] = (
             self._data.payload.vehicle_location
-            if self._data.payload and self._data.payload
+            if self._data and self._data.payload
             else None
         )
 
