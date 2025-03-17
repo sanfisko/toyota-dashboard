@@ -106,19 +106,24 @@ async def get_information():
             logger.info(
                 f"Latest service: {car.get_latest_service_history().model_dump_json(indent=4) if car.get_latest_service_history() else None}"  # noqa: E501
             )
-            # Last trip distance
+            # Last trip
             logger.info(
-                f"Last trip distance: {car.last_trip.distance if car.last_trip else None}"  # noqa: E501
+                f"Last trip: {car.last_trip.model_dump_json(indent=4) if car.last_trip else None}"  # noqa: E501
             )
             # Summary
-            logger.info(
-                f"Monthly summary: {[[x.model_dump_json(indent=4)] for x in await car.get_summary(date.today() - timedelta(days=6 * 30), date.today(), summary_type=SummaryType.MONTHLY)]}"  # noqa: E501
+            summaries = await car.get_summary(
+                date.today() - timedelta(days=6 * 30),
+                date.today(),
+                summary_type=SummaryType.MONTHLY,
             )
+            logger.info("Monthly summaries:")
+            for x in summaries:
+                logger.info(x.model_dump_json(indent=4))
 
             # Trips
-            # logger.info(pformat(
-            #    f"Trips: f{await car.get_trips(date.today() - timedelta(days=7), date.today(), full_route=True)}"  # noqa: E501
-            # ))
+            # Uncommenting this ca nlead to a very long list of route positions
+            # trips = await car.get_trips(date.today() - timedelta(days=1), date.today(), full_route=True)   # noqa: E501
+            # logger.info(f"Trips: {[x.model_dump_json(indent=4) for x in trips] if trips else None}")   # noqa: E501
 
             # Dump all the information collected so far:
             # logger.info(pformat(car._dump_all()))

@@ -1,7 +1,7 @@
 """Model for Trip Summaries."""
 
 from datetime import datetime, timedelta
-from typing import List, Optional, Tuple, Type, TypeVar, Union
+from typing import List, Optional, Type, TypeVar, Union
 
 from pydantic import BaseModel, computed_field
 
@@ -229,7 +229,7 @@ class Trip(CustomAPIBaseModel[Type[T]]):
 
     @computed_field  # type: ignore[prop-decorator]
     @property
-    def route(self) -> Optional[List[Tuple[Optional[float], Optional[float]]]]:
+    def route(self) -> Optional[List[TripPositions]]:
         """The route taken.
 
         Returns:
@@ -238,6 +238,6 @@ class Trip(CustomAPIBaseModel[Type[T]]):
 
         """
         if self._trip.route:
-            return [(rm.lat, rm.lon) for rm in self._trip.route]
+            return [TripPositions(lat=rm.lat, lon=rm.lon) for rm in self._trip.route]
 
         return None
