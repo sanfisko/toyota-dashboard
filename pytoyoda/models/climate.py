@@ -318,9 +318,7 @@ class ClimateSettings(CustomAPIBaseModel[ClimateSettingsResponseModel]):
             bool: The value of settings on
 
         """
-        if self._climate_settings:
-            return self._climate_settings.settings_on
-        return None
+        return self._climate_settings.settings_on if self._climate_settings else None
 
     @computed_field
     @property
@@ -331,9 +329,7 @@ class ClimateSettings(CustomAPIBaseModel[ClimateSettingsResponseModel]):
             float: The value of temperature interval
 
         """
-        if self._climate_settings:
-            return self._climate_settings.temp_interval
-        return None
+        return self._climate_settings.temp_interval if self._climate_settings else None
 
     @computed_field
     @property
@@ -344,9 +340,7 @@ class ClimateSettings(CustomAPIBaseModel[ClimateSettingsResponseModel]):
             float: The value of min temperature
 
         """
-        if self._climate_settings:
-            return self._climate_settings.min_temp
-        return None
+        return self._climate_settings.min_temp if self._climate_settings else None
 
     @computed_field
     @property
@@ -357,9 +351,7 @@ class ClimateSettings(CustomAPIBaseModel[ClimateSettingsResponseModel]):
             float: The value of max temperature
 
         """
-        if self._climate_settings:
-            return self._climate_settings.max_temp
-        return None
+        return self._climate_settings.max_temp if self._climate_settings else None
 
     @computed_field
     @property
