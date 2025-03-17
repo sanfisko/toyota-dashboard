@@ -54,7 +54,7 @@ class Dashboard(CustomAPIBaseModel[Type[T]]):
             "health": health,
             "metric": metric,
         }
-        super().__init__(data=data, **kwargs)
+        super().__init__(data=data, **kwargs)  # type: ignore[reportArgumentType, arg-type]
 
         self._electric: Optional[ElectricStatusModel] = (
             electric.payload if electric else None
@@ -65,7 +65,7 @@ class Dashboard(CustomAPIBaseModel[Type[T]]):
         self._health: Optional[VehicleHealthModel] = health.payload if health else None
         self._distance_unit: str = KILOMETERS_UNIT if metric else MILES_UNIT
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def odometer(self) -> Optional[float]:
         """Odometer distance.
@@ -74,7 +74,11 @@ class Dashboard(CustomAPIBaseModel[Type[T]]):
             float: The latest odometer reading in the current selected units
 
         """
-        if self._telemetry:
+        if (
+            self._telemetry
+            and self._telemetry.odometer
+            and (self._telemetry.odometer.unit and self._telemetry.odometer.value)
+        ):
             return convert_distance(
                 self._distance_unit,
                 self._telemetry.odometer.unit,
@@ -82,7 +86,7 @@ class Dashboard(CustomAPIBaseModel[Type[T]]):
             )
         return None
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def odometer_with_unit(self) -> Optional[Distance]:
         """Odometer distance with unit.
@@ -95,7 +99,7 @@ class Dashboard(CustomAPIBaseModel[Type[T]]):
             return Distance(value=value, unit=self._distance_unit)
         return None
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def fuel_level(self) -> Optional[int]:
         """Fuel level.
@@ -106,7 +110,7 @@ class Dashboard(CustomAPIBaseModel[Type[T]]):
         """
         return self._telemetry.fuel_level if self._telemetry else None
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def battery_level(self) -> Optional[float]:
         """Shows the battery level if available.
@@ -117,7 +121,7 @@ class Dashboard(CustomAPIBaseModel[Type[T]]):
         """
         return self._electric.battery_level if self._electric else None
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def fuel_range(self) -> Optional[float]:
         """The range using _only_ fuel.
@@ -128,13 +132,24 @@ class Dashboard(CustomAPIBaseModel[Type[T]]):
                 If vehicle doesn't support fuel range returns None
 
         """
-        if self._electric and self._electric.fuel_range:
+        if (
+            self._electric
+            and self._electric.fuel_range
+            and (self._electric.fuel_range.unit and self._electric.fuel_range.value)
+        ):
             return convert_distance(
                 self._distance_unit,
                 self._electric.fuel_range.unit,
                 self._electric.fuel_range.value,
             )
-        if self._telemetry and self._telemetry.distance_to_empty:
+        elif (
+            self._telemetry
+            and self._telemetry.distance_to_empty
+            and (
+                self._telemetry.distance_to_empty.unit
+                and self._telemetry.distance_to_empty.value
+            )
+        ):
             return convert_distance(
                 self._distance_unit,
                 self._telemetry.distance_to_empty.unit,
@@ -143,7 +158,7 @@ class Dashboard(CustomAPIBaseModel[Type[T]]):
 
         return None
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def fuel_range_with_unit(self) -> Optional[Distance]:
         """The range using _only_ fuel with unit.
@@ -156,7 +171,7 @@ class Dashboard(CustomAPIBaseModel[Type[T]]):
             return Distance(value=value, unit=self._distance_unit)
         return None
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def battery_range(self) -> Optional[float]:
         """The range using _only_ EV.
@@ -167,7 +182,11 @@ class Dashboard(CustomAPIBaseModel[Type[T]]):
                 If vehicle doesn't support battery range returns None
 
         """
-        if self._electric and self._electric.ev_range:
+        if (
+            self._electric
+            and self._electric.ev_range
+            and (self._electric.ev_range.unit and self._electric.ev_range.value)
+        ):
             return convert_distance(
                 self._distance_unit,
                 self._electric.ev_range.unit,
@@ -176,7 +195,7 @@ class Dashboard(CustomAPIBaseModel[Type[T]]):
 
         return None
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def battery_range_with_unit(self) -> Optional[Distance]:
         """The range using _only_ EV with unit.
@@ -189,7 +208,7 @@ class Dashboard(CustomAPIBaseModel[Type[T]]):
             return Distance(value=value, unit=self._distance_unit)
         return None
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def battery_range_with_ac(self) -> Optional[float]:
         """The range using _only_ EV when using AC.
@@ -200,7 +219,14 @@ class Dashboard(CustomAPIBaseModel[Type[T]]):
                 If vehicle doesn't support battery range returns 0
 
         """
-        if self._electric and self._electric.ev_range_with_ac:
+        if (
+            self._electric
+            and self._electric.ev_range_with_ac
+            and (
+                self._electric.ev_range_with_ac.unit
+                and self._electric.ev_range_with_ac.value
+            )
+        ):
             return convert_distance(
                 self._distance_unit,
                 self._electric.ev_range_with_ac.unit,
@@ -209,7 +235,7 @@ class Dashboard(CustomAPIBaseModel[Type[T]]):
 
         return None
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def battery_range_with_ac_with_unit(self) -> Optional[Distance]:
         """The range using _only_ EV when using AC with unit.
@@ -222,7 +248,7 @@ class Dashboard(CustomAPIBaseModel[Type[T]]):
             return Distance(value=value, unit=self._distance_unit)
         return None
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def range(self) -> Optional[float]:
         """The range using all available fuel & EV.
@@ -235,7 +261,14 @@ class Dashboard(CustomAPIBaseModel[Type[T]]):
                 None if not supported
 
         """
-        if self._telemetry and self._telemetry.distance_to_empty:
+        if (
+            self._telemetry
+            and self._telemetry.distance_to_empty
+            and (
+                self._telemetry.distance_to_empty.unit
+                and self._telemetry.distance_to_empty.value
+            )
+        ):
             return convert_distance(
                 self._distance_unit,
                 self._telemetry.distance_to_empty.unit,
@@ -244,7 +277,7 @@ class Dashboard(CustomAPIBaseModel[Type[T]]):
 
         return None
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def range_with_unit(self) -> Optional[Distance]:
         """The range using all available fuel & EV with unit.
@@ -257,7 +290,7 @@ class Dashboard(CustomAPIBaseModel[Type[T]]):
             return Distance(value=value, unit=self._distance_unit)
         return None
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def charging_status(self) -> Optional[str]:
         """Current charging status.
@@ -269,7 +302,7 @@ class Dashboard(CustomAPIBaseModel[Type[T]]):
         """
         return self._electric.charging_status if self._electric else None
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def remaining_charge_time(self) -> Optional[timedelta]:
         """Time left until charge is complete.
@@ -286,7 +319,7 @@ class Dashboard(CustomAPIBaseModel[Type[T]]):
             else None
         )
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def warning_lights(self) -> Optional[List[Any]]:
         """Dashboard Warning Lights.
