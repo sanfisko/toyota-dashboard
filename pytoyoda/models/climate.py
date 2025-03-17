@@ -1,7 +1,7 @@
 """Climate Settings Models."""
 
 from datetime import datetime, timedelta
-from typing import Any, List, Optional
+from typing import List, Optional
 
 from pydantic import computed_field
 
@@ -10,6 +10,7 @@ from pytoyoda.models.endpoints.climate import (
     ACParameters,
     ClimateOptions,
     ClimateSettingsModel,
+    ClimateSettingsResponseModel,
     ClimateStatusModel,
 )
 from pytoyoda.utils.models import CustomAPIBaseModel, Temperature
@@ -291,30 +292,35 @@ class ClimateSettingsOperation(CustomAPIBaseModel[ACOperations]):
         return [ClimateSettingsParameter(parameter=p) for p in self._data.ac_parameters]
 
 
-class ClimateSettings(CustomAPIBaseModel[Any]):
+class ClimateSettings(CustomAPIBaseModel[ClimateSettingsResponseModel]):
     """Climate settings."""
 
-    def __init__(self, climate_settings: ClimateSettingsModel, **kwargs):
+    def __init__(self, climate_settings: ClimateSettingsResponseModel, **kwargs):
         """Initialize climate settings.
 
         Args:
-            climate_settings (ClimateSettingsModel): Contains all information
+            climate_settings (ClimateSettingsResponseModel): Contains all information
                 regarding the climate settings
             **kwargs: Additional keyword arguments passed to the parent class
 
         """
-        super().__init__(data=climate_settings.payload, **kwargs)
+        super().__init__(data=climate_settings, **kwargs)
+        self._climate_settings: Optional[ClimateSettingsModel] = (
+            self._data.payload if self._data else None
+        )
 
     @computed_field
     @property
-    def settings_on(self) -> bool:
+    def settings_on(self) -> Optional[bool]:
         """The settings on value.
 
         Returns:
             bool: The value of settings on
 
         """
-        return self._data.settings_on
+        if self._climate_settings:
+            return self._climate_settings.settings_on
+        return None
 
     @computed_field
     @property
@@ -325,7 +331,9 @@ class ClimateSettings(CustomAPIBaseModel[Any]):
             float: The value of temperature interval
 
         """
-        return self._data.temp_interval
+        if self._climate_settings:
+            return self._climate_settings.temp_interval
+        return None
 
     @computed_field
     @property
@@ -336,7 +344,9 @@ class ClimateSettings(CustomAPIBaseModel[Any]):
             float: The value of min temperature
 
         """
-        return self._data.min_temp
+        if self._climate_settings:
+            return self._climate_settings.min_temp
+        return None
 
     @computed_field
     @property
@@ -347,21 +357,25 @@ class ClimateSettings(CustomAPIBaseModel[Any]):
             float: The value of max temperature
 
         """
-        return self._data.max_temp
+        if self._climate_settings:
+            return self._climate_settings.max_temp
+        return None
 
     @computed_field
     @property
-    def temperature(self) -> Temperature:
+    def temperature(self) -> Optional[Temperature]:
         """The temperature.
 
         Returns:
             Temperature: The temperature with unit
 
         """
-        return Temperature(
-            value=self._data.temperature,
-            unit=self._data.temperature_unit,
-        )
+        if self._climate_settings:
+            return Temperature(
+                value=self._climate_settings.temperature,
+                unit=self._climate_settings.temperature_unit,
+            )
+        return None
 
     @computed_field
     @property
@@ -372,7 +386,13 @@ class ClimateSettings(CustomAPIBaseModel[Any]):
             List[ClimateSettingsOperation]: The settings of climate operation
 
         """
-        if self._data.ac_operations is None:
+        if (
+            self._climate_settings is None
+            or self._climate_settings.ac_operations is None
+        ):
             return None
 
-        return [ClimateSettingsOperation(operation=p) for p in self._data.ac_operations]
+        return [
+            ClimateSettingsOperation(operations=p)
+            for p in self._climate_settings.ac_operations
+        ]

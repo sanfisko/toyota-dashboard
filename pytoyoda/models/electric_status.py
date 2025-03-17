@@ -31,8 +31,8 @@ class ElectricStatus(CustomAPIBaseModel[Type[T]]):
         """Initialise ElectricStatus model.
 
         Args:
-            electric_status (Optional[ElectricStatusModel]): Electric status model
-            metric (bool): Report distances in metric(or imperial)
+            electric_status: Electric status model
+            metric: Report distances in metric (or imperial)
             **kwargs: Additional keyword arguments passed to the parent class
 
         """
