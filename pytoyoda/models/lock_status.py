@@ -200,6 +200,7 @@ class Windows(CustomAPIBaseModel[Optional[RemoteStatusModel]]):
             **kwargs,
         )
 
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def driver_seat(self) -> Optional[Window]:
         """Driver seat window."""
@@ -210,6 +211,7 @@ class Windows(CustomAPIBaseModel[Optional[RemoteStatusModel]]):
         )
         return Window(section)
 
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def driver_rear_seat(self) -> Optional[Window]:
         """Right rearseat window."""
@@ -220,6 +222,7 @@ class Windows(CustomAPIBaseModel[Optional[RemoteStatusModel]]):
         )
         return Window(section)
 
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def passenger_seat(self) -> Optional[Window]:
         """Passenger seat window."""
@@ -230,6 +233,7 @@ class Windows(CustomAPIBaseModel[Optional[RemoteStatusModel]]):
         )
         return Window(section)
 
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def passenger_rear_seat(self) -> Optional[Window]:
         """Left rearseat window."""
@@ -258,21 +262,25 @@ class LockStatus(CustomAPIBaseModel[Optional[RemoteStatusResponseModel]]):
             self._data.payload if self._data else None
         )
 
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def last_updated(self) -> Optional[datetime]:
         """Last time data was recieved from the car."""
         return self._status if self._status is None else self._status.occurrence_date
 
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def doors(self) -> Optional[Doors]:
         """Doors."""
         return self._status if self._status is None else Doors(self._status)
 
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def windows(self) -> Optional[Windows]:
         """Windows."""
         return self._status if self._status is None else Windows(self._status)
 
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def hood(self) -> Optional[Door]:
         """Hood."""
