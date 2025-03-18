@@ -11,13 +11,19 @@ from pytoyoda.utils.models import CustomEndpointBaseModel
 
 
 class _TermsActivityModel(CustomEndpointBaseModel):
+    """Model for terms and conditions activity."""
+
     time_stamp: Optional[datetime] = Field(alias="timeStamp")
     version: Optional[str]
 
 
 class _AdditionalAttributesModel(CustomEndpointBaseModel):
+    """Model for additional account attributes."""
+
     is_terms_accepted: Optional[bool] = Field(alias="isTermsAccepted")
-    terms_activity: Optional[List[_TermsActivityModel]] = Field("termsActivity")
+    terms_activity: Optional[List[_TermsActivityModel]] = Field(
+        alias="termsActivity", default=None
+    )
 
 
 class _EmailModel(CustomEndpointBaseModel):
@@ -28,13 +34,17 @@ class _EmailModel(CustomEndpointBaseModel):
 
 
 class _PhoneNumberModel(CustomEndpointBaseModel):
+    """Model for phone number information."""
+
     country_code: Optional[int] = Field(alias="countryCode")
     phone_number: Optional[int] = Field(alias="phoneNumber")
     phone_verified: Optional[bool] = Field(alias="phoneVerified")
-    verification_date: Optional[datetime] = Field("verificationDate")
+    verification_date: Optional[datetime] = Field(alias="verificationDate")
 
 
 class _CustomerModel(CustomEndpointBaseModel):
+    """Model for customer information."""
+
     account_status: Optional[str] = Field(alias="accountStatus")
     additional_attributes: Optional[_AdditionalAttributesModel] = Field(
         alias="additionalAttributes"
@@ -47,9 +57,9 @@ class _CustomerModel(CustomEndpointBaseModel):
     forge_rock_id: Optional[UUID] = Field(alias="forgerockId")
     guid: Optional[UUID]
     is_cp_migrated: Optional[bool] = Field(alias="isCpMigrated")
-    lastname: Optional[str] = Field(alias="lastName")
-    last_update_date: Optional[datetime] = Field("lastUpdateDate")
-    last_update_source: Optional[str] = Field("lastUpdateSource")
+    last_name: Optional[str] = Field(alias="lastName")
+    last_update_date: Optional[datetime] = Field(alias="lastUpdateDate")
+    last_update_source: Optional[str] = Field(alias="lastUpdateSource")
     phone_numbers: Optional[List[_PhoneNumberModel]] = Field(alias="phoneNumbers")
     preferred_language: Optional[str] = Field(alias="preferredLanguage")
     signup_type: Optional[str] = Field(alias="signupType")
@@ -73,7 +83,7 @@ class AccountResponseModel(StatusModel):
     Inherits from StatusModel.
 
     Attributes:
-        payload (Optional[AccountModel], optional): The account payload.
+        payload (Optional[AccountModel]): The account payload.
             Defaults to None.
 
     """

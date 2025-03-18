@@ -1,6 +1,6 @@
 """Toyota Connected Services API - Common Endpoint Models."""
 
-from typing import List, Optional, Union
+from typing import Any, List, Optional, Union
 
 from pydantic import Field
 
@@ -13,8 +13,8 @@ class UnitValueModel(CustomEndpointBaseModel):
     Can be reused several times within other models.
 
     Attributes:
-        unit (str): The unit of measurement.
-        value (float): The numerical value.
+        unit: The unit of measurement (e.g., "km", "C", "mph").
+        value: The numerical value associated with the unit.
 
     """
 
@@ -23,31 +23,46 @@ class UnitValueModel(CustomEndpointBaseModel):
 
 
 class _MessageModel(CustomEndpointBaseModel):
-    description: Optional[str]
-    detailed_description: Optional[str] = Field(
-        alias="detailedDescription", default=None
-    )
-    response_code: Optional[str] = Field(alias="responseCode")
-
-
-class _MessagesModel(CustomEndpointBaseModel):
-    messages: Optional[List[_MessageModel]]
-
-
-class StatusModel(CustomEndpointBaseModel):
-    """Model representing the status of an endpoint.
+    """Model representing an error or status message.
 
     Attributes:
-        status (Union[str, _MessagesModel]): The status of the endpoint,
-            which can be a string or a _MessagesModel object.
-        code (Optional[int], optional): The status code. Defaults to None.
-        errors (Optional[List], optional): A list of errors. Defaults to an empty list.
-        message (Optional[str], optional): A message associated with the status.
-            Defaults to None.
+        description: Brief description of the message.
+        detailed_description: More detailed explanation of the message.
+        response_code: Code identifying the specific message type.
 
     """
 
-    status: Optional[Union[str, _MessagesModel]]
+    description: Optional[str] = None
+    detailed_description: Optional[str] = Field(
+        alias="detailedDescription", default=None
+    )
+    response_code: Optional[str] = Field(alias="responseCode", default=None)
+
+
+class _MessagesModel(CustomEndpointBaseModel):
+    """Container model for multiple message objects.
+
+    Attributes:
+        messages: List of message objects.
+
+    """
+
+    messages: Optional[List[_MessageModel]] = None
+
+
+class StatusModel(CustomEndpointBaseModel):
+    """Model representing the status of an endpoint response.
+
+    Attributes:
+        status: The status of the endpoint, which can be a string (e.g., "success")
+            or a _MessagesModel object containing detailed messages.
+        code: The HTTP status code or custom status code.
+        errors: A list of error details if any occurred.
+        message: A human-readable message summarizing the response status.
+
+    """
+
+    status: Optional[Union[str, _MessagesModel]] = None
     code: Optional[int] = None
-    errors: Optional[List] = None
+    errors: Optional[List[Any]] = None
     message: Optional[str] = None

@@ -9,7 +9,10 @@ from pytoyoda.utils.models import CustomEndpointBaseModel
 
 
 class CommandType(str, Enum):
-    """List of possible commands."""
+    """List of possible remote commands.
+
+    Each value represents a specific command that can be sent to the vehicle.
+    """
 
     DOOR_LOCK = "door-lock"
     DOOR_UNLOCK = "door-unlock"
@@ -31,8 +34,15 @@ class CommandType(str, Enum):
 
 
 class RemoteCommandModel(CustomEndpointBaseModel):
-    """Model representing an remote command."""
+    """Model representing a remote command to be sent to a vehicle.
 
-    beep_count: Optional[int] = Field(alias="beepCount", default=None)
+    Attributes:
+        command: The specific command to execute
+        beep_count: Optional number of beeps for certain commands
+
+    """
+
     command: CommandType
+    beep_count: Optional[int] = Field(alias="beepCount", default=None)
+
     model_config = ConfigDict(use_enum_values=True)
