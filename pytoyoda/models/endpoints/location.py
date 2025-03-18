@@ -10,24 +10,32 @@ from pytoyoda.utils.models import CustomEndpointBaseModel
 
 
 class _VehicleLocationModel(CustomEndpointBaseModel):
-    display_name: Optional[str] = Field(alias="displayName")
-    latitude: Optional[float]
+    """Model representing detailed vehicle location information.
+
+    Attributes:
+        display_name: Human-readable location name (e.g., street address)
+        latitude: Geographic latitude coordinate
+        longitude: Geographic longitude coordinate
+        location_acquisition_datetime: When the location data was acquired
+            from the vehicle
+
+    """
+
+    display_name: Optional[str] = Field(alias="displayName", default=None)
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
     location_acquisition_datetime: Optional[datetime] = Field(
-        alias="locationAcquisitionDatetime"
+        alias="locationAcquisitionDatetime", default=None
     )
-    longitude: Optional[float]
 
 
 class LocationModel(CustomEndpointBaseModel):
-    r"""Model representing the location of a vehicle.
+    """Model representing the location of a vehicle.
 
     Attributes:
-        last_timestamp (Optional[datetime], optional): The last timestamp of the
-            location. Defaults to None.
-        vehicle_location (Optional[_VehicleLocationModel], optional): The location of
-            the vehicle. Defaults to None.
-        vin (Optional[str], optional): The VIN (Vehicle Identification Number) of the
-            vehicle. Defaults to None.
+        last_timestamp: When any location data was last updated
+        vehicle_location: Detailed location information including coordinates
+        vin: The Vehicle Identification Number of the vehicle
 
     """
 
@@ -39,13 +47,12 @@ class LocationModel(CustomEndpointBaseModel):
 
 
 class LocationResponseModel(StatusModel):
-    """Model representing a location response.
+    """Model representing a location response from the API.
 
     Inherits from StatusModel.
 
     Attributes:
-        payload (Optional[LocationModel], optional): The location payload.
-            Defaults to None.
+        payload: The location data if request was successful
 
     """
 
