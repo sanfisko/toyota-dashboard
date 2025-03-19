@@ -110,6 +110,8 @@ async def get_information():
             logger.info(
                 f"Last trip: {car.last_trip.model_dump_json(indent=4) if car.last_trip else None}"  # noqa: E501
             )
+            # Daily summary
+            logger.info(f"Daily summary: {await car.get_current_day_summary()}")
             # Summary
             summaries = await car.get_summary(
                 date.today() - timedelta(days=6 * 30),

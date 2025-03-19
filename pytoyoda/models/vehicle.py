@@ -451,8 +451,6 @@ class Vehicle(CustomAPIBaseModel[Type[T]]):
         else:
             raise AssertionError("No such SummaryType")
 
-    @computed_field  # type: ignore[prop-decorator]
-    @property
     async def get_current_day_summary(self) -> Optional[Summary]:
         """Return a summary for the current day.
 
@@ -468,8 +466,6 @@ class Vehicle(CustomAPIBaseModel[Type[T]]):
         assert len(summary) < 2
         return summary[0] if len(summary) > 0 else None
 
-    @computed_field  # type: ignore[prop-decorator]
-    @property
     async def get_current_week_summary(self) -> Optional[Summary]:
         """Return a summary for the current week.
 
@@ -485,8 +481,6 @@ class Vehicle(CustomAPIBaseModel[Type[T]]):
         assert len(summary) < 2
         return summary[0] if len(summary) > 0 else None
 
-    @computed_field  # type: ignore[prop-decorator]
-    @property
     async def get_current_month_summary(self) -> Optional[Summary]:
         """Return a summary for the current month.
 
@@ -502,8 +496,6 @@ class Vehicle(CustomAPIBaseModel[Type[T]]):
         assert len(summary) < 2
         return summary[0] if len(summary) > 0 else None
 
-    @computed_field  # type: ignore[prop-decorator]
-    @property
     async def get_current_year_summary(self) -> Optional[Summary]:
         """Return a summary for the current year.
 
