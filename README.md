@@ -35,7 +35,7 @@ For a quick start on how to use the package take a look at the `simple_client_ex
 python -m venv pytoyoda
 source pytoyoda/bin/activate
 python -m pip install "pytoyoda@git+https://github.com/pytoyoda/pytoyoda@main"
-curl -LO https://raw.githubusercontent.com/pytoyoda/pytoyoda/main/simple_client_example.py
+curl -LO https://raw.githubusercontent.com/pytoyoda/pytoyoda/main/sandbox/simple_client_example.py
 # Create a credentials.json file with {"username":"your@mail.tld","password":"yourpassword"}
 python simple_client_example.py
 ```

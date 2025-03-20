@@ -139,4 +139,5 @@ TestResults/
 .myt_app/
 /blahblah.py
 .idea/
-/credentials.json
+*credentials.json
+*endpoint_tester.log

@@ -4,6 +4,7 @@ import asyncio
 import json
 import sys
 from datetime import date, timedelta
+from pathlib import Path
 
 from loguru import logger
 
@@ -17,7 +18,7 @@ logger.remove(0)
 logger.add(sys.stderr, level="INFO")
 
 
-# Set your username and password in a file on top level called "credentials.json" in the format: # noqa: E501
+# Set your username and password in a file inside the "sandbox" folder called "credentials.json" in the format: # noqa: E501
 #   {
 #       "username": "<username>",
 #       "password": "<password>"
@@ -27,7 +28,7 @@ logger.add(sys.stderr, level="INFO")
 def load_credentials():
     """Load credentials from 'credentials.json'."""
     try:
-        with open("credentials.json", encoding="utf-8") as f:
+        with open(Path(__file__).parent / "credentials.json", encoding="utf-8") as f:
             return json.load(f)
     except (FileNotFoundError, json.decoder.JSONDecodeError):
         return None
@@ -37,7 +38,7 @@ credentials = load_credentials()
 if not credentials:
     raise ValueError(
         "Did you forget to set your username and password?"
-        "Or supply the credentials file?"
+        "Or supply the credentials file inside the 'sandbox' folder?"
     )
 
 USERNAME = credentials["username"]
