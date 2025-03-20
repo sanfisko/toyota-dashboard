@@ -36,7 +36,7 @@ async def test_endpoint(myt: MyT, vehicle: Vehicle, method: str, endpoint: str) 
             method, endpoint, vin=vehicle.vin
         )
     except Exception as e:
-        logger.error(f"EXCEPTION:\n{e}\n")
+        logger.error(f"EXCEPTION:\n{e}")
         return
     if response:
         logger.info(f"Status: {response.status_code},{response.reason_phrase}")
