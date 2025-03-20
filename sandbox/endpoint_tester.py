@@ -6,11 +6,11 @@ import sys
 from pathlib import Path
 from pprint import pformat
 
+from endpoints_to_test import ENDPOINTS_TO_TEST
 from loguru import logger
 
 from pytoyoda.client import MyT
 from pytoyoda.models.vehicle import Vehicle
-from sandbox.endpoints_to_test import ENDPOINTS_TO_TEST
 
 logger.remove(0)
 logger.add(sys.stderr, level="INFO")
