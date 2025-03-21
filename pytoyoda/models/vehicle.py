@@ -118,7 +118,11 @@ class Vehicle(CustomAPIBaseModel[Type[T]]):
                 ),
                 EndpointDefinition(
                     name="electric_status",
-                    capable=self._vehicle_info.extended_capabilities.econnect_vehicle_status_capable,
+                    capable=getattr(
+                        getattr(self._vehicle_info, "extended_capabilities", None),
+                        "econnect_vehicle_status_capable",
+                        False,
+                    ),
                     function=partial(
                         self._api.get_vehicle_electric_status,
                         vin=self._vehicle_info.vin,
@@ -126,7 +130,11 @@ class Vehicle(CustomAPIBaseModel[Type[T]]):
                 ),
                 EndpointDefinition(
                     name="telemetry",
-                    capable=self._vehicle_info.extended_capabilities.telemetry_capable,
+                    capable=getattr(
+                        getattr(self._vehicle_info, "extended_capabilities", None),
+                        "telemetry_capable",
+                        False,
+                    ),
                     function=partial(
                         self._api.get_telemetry, vin=self._vehicle_info.vin
                     ),
@@ -140,35 +148,51 @@ class Vehicle(CustomAPIBaseModel[Type[T]]):
                 ),
                 EndpointDefinition(
                     name="status",
-                    capable=self._vehicle_info.extended_capabilities.vehicle_status,
+                    capable=getattr(
+                        getattr(self._vehicle_info, "extended_capabilities", None),
+                        "vehicle_status",
+                        False,
+                    ),
                     function=partial(
                         self._api.get_remote_status, vin=self._vehicle_info.vin
                     ),
                 ),
                 EndpointDefinition(
                     name="service_history",
-                    capable=self._vehicle_info.features.service_history,
+                    capable=getattr(
+                        getattr(self._vehicle_info, "features", None),
+                        "service_history",
+                        False,
+                    ),
                     function=partial(
                         self._api.get_service_history, vin=self._vehicle_info.vin
                     ),
                 ),
                 EndpointDefinition(
                     name="climate_settings",
-                    capable=self._vehicle_info.features.climate_start_engine,
+                    capable=getattr(
+                        getattr(self._vehicle_info, "features", None),
+                        "climate_start_engine",
+                        False,
+                    ),
                     function=partial(
                         self._api.get_climate_settings, vin=self._vehicle_info.vin
                     ),
                 ),
                 EndpointDefinition(
                     name="climate_status",
-                    capable=self._vehicle_info.features.climate_start_engine,
+                    capable=getattr(
+                        getattr(self._vehicle_info, "features", None),
+                        "climate_start_engine",
+                        False,
+                    ),
                     function=partial(
                         self._api.get_climate_status, vin=self._vehicle_info.vin
                     ),
                 ),
                 EndpointDefinition(
                     name="trip_history",
-                    capable=True,
+                    capable=True,  # TODO Unsure of the required capability
                     function=partial(
                         self._api.get_trips,
                         vin=self._vehicle_info.vin,
@@ -184,7 +208,7 @@ class Vehicle(CustomAPIBaseModel[Type[T]]):
         else:
             raise ToyotaApiError(
                 logger.error(
-                    "The VIN (vehicle identification number)"
+                    "The VIN (vehicle identification number) "
                     "required for the end point request could not be determined"
                 )
             )
