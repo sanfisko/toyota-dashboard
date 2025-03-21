@@ -12,9 +12,11 @@ from operator import attrgetter
 from typing import Any, Callable, Dict, List, Optional, Tuple, Type, TypeVar, Union
 
 from arrow import Arrow
+from loguru import logger
 from pydantic import computed_field
 
 from pytoyoda.api import Api
+from pytoyoda.exceptions import ToyotaApiError
 from pytoyoda.models.climate import ClimateSettings, ClimateStatus
 from pytoyoda.models.dashboard import Dashboard
 from pytoyoda.models.electric_status import ElectricStatus
@@ -86,84 +88,106 @@ class Vehicle(CustomAPIBaseModel[Type[T]]):
         self._metric = metric
         self._endpoint_data: Dict[str, Any] = {}
 
-        self._api_endpoints: List[EndpointDefinition] = [
-            EndpointDefinition(
-                name="location",
-                capable=self._vehicle_info.extended_capabilities.last_parked_capable
-                or self._vehicle_info.features.last_parked,
-                function=partial(self._api.get_location, vin=self._vehicle_info.vin),
-            ),
-            EndpointDefinition(
-                name="health_status",
-                capable=True,  # TODO Unsure of the required capability
-                function=partial(
-                    self._api.get_vehicle_health_status,
-                    vin=self._vehicle_info.vin,
+        if self._vehicle_info.vin:
+            self._api_endpoints: List[EndpointDefinition] = [
+                EndpointDefinition(
+                    name="location",
+                    capable=(
+                        getattr(
+                            getattr(self._vehicle_info, "extended_capabilities", None),
+                            "last_parked_capable",
+                            False,
+                        )
+                        or getattr(
+                            getattr(self._vehicle_info, "features", None),
+                            "last_parked",
+                            False,
+                        )
+                    ),
+                    function=partial(
+                        self._api.get_location, vin=self._vehicle_info.vin
+                    ),
                 ),
-            ),
-            EndpointDefinition(
-                name="electric_status",
-                capable=self._vehicle_info.extended_capabilities.econnect_vehicle_status_capable,
-                function=partial(
-                    self._api.get_vehicle_electric_status,
-                    vin=self._vehicle_info.vin,
+                EndpointDefinition(
+                    name="health_status",
+                    capable=True,  # TODO Unsure of the required capability
+                    function=partial(
+                        self._api.get_vehicle_health_status,
+                        vin=self._vehicle_info.vin,
+                    ),
                 ),
-            ),
-            EndpointDefinition(
-                name="telemetry",
-                capable=self._vehicle_info.extended_capabilities.telemetry_capable,
-                function=partial(self._api.get_telemetry, vin=self._vehicle_info.vin),
-            ),
-            EndpointDefinition(
-                name="notifications",
-                capable=True,  # TODO Unsure of the required capability
-                function=partial(
-                    self._api.get_notifications, vin=self._vehicle_info.vin
+                EndpointDefinition(
+                    name="electric_status",
+                    capable=self._vehicle_info.extended_capabilities.econnect_vehicle_status_capable,
+                    function=partial(
+                        self._api.get_vehicle_electric_status,
+                        vin=self._vehicle_info.vin,
+                    ),
                 ),
-            ),
-            EndpointDefinition(
-                name="status",
-                capable=self._vehicle_info.extended_capabilities.vehicle_status,
-                function=partial(
-                    self._api.get_remote_status, vin=self._vehicle_info.vin
+                EndpointDefinition(
+                    name="telemetry",
+                    capable=self._vehicle_info.extended_capabilities.telemetry_capable,
+                    function=partial(
+                        self._api.get_telemetry, vin=self._vehicle_info.vin
+                    ),
                 ),
-            ),
-            EndpointDefinition(
-                name="service_history",
-                capable=self._vehicle_info.features.service_history,
-                function=partial(
-                    self._api.get_service_history, vin=self._vehicle_info.vin
+                EndpointDefinition(
+                    name="notifications",
+                    capable=True,  # TODO Unsure of the required capability
+                    function=partial(
+                        self._api.get_notifications, vin=self._vehicle_info.vin
+                    ),
                 ),
-            ),
-            EndpointDefinition(
-                name="climate_settings",
-                capable=self._vehicle_info.features.climate_start_engine,
-                function=partial(
-                    self._api.get_climate_settings, vin=self._vehicle_info.vin
+                EndpointDefinition(
+                    name="status",
+                    capable=self._vehicle_info.extended_capabilities.vehicle_status,
+                    function=partial(
+                        self._api.get_remote_status, vin=self._vehicle_info.vin
+                    ),
                 ),
-            ),
-            EndpointDefinition(
-                name="climate_status",
-                capable=self._vehicle_info.features.climate_start_engine,
-                function=partial(
-                    self._api.get_climate_status, vin=self._vehicle_info.vin
+                EndpointDefinition(
+                    name="service_history",
+                    capable=self._vehicle_info.features.service_history,
+                    function=partial(
+                        self._api.get_service_history, vin=self._vehicle_info.vin
+                    ),
                 ),
-            ),
-            EndpointDefinition(
-                name="trip_history",
-                capable=True,
-                function=partial(
-                    self._api.get_trips,
-                    vin=self._vehicle_info.vin,
-                    from_date=(date.today() - timedelta(days=90)),
-                    to_date=date.today(),
-                    summary=True,
-                    limit=1,
-                    offset=0,
-                    route=False,
+                EndpointDefinition(
+                    name="climate_settings",
+                    capable=self._vehicle_info.features.climate_start_engine,
+                    function=partial(
+                        self._api.get_climate_settings, vin=self._vehicle_info.vin
+                    ),
                 ),
-            ),
-        ]
+                EndpointDefinition(
+                    name="climate_status",
+                    capable=self._vehicle_info.features.climate_start_engine,
+                    function=partial(
+                        self._api.get_climate_status, vin=self._vehicle_info.vin
+                    ),
+                ),
+                EndpointDefinition(
+                    name="trip_history",
+                    capable=True,
+                    function=partial(
+                        self._api.get_trips,
+                        vin=self._vehicle_info.vin,
+                        from_date=(date.today() - timedelta(days=90)),
+                        to_date=date.today(),
+                        summary=True,
+                        limit=1,
+                        offset=0,
+                        route=False,
+                    ),
+                ),
+            ]
+        else:
+            raise ToyotaApiError(
+                logger.error(
+                    "The VIN (vehicle identification number)"
+                    "required for the end point request could not be determined"
+                )
+            )
         self._endpoint_collect = [
             (endpoint.name, endpoint.function)
             for endpoint in self._api_endpoints
