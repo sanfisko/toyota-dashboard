@@ -94,12 +94,12 @@ class Vehicle(CustomAPIBaseModel[Type[T]]):
                     name="location",
                     capable=(
                         getattr(
-                            getattr(self._vehicle_info, "extended_capabilities", None),
+                            getattr(self._vehicle_info, "extended_capabilities", False),
                             "last_parked_capable",
                             False,
                         )
                         or getattr(
-                            getattr(self._vehicle_info, "features", None),
+                            getattr(self._vehicle_info, "features", False),
                             "last_parked",
                             False,
                         )
@@ -119,7 +119,7 @@ class Vehicle(CustomAPIBaseModel[Type[T]]):
                 EndpointDefinition(
                     name="electric_status",
                     capable=getattr(
-                        getattr(self._vehicle_info, "extended_capabilities", None),
+                        getattr(self._vehicle_info, "extended_capabilities", False),
                         "econnect_vehicle_status_capable",
                         False,
                     ),
@@ -131,7 +131,7 @@ class Vehicle(CustomAPIBaseModel[Type[T]]):
                 EndpointDefinition(
                     name="telemetry",
                     capable=getattr(
-                        getattr(self._vehicle_info, "extended_capabilities", None),
+                        getattr(self._vehicle_info, "extended_capabilities", False),
                         "telemetry_capable",
                         False,
                     ),
@@ -149,7 +149,7 @@ class Vehicle(CustomAPIBaseModel[Type[T]]):
                 EndpointDefinition(
                     name="status",
                     capable=getattr(
-                        getattr(self._vehicle_info, "extended_capabilities", None),
+                        getattr(self._vehicle_info, "extended_capabilities", False),
                         "vehicle_status",
                         False,
                     ),
@@ -160,7 +160,7 @@ class Vehicle(CustomAPIBaseModel[Type[T]]):
                 EndpointDefinition(
                     name="service_history",
                     capable=getattr(
-                        getattr(self._vehicle_info, "features", None),
+                        getattr(self._vehicle_info, "features", False),
                         "service_history",
                         False,
                     ),
@@ -171,7 +171,7 @@ class Vehicle(CustomAPIBaseModel[Type[T]]):
                 EndpointDefinition(
                     name="climate_settings",
                     capable=getattr(
-                        getattr(self._vehicle_info, "features", None),
+                        getattr(self._vehicle_info, "features", False),
                         "climate_start_engine",
                         False,
                     ),
@@ -182,7 +182,7 @@ class Vehicle(CustomAPIBaseModel[Type[T]]):
                 EndpointDefinition(
                     name="climate_status",
                     capable=getattr(
-                        getattr(self._vehicle_info, "features", None),
+                        getattr(self._vehicle_info, "features", False),
                         "climate_start_engine",
                         False,
                     ),
