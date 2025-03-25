@@ -33,7 +33,10 @@ async def test_endpoint(myt: MyT, vehicle: Vehicle, method: str, endpoint: str) 
     logger.info(f"Testing Endpoint: {endpoint}")
     try:
         response = await myt._api.controller.request_raw(
-            method, endpoint, vin=vehicle.vin
+            method,
+            endpoint,
+            vin=vehicle.vin,
+            headers={"X-device-timezone": "Europe/Berlin"},
         )
     except Exception as e:
         logger.error(f"EXCEPTION:\n{e}")
