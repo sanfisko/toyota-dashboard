@@ -50,12 +50,28 @@ class VehicleType(Enum):
 
     @classmethod
     def from_vehicle_info(cls, info: VehicleGuidModel) -> "VehicleType":
-        """Get vehicle type from the vehicle information."""
-        if info.ev_vehicle and info.fuel_type:
-            return cls.PLUG_IN_HYBRID
-        elif info.ev_vehicle:
-            return cls.ELECTRIC
-        else:
+        """Determine the vehicle type based on detailed vehicle information.
+
+        Args:
+            info (VehicleGuidModel): Vehicle information model
+
+        Returns:
+            VehicleType: Determined vehicle type
+
+        """
+        try:
+            if info.ev_vehicle and info.fuel_type != "E":
+                return cls.PLUG_IN_HYBRID
+            elif info.ev_vehicle and info.fuel_type == "E":
+                return cls.ELECTRIC
+            elif (
+                hasattr(info, "extended_capabilities")
+                and getattr(info.extended_capabilities, "hybrid_pulse", False)
+                and not info.ev_vehicle
+            ):
+                return cls.FULL_HYBRID
+            return cls.FUEL_ONLY
+        except AttributeError:
             return cls.FUEL_ONLY
 
 
