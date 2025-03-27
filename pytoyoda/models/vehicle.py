@@ -43,6 +43,8 @@ class VehicleType(Enum):
     """Vehicle types."""
 
     PLUG_IN_HYBRID = auto()
+    FULL_HYBRID = auto()
+    MILD_HYBRID = auto()
     ELECTRIC = auto()
     FUEL_ONLY = auto()
 
