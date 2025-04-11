@@ -3,13 +3,11 @@
 import asyncio
 import json
 import sys
-from datetime import date, timedelta
 from pathlib import Path
 
 from loguru import logger
 
 from pytoyoda.client import MyT
-from pytoyoda.models.summary import SummaryType
 
 # from pytoyoda.models.endpoints.climate import ACOperations, ACParameters, ClimateSettingsModel  # noqa: E501
 # from pytoyoda.models.endpoints.command import CommandType
@@ -57,14 +55,14 @@ async def get_information():
 
     for car in cars:
         if car:
-            response = await car._api.update_vehicle_electric_realtime_status(vin=car.vin)
+            response = await car._api.update_vehicle_electric_realtime_status(
+                vin=car.vin
+            )
             logger.info(
-                    f"Requesting update to SOC: {response.model_dump_json(indent=4)}"
-                    )
+                f"Requesting update to SOC: {response.model_dump_json(indent=4)}"
+            )
             await car.update()
-            logger.info(
-                    f"SOC {car.electric_status.model_dump_json(indent=4)}"
-                    )
+            logger.info(f"SOC {car.electric_status.model_dump_json(indent=4)}")
 
 
 loop = asyncio.new_event_loop()
