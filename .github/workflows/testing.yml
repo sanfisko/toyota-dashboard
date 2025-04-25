@@ -35,7 +35,7 @@ jobs:
         run: "poetry install"
       - name: "🚀 Run pytest with coverage"
         run: |
-          poetry run pytest --cov=pytoyoda --junitxml=junit.xml --cov-report=xml
+          poetry run pytest --cov=pytoyoda --cov-report term --cov-report xml:coverage.xml
       - name: "🚀 Run SonarQube SAST scanning"
         uses: SonarSource/sonarqube-scan-action@v5
         env:
