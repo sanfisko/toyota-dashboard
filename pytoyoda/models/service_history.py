@@ -81,8 +81,7 @@ class ServiceHistory(CustomAPIBaseModel[Type[T]]):
                 self._service_history.unit,
                 self._service_history.mileage,
             )
-        else:
-            return None
+        return None
 
     @computed_field  # type: ignore[prop-decorator]
     @property

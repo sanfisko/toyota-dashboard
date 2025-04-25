@@ -91,8 +91,7 @@ class Door(CustomAPIBaseModel[Optional[SectionModel]]):
             return True
         if StatusHelper.get_status(self._data, status="carstatus_unlocked") is False:
             return False
-        else:
-            return None
+        return None
 
 
 class Doors(CustomAPIBaseModel[Optional[RemoteStatusModel]]):

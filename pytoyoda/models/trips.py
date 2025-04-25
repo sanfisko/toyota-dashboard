@@ -79,8 +79,7 @@ class Trip(CustomAPIBaseModel[Type[T]]):
                     lat=self._trip.summary.end_lat, lon=self._trip.summary.end_lon
                 ),
             )
-        else:
-            return None
+        return None
 
     @computed_field  # type: ignore[prop-decorator]
     @property
@@ -132,8 +131,7 @@ class Trip(CustomAPIBaseModel[Type[T]]):
             return convert_distance(
                 self._distance_unit, KILOMETERS_UNIT, self._trip.summary.length / 1000.0
             )
-        else:
-            return None
+        return None
 
     @computed_field  # type: ignore[prop-decorator]
     @property

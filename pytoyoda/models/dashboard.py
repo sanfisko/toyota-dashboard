@@ -142,7 +142,7 @@ class Dashboard(CustomAPIBaseModel[Type[T]]):
                 self._electric.fuel_range.unit,
                 self._electric.fuel_range.value,
             )
-        elif (
+        if (
             self._telemetry
             and self._telemetry.distance_to_empty
             and (

@@ -503,16 +503,15 @@ class Vehicle(CustomAPIBaseModel[Type[T]]):
         # Convert to response
         if summary_type == SummaryType.DAILY:
             return self._generate_daily_summaries(resp.payload.summary)
-        elif summary_type == SummaryType.WEEKLY:
+        if summary_type == SummaryType.WEEKLY:
             return self._generate_weekly_summaries(resp.payload.summary)
-        elif summary_type == SummaryType.MONTHLY:
+        if summary_type == SummaryType.MONTHLY:
             return self._generate_monthly_summaries(
                 resp.payload.summary, from_date, to_date
             )
-        elif summary_type == SummaryType.YEARLY:
+        if summary_type == SummaryType.YEARLY:
             return self._generate_yearly_summaries(resp.payload.summary, to_date)
-        else:
-            raise AssertionError("No such SummaryType")
+        raise AssertionError("No such SummaryType")
 
     async def get_current_day_summary(self) -> Optional[Summary]:
         """Return a summary for the current day.

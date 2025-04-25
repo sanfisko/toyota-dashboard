@@ -90,9 +90,9 @@ def get_sensitive_data_type(
     if key_lower in to_censor:
         if isinstance(value, str):
             return SensitiveDataType.STRING
-        elif isinstance(value, float):
+        if isinstance(value, float):
             return SensitiveDataType.FLOAT
-        elif isinstance(value, (dict, list)):
+        if isinstance(value, (dict, list)):
             return SensitiveDataType.NESTED
     return None
 
@@ -116,12 +116,12 @@ def censor_value(value: Any, key: str, to_censor: Set[str]) -> Any:
 
     if data_type == SensitiveDataType.STRING:
         return censor_string(value)
-    elif data_type == SensitiveDataType.FLOAT:
+    if data_type == SensitiveDataType.FLOAT:
         return round(value)
-    elif data_type == SensitiveDataType.NESTED:
+    if data_type == SensitiveDataType.NESTED:
         if isinstance(value, dict):
             return censor_all(value, to_censor)
-        elif isinstance(value, list):
+        if isinstance(value, list):
             return [censor_value(item, key, to_censor) for item in value]
 
     return value

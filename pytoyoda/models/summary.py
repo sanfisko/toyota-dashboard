@@ -85,8 +85,7 @@ class Summary(CustomAPIBaseModel[Type[T]]):
             return convert_distance(
                 self._distance_unit, KILOMETERS_UNIT, self._summary.average_speed
             )
-        else:
-            return None
+        return None
 
     @computed_field  # type: ignore[prop-decorator]
     @property
@@ -111,8 +110,7 @@ class Summary(CustomAPIBaseModel[Type[T]]):
         """
         if self._summary.duration:
             return timedelta(seconds=self._summary.duration)
-        else:
-            return None
+        return None
 
     @computed_field  # type: ignore[prop-decorator]
     @property
@@ -127,8 +125,7 @@ class Summary(CustomAPIBaseModel[Type[T]]):
             return convert_distance(
                 self._distance_unit, KILOMETERS_UNIT, self._summary.length / 1000.0
             )
-        else:
-            return None
+        return None
 
     @computed_field  # type: ignore[prop-decorator]
     @property
