@@ -23,6 +23,8 @@ jobs:
     steps:
       - name: "⤵️ Check out code from GitHub"
         uses: "actions/checkout@v4"
+        with:
+          fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
       - name: "🐍 Set up Python ${{ matrix.python-version }}"
         uses: "actions/setup-python@v5"
         with:
@@ -33,17 +35,8 @@ jobs:
         run: "poetry install"
       - name: "🚀 Run pytest with coverage"
         run: |
-          poetry run pytest --cov=pytoyoda --junitxml=junit.xml --cov-report=xml
-      - name: "⬆️ Upload Coverage to Codecov"
-        uses: "codecov/codecov-action@v5"
-        with:
-          token: "${{ secrets.CODECOV_TOKEN }}"
-          env_vars: OS,PYTHON
-          fail_ci_if_error: true
-          flags: "unittests"
-          verbose: true
-      - name: "⬆️ Upload test results to Codecov"
-        if: "${{ !cancelled() }}"
-        uses: "codecov/test-results-action@v1"
-        with:
-          token: "${{ secrets.CODECOV_TOKEN }}"
+          poetry run pytest --cov=pytoyoda --cov-report term --cov-report xml:coverage.xml
+      - name: "🚀 Run SonarQube SAST scanning"
+        uses: SonarSource/sonarqube-scan-action@v5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
