@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 from http import HTTPStatus
 from typing import Any, ClassVar, Dict, Optional
 from urllib import parse
+from uuid import uuid4
 
 import hishel
 import httpx
@@ -17,6 +18,7 @@ from pytoyoda.const import (
     API_BASE_URL,
     AUTHENTICATE_URL,
     AUTHORIZE_URL,
+    CLIENT_VERSION,
 )
 from pytoyoda.exceptions import (
     ToyotaApiError,
@@ -24,6 +26,7 @@ from pytoyoda.exceptions import (
     ToyotaInvalidUsernameError,
     ToyotaLoginError,
 )
+from pytoyoda.utils.helpers import generate_hmac_sha256
 from pytoyoda.utils.log_utils import format_httpx_response
 
 
@@ -381,11 +384,16 @@ class Controller:
         """
         headers = {
             "x-api-key": "tTZipv6liF74PwMfk9Ed68AQ0bISswwf3iHQdqcF",
+            "API_KEY": "tTZipv6liF74PwMfk9Ed68AQ0bISswwf3iHQdqcF",
             "x-guid": self._uuid,
             "guid": self._uuid,
-            "authorization": f"Bearer {self._token}",
+            "x-client-ref": generate_hmac_sha256(CLIENT_VERSION, self._uuid),
+            "x-correlationid": str(uuid4()),
+            "x-appversion": CLIENT_VERSION,
             "x-channel": "ONEAPP",
             "x-brand": "T",
+            "x-region": "EU",
+            "authorization": f"Bearer {self._token}",
             "user-agent": "okhttp/4.10.0",
         }
 

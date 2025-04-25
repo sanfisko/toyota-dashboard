@@ -1,5 +1,8 @@
 """Toyota Connected Services API constants."""
 
+# Misc
+CLIENT_VERSION = "2.14.0"
+
 # API URLs
 API_BASE_URL = "HTTPS://ctpa-oneapi.tceu-ctp-prd.toyotaconnectedeurope.io"
 ACCESS_TOKEN_URL = (
