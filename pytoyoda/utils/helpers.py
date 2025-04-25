@@ -1,5 +1,7 @@
 """Helper functions for numeric operations with None handling."""
 
+import hashlib
+import hmac
 from typing import Optional, Union
 
 
@@ -37,3 +39,19 @@ def add_with_none(
         return this
 
     return this + that
+
+
+def generate_hmac_sha256(key: str, message: str) -> str:
+    """Generate an HMAC-SHA256 hash for the given message using the key.
+
+    Args:
+        key: The secret key to be used for the HMAC calculation.
+        message: The message for which to generate the HMAC value.
+
+    Returns:
+        The hexadecimal string of the computed HMAC-SHA256 digest.
+
+    """
+    return hmac.new(
+        key.encode("UTF-8"), message.encode("UTF-8"), hashlib.sha256
+    ).hexdigest()
