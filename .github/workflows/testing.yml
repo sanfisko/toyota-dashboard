@@ -36,6 +36,12 @@ jobs:
       - name: "🚀 Run pytest with coverage"
         run: |
           poetry run pytest --cov=pytoyoda --cov-report term --cov-report xml:coverage.xml
+  sonarqube:
+    needs: pytest
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
       - name: "🚀 Run SonarQube SAST scanning"
         uses: SonarSource/sonarqube-scan-action@v5
         env:
