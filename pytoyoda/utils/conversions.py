@@ -41,7 +41,7 @@ def convert_distance(
     convert_from: str,
     value: float,
     decimal_places: int = 3,
-):
+) -> float:
     """Convert distance between kilometers and miles.
 
     Args:
