@@ -15,7 +15,7 @@ Example:
 
 """
 
-from typing import List, Optional, Type
+from __future__ import annotations
 
 from loguru import logger
 
@@ -42,8 +42,8 @@ class MyT:
         self,
         username: str,
         password: str,
-        use_metric: bool = True,
-        controller_class: Type[Controller] = Controller,
+        use_metric: bool = True,  # noqa : FBT001, FBT002
+        controller_class: type[Controller] = Controller,
     ) -> None:
         """Initialize the Toyota Connected Services client.
 
@@ -58,9 +58,8 @@ class MyT:
 
         """
         if not username or "@" not in username:
-            raise ToyotaInvalidUsernameError(
-                "Invalid username format. Must be a valid email address."
-            )
+            msg = "Invalid username format. Must be a valid email address."
+            raise ToyotaInvalidUsernameError(msg)
 
         self._api = Api(
             controller_class(
@@ -91,7 +90,7 @@ class MyT:
             logger.error("Login failed: %s", str(error))
             raise
 
-    async def get_vehicles(self) -> List[Optional[Vehicle]]:
+    async def get_vehicles(self) -> list[Vehicle | None]:
         """Retrieve all vehicles associated with the account.
 
         Returns:
