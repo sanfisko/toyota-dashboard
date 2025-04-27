@@ -10,13 +10,12 @@ from pydantic import computed_field
 
 from pytoyoda.const import (
     KILOMETERS_UNIT,
-    L_TO_MPG_FACTOR,
     MILES_UNIT,
     ML_TO_GAL_FACTOR,
     ML_TO_L_FACTOR,
 )
 from pytoyoda.models.endpoints.trips import _HDCModel, _SummaryBaseModel
-from pytoyoda.utils.conversions import convert_distance
+from pytoyoda.utils.conversions import convert_distance, convert_to_mpg
 from pytoyoda.utils.models import CustomAPIBaseModel
 
 T = TypeVar(
@@ -215,7 +214,7 @@ class Summary(CustomAPIBaseModel[type[T]]):
             return (
                 round(avg_fuel_consumed, 3)
                 if self._metric
-                else round(L_TO_MPG_FACTOR / avg_fuel_consumed, 3)
+                else convert_to_mpg(avg_fuel_consumed)
             )
 
         return 0.0
