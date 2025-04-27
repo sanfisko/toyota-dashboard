@@ -1,16 +1,18 @@
 """Model for Trip Summaries."""
 
+# ruff: noqa : FA100
+
 from datetime import datetime, timedelta
-from typing import List, Optional, Type, TypeVar, Union
+from typing import Optional, TypeVar, Union
 
 from pydantic import BaseModel, computed_field
 
 from pytoyoda.const import (
     KILOMETERS_UNIT,
+    L_TO_MPG_FACTOR,
     MILES_UNIT,
-    ML_GAL_FACTOR,
-    ML_L_FACTOR,
-    MPG_FACTOR,
+    ML_TO_GAL_FACTOR,
+    ML_TO_L_FACTOR,
 )
 from pytoyoda.models.endpoints.trips import _TripModel
 from pytoyoda.utils.conversions import convert_distance
@@ -36,15 +38,15 @@ class TripLocations(BaseModel):
     end: Optional[TripPositions]
 
 
-class Trip(CustomAPIBaseModel[Type[T]]):
+class Trip(CustomAPIBaseModel[type[T]]):
     """Base class of Daily, Weekly, Monthly, Yearly summary."""
 
     def __init__(
         self,
         trip: _TripModel,
-        metric: bool,
-        **kwargs,
-    ):
+        metric: bool,  # noqa : FBT001
+        **kwargs: dict,
+    ) -> None:
         """Initialise Class.
 
         Args:
@@ -179,9 +181,9 @@ class Trip(CustomAPIBaseModel[Type[T]]):
         """
         if self._trip.summary and self._trip.summary.fuel_consumption:
             return (
-                round(self._trip.summary.fuel_consumption / ML_L_FACTOR, 3)
+                round(self._trip.summary.fuel_consumption / ML_TO_L_FACTOR, 3)
                 if self._distance_unit
-                else round(self._trip.summary.fuel_consumption / ML_GAL_FACTOR, 3)
+                else round(self._trip.summary.fuel_consumption / ML_TO_GAL_FACTOR, 3)
             )
 
         return 0.0
@@ -206,7 +208,7 @@ class Trip(CustomAPIBaseModel[Type[T]]):
             return (
                 round(avg_fuel_consumed, 3)
                 if self._distance_unit
-                else round(MPG_FACTOR / avg_fuel_consumed, 3)
+                else round(L_TO_MPG_FACTOR / avg_fuel_consumed, 3)
             )
 
         return 0.0
@@ -227,11 +229,11 @@ class Trip(CustomAPIBaseModel[Type[T]]):
 
     @computed_field  # type: ignore[prop-decorator]
     @property
-    def route(self) -> Optional[List[TripPositions]]:
+    def route(self) -> Optional[list[TripPositions]]:
         """The route taken.
 
         Returns:
-            Optional[List[Tuple[float, float]]]: List of Lat, Lon of the route taken.
+            Optional[list[Tuple[float, float]]]: List of Lat, Lon of the route taken.
                 None if no route provided.
 
         """

@@ -1,17 +1,19 @@
 """Model for Trip Summaries."""
 
+# ruff: noqa : FA100
+
 from datetime import date, timedelta
 from enum import IntEnum
-from typing import List, Optional, Type, TypeVar, Union
+from typing import Optional, TypeVar, Union
 
 from pydantic import computed_field
 
 from pytoyoda.const import (
     KILOMETERS_UNIT,
+    L_TO_MPG_FACTOR,
     MILES_UNIT,
-    ML_GAL_FACTOR,
-    ML_L_FACTOR,
-    MPG_FACTOR,
+    ML_TO_GAL_FACTOR,
+    ML_TO_L_FACTOR,
 )
 from pytoyoda.models.endpoints.trips import _HDCModel, _SummaryBaseModel
 from pytoyoda.utils.conversions import convert_distance
@@ -32,18 +34,18 @@ class SummaryType(IntEnum):
     YEARLY = 4
 
 
-class Summary(CustomAPIBaseModel[Type[T]]):
+class Summary(CustomAPIBaseModel[type[T]]):
     """Base class of Daily, Weekly, Monthly, Yearly summary."""
 
     def __init__(
         self,
         summary: _SummaryBaseModel,
-        metric: bool,
+        metric: bool,  # noqa : FBT001
         from_date: date,
         to_date: date,
         hdc: Optional[_HDCModel] = None,
-        **kwargs,
-    ):
+        **kwargs: dict,
+    ) -> None:
         """Initialise Class.
 
         Args:
@@ -89,11 +91,11 @@ class Summary(CustomAPIBaseModel[Type[T]]):
 
     @computed_field  # type: ignore[prop-decorator]
     @property
-    def countries(self) -> Optional[List[str]]:
+    def countries(self) -> Optional[list[str]]:
         """Countries visited.
 
         Returns:
-            List[str]: List of countries visited in 'ISO 3166-1 alpha-2' or
+            list[str]: List of countries visited in 'ISO 3166-1 alpha-2' or
                 two-letter country codes format.
 
         """
@@ -190,9 +192,9 @@ class Summary(CustomAPIBaseModel[Type[T]]):
         """
         if self._summary.fuel_consumption:
             return (
-                round(self._summary.fuel_consumption / ML_L_FACTOR, 3)
+                round(self._summary.fuel_consumption / ML_TO_L_FACTOR, 3)
                 if self._metric
-                else round(self._summary.fuel_consumption / ML_GAL_FACTOR, 3)
+                else round(self._summary.fuel_consumption / ML_TO_GAL_FACTOR, 3)
             )
 
         return 0.0
@@ -213,7 +215,7 @@ class Summary(CustomAPIBaseModel[Type[T]]):
             return (
                 round(avg_fuel_consumed, 3)
                 if self._metric
-                else round(MPG_FACTOR / avg_fuel_consumed, 3)
+                else round(L_TO_MPG_FACTOR / avg_fuel_consumed, 3)
             )
 
         return 0.0

@@ -2,7 +2,7 @@
 
 from loguru import logger
 
-from pytoyoda.const import KM_TO_MILES, L_TO_MPG_FACTOR, MILES_TO_KM
+from pytoyoda.const import KM_TO_MILES_FACTOR, L_TO_MPG_FACTOR, MILES_TO_KM_FACTOR
 
 
 def convert_to_miles(kilometers: float) -> float:
@@ -16,7 +16,7 @@ def convert_to_miles(kilometers: float) -> float:
 
     """
     logger.debug("Converting %s kilometers to miles...", kilometers)
-    return kilometers * KM_TO_MILES
+    return kilometers * KM_TO_MILES_FACTOR
 
 
 def convert_to_km(miles: float) -> float:
@@ -30,7 +30,7 @@ def convert_to_km(miles: float) -> float:
 
     """
     logger.debug("Converting %s miles to kilometers...", miles)
-    return miles * MILES_TO_KM
+    return miles * MILES_TO_KM_FACTOR
 
 
 def convert_distance(
@@ -69,7 +69,7 @@ def convert_to_liter_per_100_miles(liters: float) -> float:
 
     """
     logger.debug("Converting %s L/100km to L/100miles...", liters)
-    return round(liters * MILES_TO_KM, 4)
+    return round(liters * MILES_TO_KM_FACTOR, 4)
 
 
 def convert_to_mpg(liters_per_100_km: float) -> float:
