@@ -10,6 +10,18 @@
 ⚠️ _This is still in beta_
 ⚠️ _Only EU is supported, other regions are not possible so far._
 
+## Summary 
+
+- [Toyota Connected Services Europe Python module](#toyota-connected-services-europe-python-module)
+  * [Description](#description)
+  * [Installation](#installation)
+  * [Docs](#docs)
+  * [Usage](#usage)
+  * [Known issues](#known-issues)
+  * [Contributing](#contributing)
+  * [Note](#note)
+  * [Credits](#credits)
+
 ## Description
 
 Python 3 package to communicate with [Toyota Connected Europe](https://www.toyota-europe.com/about-us/toyota-in-europe/toyota-connected-europe) Services.
