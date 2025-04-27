@@ -2,10 +2,7 @@
 
 from loguru import logger
 
-# Conversion constants
-KM_TO_MILES = 0.621371192
-MILES_TO_KM = 1.60934
-L_TO_MPG_FACTOR = 282.5
+from pytoyoda.const import KM_TO_MILES, L_TO_MPG_FACTOR, MILES_TO_KM
 
 
 def convert_to_miles(kilometers: float) -> float:
