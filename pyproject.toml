@@ -70,7 +70,7 @@ build-backend = "poetry_dynamic_versioning.backend"
 
 [tool.ruff]
 fix = true
-extend-exclude = ["tests"]
+extend-exclude = ["tests", "sandbox"]
 lint.select = ["ALL"]
 lint.extend-ignore = ["D203", "D213", "COM812"]
 lint.pydocstyle.convention = "google"
