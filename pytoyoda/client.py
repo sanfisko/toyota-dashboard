@@ -109,7 +109,7 @@ class MyT:
             logger.info("No vehicles found for this account")
             return []
 
-        logger.debug("Found %d vehicles", len(vehicles.payload))
+        logger.debug("Found {} vehicles", len(vehicles.payload))
 
         return [
             Vehicle(self._api, vehicle_data, metric=self._use_metric)
