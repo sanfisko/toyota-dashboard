@@ -4,7 +4,8 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Optional
+from datetime import datetime  # noqa : TC003
+from typing import Optional
 
 from pydantic import computed_field
 
@@ -15,9 +16,6 @@ from pytoyoda.models.endpoints.status import (
     VehicleStatusModel,
 )
 from pytoyoda.utils.models import CustomAPIBaseModel
-
-if TYPE_CHECKING:
-    from datetime import datetime
 
 
 class StatusHelper:
