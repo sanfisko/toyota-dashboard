@@ -69,7 +69,7 @@ class MyT:
         )
         self._use_metric = use_metric
 
-        logger.debug("MyT client initialized for user: %s", username)
+        logger.debug("MyT client initialized for user: '{}'.", username)
 
     async def login(self) -> None:
         """Perform initial login to Toyota Connected Services.
@@ -87,7 +87,7 @@ class MyT:
             await self._api.controller.login()
             logger.debug("Login successful")
         except ToyotaLoginError as error:
-            logger.error("Login failed: %s", str(error))
+            logger.error("Login failed: '{}'.", str(error))
             raise
 
     async def get_vehicles(self) -> list[Vehicle | None]:
