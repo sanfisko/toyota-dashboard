@@ -1,6 +1,6 @@
 """Toyota Connected Services API - Vehicle Models."""
 
-# ruff: noqa : FA100
+# ruff: noqa : FA100, UP007
 
 from datetime import date
 from typing import Any, Dict, List, Optional, Union

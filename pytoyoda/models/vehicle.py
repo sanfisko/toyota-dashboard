@@ -1,6 +1,6 @@
 """Vehicle model."""
 
-# ruff: noqa : FA100
+# ruff: noqa : FA100, UP007
 
 import asyncio
 import copy

@@ -1,6 +1,6 @@
 """Model for Trip Summaries."""
 
-# ruff: noqa : FA100
+# ruff: noqa : FA100, UP007
 
 from datetime import datetime, timedelta
 from typing import Optional, TypeVar, Union

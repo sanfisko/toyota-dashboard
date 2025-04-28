@@ -1,6 +1,6 @@
 """Models for vehicle location."""
 
-# ruff: noqa : FA100
+# ruff: noqa : FA100, UP007
 
 from datetime import datetime
 from typing import Optional

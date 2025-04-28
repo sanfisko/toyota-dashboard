@@ -1,11 +1,10 @@
 """Models for vehicle sensors."""
 
-# ruff: noqa : FA100
+# ruff: noqa : FA100, UP007
 
 from __future__ import annotations
 
-from datetime import datetime
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 from pydantic import computed_field
 
@@ -16,6 +15,9 @@ from pytoyoda.models.endpoints.status import (
     VehicleStatusModel,
 )
 from pytoyoda.utils.models import CustomAPIBaseModel
+
+if TYPE_CHECKING:
+    from datetime import datetime
 
 
 class StatusHelper:
