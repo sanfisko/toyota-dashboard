@@ -3,7 +3,7 @@
 # ruff: noqa : FA100
 
 from datetime import date
-from typing import Optional, Type, TypeVar, Union
+from typing import Optional, TypeVar, Union
 
 from pydantic import computed_field
 
@@ -21,15 +21,15 @@ T = TypeVar(
 )
 
 
-class ElectricStatus(CustomAPIBaseModel[Type[T]]):
+class ElectricStatus(CustomAPIBaseModel[type[T]]):
     """ElectricStatus."""
 
     def __init__(
         self,
         electric_status: Optional[ElectricResponseModel] = None,
-        metric: bool = True,
-        **kwargs,
-    ):
+        metric: bool = True,  # noqa : FBT001, FBT002
+        **kwargs: dict,
+    ) -> None:
         """Initialise ElectricStatus model.
 
         Args:
