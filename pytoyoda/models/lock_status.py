@@ -73,8 +73,8 @@ class Door(CustomAPIBaseModel[Optional[SectionModel]]):
     def __init__(
         self,
         status: Optional[SectionModel] = None,
-        **kwargs,
-    ):
+        **kwargs: dict,
+    ) -> None:
         """Initialise Door Model."""
         super().__init__(
             data=status,
@@ -104,8 +104,8 @@ class Doors(CustomAPIBaseModel[Optional[RemoteStatusModel]]):
     def __init__(
         self,
         status: Optional[RemoteStatusModel] = None,
-        **kwargs,
-    ):
+        **kwargs: dict,
+    ) -> None:
         """Initialise Doors Model."""
         super().__init__(
             data=status,
@@ -174,8 +174,8 @@ class Window(CustomAPIBaseModel[Optional[SectionModel]]):
     def __init__(
         self,
         status: Optional[SectionModel] = None,
-        **kwargs,
-    ):
+        **kwargs: dict,
+    ) -> None:
         """Initialise Window Model."""
         super().__init__(
             data=status,
@@ -195,8 +195,8 @@ class Windows(CustomAPIBaseModel[Optional[RemoteStatusModel]]):
     def __init__(
         self,
         status: Optional[RemoteStatusModel] = None,
-        **kwargs,
-    ):
+        **kwargs: dict,
+    ) -> None:
         """Initialise Windows Model."""
         super().__init__(
             data=status,
@@ -254,8 +254,8 @@ class LockStatus(CustomAPIBaseModel[Optional[RemoteStatusResponseModel]]):
     def __init__(
         self,
         status: Optional[RemoteStatusResponseModel] = None,
-        **kwargs,
-    ):
+        **kwargs: dict,
+    ) -> None:
         """Initialise LockStatus."""
         super().__init__(
             data=status,
