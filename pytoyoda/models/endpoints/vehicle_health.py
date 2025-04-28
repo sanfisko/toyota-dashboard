@@ -3,7 +3,7 @@
 # ruff: noqa : FA100, UP007
 
 from datetime import datetime
-from typing import Any, List, Optional
+from typing import Any, Optional
 
 from pydantic import Field
 
@@ -15,19 +15,17 @@ class VehicleHealthModel(CustomEndpointBaseModel):
     r"""Model representing the health status of a vehicle.
 
     Attributes:
-        quantity_of_eng_oil_icon (Optional[List[Any]], optional):
+        quantity_of_eng_oil_icon (Optional[list[Any]], optional):
         The quantity of engine oil icon. Defaults to None.
         vin (str): The VIN (Vehicle Identification Number) of the vehicle.
-        warning (Optional[List[Any]]): The warning information. Defaults to None.
+        warning (Optional[list[Any]]): The warning information. Defaults to None.
         wng_last_upd_time (datetime): The timestamp of the last warning update.
 
     """
 
-    quantity_of_eng_oil_icon: Optional[List[Any]] = Field(
-        alias="quantityOfEngOilIcon"
-    )  # TODO unsure what this returns
+    quantity_of_eng_oil_icon: Optional[list[Any]] = Field(alias="quantityOfEngOilIcon")
     vin: Optional[str]
-    warning: Optional[List[Any]]  # TODO unsure what this returns
+    warning: Optional[list[Any]]
     wng_last_upd_time: Optional[datetime] = Field(alias="wnglastUpdTime")
 
 
