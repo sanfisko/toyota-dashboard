@@ -3,7 +3,7 @@
 # ruff: noqa : FA100, UP007
 
 from datetime import date
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Optional, Union
 from uuid import UUID
 
 from pydantic import Field
@@ -13,17 +13,15 @@ from pytoyoda.utils.models import CustomEndpointBaseModel
 
 
 class _TranslationModel(CustomEndpointBaseModel):
-    english: Optional[Any]  # TODO unsure what this returns
-    french: Optional[Any]  # TODO unsure what this returns
-    spanish: Optional[Any]  # TODO unsure what this returns
+    english: Optional[Any]
+    french: Optional[Any]
+    spanish: Optional[Any]
 
 
 class _CapabilitiesModel(CustomEndpointBaseModel):
     description: Optional[str]
     display: Optional[bool]
-    display_name: Optional[Any] = Field(
-        alias="displayName"
-    )  # TODO unsure what this returns
+    display_name: Optional[Any] = Field(alias="displayName")
     name: Optional[str]
     translation: Optional[_TranslationModel]
 
@@ -152,7 +150,7 @@ class _ExtendedCapabilitiesModel(CustomEndpointBaseModel):
 
 
 class _LinksModel(CustomEndpointBaseModel):
-    body: Optional[str]  # TODO unsure what this returns
+    body: Optional[str]
     button_text: Optional[str] = Field(alias="buttonText")
     image_url: Optional[str] = Field(alias="imageUrl", default=None)
     link: Optional[str]
@@ -174,37 +172,27 @@ class _DcmModel(CustomEndpointBaseModel):  # Data connection model
 
 
 class _HeadUnitModel(CustomEndpointBaseModel):
-    description: Optional[Any] = Field(
-        alias="huDescription"
-    )  # TODO unsure what this returns
-    generation: Optional[Any] = Field(
-        alias="huGeneration"
-    )  # TODO unsure what this returns
-    version: Optional[Any] = Field(alias="huVersion")  # TODO unsure what this returns
-    mobile_platform_code: Optional[Any] = Field(
-        alias="mobilePlatformCode"
-    )  # TODO unsure what this returns
-    multimedia_type: Optional[Any] = Field(
-        alias="multimediaType"
-    )  # TODO unsure what this returns
+    description: Optional[Any] = Field(alias="huDescription")
+    generation: Optional[Any] = Field(alias="huGeneration")
+    version: Optional[Any] = Field(alias="huVersion")
+    mobile_platform_code: Optional[Any] = Field(alias="mobilePlatformCode")
+    multimedia_type: Optional[Any] = Field(alias="multimediaType")
 
 
 class _SubscriptionsModel(CustomEndpointBaseModel):
     auto_renew: Optional[bool] = Field(alias="autoRenew")
     category: Optional[str]
-    components: Optional[Any]  # TODO unsure what this returns
-    consolidated_goodwill_ids: Optional[List[Any]] = Field(
+    components: Optional[Any]
+    consolidated_goodwill_ids: Optional[list[Any]] = Field(
         alias="consolidatedGoodwillIds"
-    )  # TODO unsure what this returns
-    consolidated_product_ids: Optional[List[Any]] = Field(
+    )
+    consolidated_product_ids: Optional[list[Any]] = Field(
         alias="consolidatedProductIds"
-    )  # TODO unsure what this returns
+    )
     display_procuct_name: Optional[str] = Field(alias="displayProductName")
     display_term: Optional[str] = Field(alias="displayTerm")
     future_cancel: Optional[bool] = Field(alias="futureCancel")
-    good_will_issued_for: Optional[Any] = Field(
-        alias="goodwillIssuedFor"
-    )  # TODO unsure what this returns
+    good_will_issued_for: Optional[Any] = Field(alias="goodwillIssuedFor")
     product_code: Optional[str] = Field(alias="productCode")
     product_description: Optional[str] = Field(alias="productDescription")
     product_line: Optional[str] = Field(alias="productLine")
@@ -216,13 +204,13 @@ class _SubscriptionsModel(CustomEndpointBaseModel):
     subscription_id: Optional[str] = Field(alias="subscriptionID")
     subscription_next_billing_date: Optional[Any] = Field(
         alias="subscriptionNextBillingDate",
-    )  # TODO unsure what this returns
+    )
     subscription_remaining_days: Optional[int] = Field(
         alias="subscriptionRemainingDays"
     )
     subscription_remaining_term: Optional[Any] = Field(
         alias="subscriptionRemainingTerm",
-    )  # TODO unsure what this returns
+    )
     subscription_start_date: Optional[date] = Field(alias="subscriptionStartDate")
     subscription_term: Optional[str] = Field(alias="subscriptionTerm")
     term: Optional[int]
@@ -343,10 +331,10 @@ class VehicleGuidModel(CustomEndpointBaseModel):
     """Model representing a vehicle with its associated information.
 
     Attributes:
-        alerts (List[Any]): The alerts associated with the vehicle.
+        alerts (list[Any]): The alerts associated with the vehicle.
         asiCode (str): The ASI code of the vehicle.
         brand (str): The brand of the vehicle.
-        capabilities (List[_CapabilitiesModel]): The capabilities of the vehicle.
+        capabilities (list[_CapabilitiesModel]): The capabilities of the vehicle.
         car_line_name (str): The name of the car line.
         color (str): The color of the vehicle.
         commercial_rental (bool): Indicates if the vehicle is used for
@@ -361,7 +349,7 @@ class VehicleGuidModel(CustomEndpointBaseModel):
         dcms (Optional[Any]): The DCMS (Data Communication Module Status) information
             of the vehicle.
         display_model_description (str): The description of the displayed model.
-        display_subscriptions (List[Dict[str, str]]): The displayed subscriptions
+        display_subscriptions (list[dict[str, str]]): The displayed subscriptions
             of the vehicle.
         electrical_platform_code (str): The electrical platform code of the vehicle.
         emergency_contact (Optional[Any]): The emergency contact information
@@ -402,7 +390,7 @@ class VehicleGuidModel(CustomEndpointBaseModel):
         remote_display (Optional[Any]): The remote display information of the vehicle.
         remote_service_capabilities (_RemoteServiceCapabilitiesModel): The remote
             service capabilities of the vehicle.
-        remote_service_exceptions (List[Any]): The remote service exception
+        remote_service_exceptions (list[Any]): The remote service exception
             of the vehicle.
         remote_subscription_exists (bool): Indicates if a remote subscription
             exists for the vehicle.
@@ -412,7 +400,7 @@ class VehicleGuidModel(CustomEndpointBaseModel):
             (Globally Unique Identifier) of the vehicle.
         service_connect_status (Optional[Any]): The service connect status
             of the vehicle.
-        services (List[Any]): The services associated with the vehicle.
+        services (list[Any]): The services associated with the vehicle.
         shop_genuine_parts_url (str): The URL for shopping genuine
             parts for the vehicle.
         status (str): The status of the vehicle.
@@ -421,22 +409,22 @@ class VehicleGuidModel(CustomEndpointBaseModel):
         subscription_expiration_status (bool): Indicates if the subscription
             is expired for the vehicle.
         subscription_status (str): The subscription status of the vehicle.
-        subscriptions (List[_SubscriptionsModel]): The subscriptions associated
+        subscriptions (list[_SubscriptionsModel]): The subscriptions associated
             with the vehicle.
         suffix_code (Optional[Any]): The suffix code of the vehicle.
         svl_satus (bool): Indicates the SVL (Smart Vehicle Link) status of the vehicle.
         tff_links (_LinksModel): The TFF (Toyota Friend Finder) links of the vehicle.
         transmission_type (str): The transmission type of the vehicle.
-        vehicle_capabilities (List[Any]): The capabilities of the vehicle.
+        vehicle_capabilities (list[Any]): The capabilities of the vehicle.
         vehicle_data_consents (Optional[Any]): The vehicle data consents of the vehicle.
         vin (str): The VIN (Vehicle Identification Number) of the vehicle.
 
     """
 
-    alerts: Optional[List[Any]]  # TODO unsure what this returns
+    alerts: Optional[list[Any]]
     asi_code: Optional[str] = Field(alias="asiCode")
     brand: Optional[str]
-    capabilities: Optional[List[_CapabilitiesModel]]
+    capabilities: Optional[list[_CapabilitiesModel]]
     car_line_name: Optional[str] = Field(alias="carlineName")
     color: Optional[str]
     commercial_rental: Optional[bool] = Field(alias="commercialRental")
@@ -446,17 +434,15 @@ class VehicleGuidModel(CustomEndpointBaseModel):
     date_of_first_use: Optional[date] = Field(alias="dateOfFirstUse")
     dcm: Optional[_DcmModel] = None
     dcm_active: Optional[bool] = Field(alias="dcmActive")
-    dcms: Optional[Any]  # TODO unsure what this returns
+    dcms: Optional[Any]
     display_model_description: Optional[str] = Field(alias="displayModelDescription")
-    display_subscriptions: Optional[List[Dict[str, str]]] = Field(
+    display_subscriptions: Optional[list[dict[str, str]]] = Field(
         alias="displaySubscriptions"
     )
     electrical_platform_code: Optional[str] = Field(
         alias="electricalPlatformCode", default=None
     )
-    emergency_contact: Optional[Any] = Field(
-        alias="emergencyContact"
-    )  # TODO unsure what this returns
+    emergency_contact: Optional[Any] = Field(alias="emergencyContact")
     ev_vehicle: Optional[bool] = Field(alias="evVehicle")
     extended_capabilities: Optional[_ExtendedCapabilitiesModel] = Field(
         alias="extendedCapabilities"
@@ -465,11 +451,11 @@ class VehicleGuidModel(CustomEndpointBaseModel):
     family_sharing: Optional[bool] = Field(alias="familySharing")
     faq_url: Optional[str] = Field(alias="faqUrl")
     features: Optional[_FeaturesModel]
-    fleet_ind: Optional[Any] = Field(alias="fleetInd")  # TODO unsure what this returns
+    fleet_ind: Optional[Any] = Field(alias="fleetInd")
     fuel_type: Optional[str] = Field(alias="fuelType", default=None)
     generation: Optional[str]
     head_unit: Optional[_HeadUnitModel] = Field(alias="headUnit")
-    hw_type: Optional[Any] = Field(alias="hwType")  # TODO unsure what this returns
+    hw_type: Optional[Any] = Field(alias="hwType")
     image: Optional[str]
     imei: Optional[str]
     katashiki_code: Optional[str] = Field(alias="katashikiCode")
@@ -481,34 +467,28 @@ class VehicleGuidModel(CustomEndpointBaseModel):
     car_model_year: Optional[str] = Field(alias="modelYear")
     nickname: Optional[str] = Field(alias="nickName", default=None)
     non_cvt_vehicle: Optional[bool] = Field(alias="nonCvtVehicle")
-    old_imei: Optional[Any] = Field(alias="oldImei")  # TODO unsure what this returns
+    old_imei: Optional[Any] = Field(alias="oldImei")
     owner: Optional[bool]
-    personalized_settings: Optional[_LinksModel] = Field(
-        alias="personalizedSettings"
-    )  # TODO unsure what this returns
+    personalized_settings: Optional[_LinksModel] = Field(alias="personalizedSettings")
     preferred: Optional[bool] = None
     primary_subscriber: Optional[bool] = Field(alias="primarySubscriber")
     region: Optional[str]
     registration_number: Optional[str] = Field(alias="registrationNumber")
-    remote_display: Optional[Any] = Field(
-        alias="remoteDisplay"
-    )  # TODO unsure what this returns
+    remote_display: Optional[Any] = Field(alias="remoteDisplay")
     remote_service_capabilities: Optional[_RemoteServiceCapabilitiesModel] = Field(
         alias="remoteServiceCapabilities"
     )
-    remote_service_exceptions: Optional[List[Any]] = Field(
+    remote_service_exceptions: Optional[list[Any]] = Field(
         alias="remoteServicesExceptions"
-    )  # TODO unsure what this returns
+    )
     remote_subscription_exists: Optional[bool] = Field(alias="remoteSubscriptionExists")
     remote_subscription_status: Optional[str] = Field(alias="remoteSubscriptionStatus")
     remote_user: Optional[bool] = Field(alias="remoteUser")
     remote_user_guid: Optional[Union[UUID, str]] = Field(
         alias="remoteUserGuid", default=None
     )
-    service_connect_status: Optional[Any] = Field(
-        alias="serviceConnectStatus"
-    )  # TODO unsure what this returns
-    services: Optional[List[Any]]  # TODO unsure what this returns
+    service_connect_status: Optional[Any] = Field(alias="serviceConnectStatus")
+    services: Optional[list[Any]]
     shop_genuine_parts_url: Optional[str] = Field(alias="shopGenuinePartsUrl")
     status: Optional[str]
     stock_pic_reference: Optional[str] = Field(alias="stockPicReference")
@@ -517,12 +497,12 @@ class VehicleGuidModel(CustomEndpointBaseModel):
         alias="subscriptionExpirationStatus"
     )
     subscription_status: Optional[str] = Field(alias="subscriptionStatus")
-    subscriptions: Optional[List[_SubscriptionsModel]]
+    subscriptions: Optional[list[_SubscriptionsModel]]
     suffix_code: Optional[Any] = Field(alias="suffixCode")
     svl_satus: Optional[bool] = Field(alias="svlStatus")
     tff_links: Optional[_LinksModel] = Field(alias="tffLinks")
     transmission_type: Optional[str] = Field(alias="transmissionType")
-    vehicle_capabilities: Optional[List[Any]] = Field(alias="vehicleCapabilities")
+    vehicle_capabilities: Optional[list[Any]] = Field(alias="vehicleCapabilities")
     vehicle_data_consents: Optional[Any] = Field(alias="vehicleDataConsents")
     vin: Optional[str]
 
@@ -533,9 +513,9 @@ class VehiclesResponseModel(StatusModel):
     Inherits from StatusModel.
 
     Attributes:
-        payload (Optional[List[VehicleGuidModel]], optional): The vehicles payload.
+        payload (Optional[list[VehicleGuidModel]], optional): The vehicles payload.
             Defaults to None.
 
     """
 
-    payload: Optional[List[VehicleGuidModel]] = None
+    payload: Optional[list[VehicleGuidModel]] = None
