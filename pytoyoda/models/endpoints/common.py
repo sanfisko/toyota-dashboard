@@ -2,7 +2,7 @@
 
 # ruff: noqa : FA100, UP007
 
-from typing import Any, List, Optional, Union
+from typing import Any, Optional, Union
 
 from pydantic import Field
 
@@ -49,7 +49,7 @@ class _MessagesModel(CustomEndpointBaseModel):
 
     """
 
-    messages: Optional[List[_MessageModel]] = None
+    messages: Optional[list[_MessageModel]] = None
 
 
 class StatusModel(CustomEndpointBaseModel):
@@ -66,5 +66,5 @@ class StatusModel(CustomEndpointBaseModel):
 
     status: Optional[Union[str, _MessagesModel]] = None
     code: Optional[int] = None
-    errors: Optional[List[Any]] = None
+    errors: Optional[list[Any]] = None
     message: Optional[str] = None
