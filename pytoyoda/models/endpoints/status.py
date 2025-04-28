@@ -3,7 +3,7 @@
 # ruff: noqa : FA100, UP007
 
 from datetime import datetime
-from typing import List, Optional
+from typing import Optional
 
 from pydantic import Field
 
@@ -21,13 +21,13 @@ class SectionModel(CustomEndpointBaseModel):
 
     Attributes:
         section (str): The section of a vehicle status category.
-        values (List[_ValueStatusModel]): A list of values corresponding
+        values (list[_ValueStatusModel]): A list of values corresponding
             status informations.
 
     """
 
     section: Optional[str]
-    values: Optional[List[_ValueStatusModel]]
+    values: Optional[list[_ValueStatusModel]]
 
 
 class VehicleStatusModel(CustomEndpointBaseModel):
@@ -37,13 +37,13 @@ class VehicleStatusModel(CustomEndpointBaseModel):
         category (str): The status category of the vehicle.
         display_order (int): The order in which the status category is displayed
             inside the MyToyota App.
-        sections (List[SectionModel]): The different sections belonging to the category.
+        sections (list[SectionModel]): The different sections belonging to the category.
 
     """
 
     category: Optional[str]
     display_order: Optional[int] = Field(alias="displayOrder")
-    sections: Optional[List[SectionModel]]
+    sections: Optional[list[SectionModel]]
 
 
 class _TelemetryModel(CustomEndpointBaseModel):
@@ -56,7 +56,7 @@ class RemoteStatusModel(CustomEndpointBaseModel):
     """Model representing the remote status of a vehicle.
 
     Attributes:
-        vehicle_status (List[_VehicleStatusModel]): The status of the vehicle.
+        vehicle_status (list[_VehicleStatusModel]): The status of the vehicle.
         telemetry (_TelemetryModel): The telemetry data of the vehicle.
         occurrence_date (datetime): The date of the occurrence.
         caution_overall_count (int): The overall count of cautions.
@@ -66,7 +66,7 @@ class RemoteStatusModel(CustomEndpointBaseModel):
 
     """
 
-    vehicle_status: Optional[List[VehicleStatusModel]] = Field(alias="vehicleStatus")
+    vehicle_status: Optional[list[VehicleStatusModel]] = Field(alias="vehicleStatus")
     telemetry: Optional[_TelemetryModel]
     occurrence_date: Optional[datetime] = Field(alias="occurrenceDate")
     caution_overall_count: Optional[int] = Field(alias="cautionOverallCount")

@@ -3,7 +3,7 @@
 # ruff: noqa : FA100, UP007
 
 from datetime import datetime
-from typing import List, Optional, Union
+from typing import Optional, Union
 from uuid import UUID
 
 from pydantic import Field
@@ -62,12 +62,12 @@ class _PayloadItemModel(CustomEndpointBaseModel):
     Attributes:
         vin (str): The VIN (Vehicle Identification Number) associated with the
             notifications.
-        notifications (List[NotificationModel]): List of notifications for the vehicle.
+        notifications (list[NotificationModel]): List of notifications for the vehicle.
 
     """
 
     vin: Optional[str] = None
-    notifications: Optional[List[NotificationModel]] = None
+    notifications: Optional[list[NotificationModel]] = None
 
 
 class NotificationResponseModel(CustomEndpointBaseModel):
@@ -78,7 +78,7 @@ class NotificationResponseModel(CustomEndpointBaseModel):
         status_code (int): The status code of the response.
         headers (HeadersModel): The headers of the response.
         body (str): The body of the response.
-        payload (List[PayloadItemModel]): The payload of the response.
+        payload (list[PayloadItemModel]): The payload of the response.
 
     """
 
@@ -86,4 +86,4 @@ class NotificationResponseModel(CustomEndpointBaseModel):
     status_code: Optional[int] = Field(alias="statusCode", default=None)
     headers: Optional[_HeadersModel] = None
     body: Optional[str] = None
-    payload: Optional[List[_PayloadItemModel]] = None
+    payload: Optional[list[_PayloadItemModel]] = None
