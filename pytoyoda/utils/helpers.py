@@ -1,13 +1,12 @@
 """Helper functions for numeric operations with None handling."""
 
+from __future__ import annotations
+
 import hashlib
 import hmac
-from typing import Optional, Union
 
 
-def add_with_none(
-    this: Optional[Union[int, float]], that: Optional[Union[int, float]]
-) -> Optional[Union[int, float]]:
+def add_with_none(this: float | None, that: float | None) -> int | float | None:
     """Add two items safely, handling None values.
 
     If either value is None, returns the other value.
@@ -35,10 +34,7 @@ def add_with_none(
     """
     if this is None:
         return that
-    if that is None:
-        return this
-
-    return this + that
+    return this if that is None else this + that
 
 
 def generate_hmac_sha256(key: str, message: str) -> str:
