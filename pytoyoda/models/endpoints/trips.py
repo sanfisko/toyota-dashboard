@@ -1,5 +1,7 @@
 """Toyota Connected Services API - Trips Models."""
 
+# ruff: noqa : FA100
+
 from __future__ import annotations
 
 from datetime import date, datetime

@@ -1,5 +1,7 @@
 """Vehicle model."""
 
+# ruff: noqa : FA100
+
 import asyncio
 import copy
 import json

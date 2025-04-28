@@ -1,5 +1,7 @@
 """Models for vehicle electric status."""
 
+# ruff: noqa : FA100
+
 from datetime import date
 from typing import Optional, Type, TypeVar, Union
 

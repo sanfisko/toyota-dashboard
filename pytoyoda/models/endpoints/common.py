@@ -1,5 +1,7 @@
 """Toyota Connected Services API - Common Endpoint Models."""
 
+# ruff: noqa : FA100
+
 from typing import Any, List, Optional, Union
 
 from pydantic import Field

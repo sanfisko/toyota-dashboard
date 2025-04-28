@@ -1,5 +1,7 @@
 """Toyota Connected Services API - Vehicle Models."""
 
+# ruff: noqa : FA100
+
 from datetime import date
 from typing import Any, Dict, List, Optional, Union
 from uuid import UUID

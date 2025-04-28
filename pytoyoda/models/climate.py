@@ -1,5 +1,7 @@
 """Climate Settings Models."""
 
+# ruff: noqa : FA100
+
 from datetime import datetime, timedelta
 from typing import List, Optional
 

@@ -91,10 +91,10 @@ def test_convert_to_liter_per_100_miles(liters, expected):  # noqa: D103
 @pytest.mark.parametrize(
     "liters_per_100_km, expected_mpg",
     [
-        pytest.param(1, 282.5000, id="1liter_to_mpg"),
+        pytest.param(1, 235.215, id="1liter_to_mpg"),
         pytest.param(0, 0.0, id="0liter_to_mpg"),
-        pytest.param(10, 28.2500, id="10liters_to_mpg"),
-        pytest.param(5.5, 51.3636, id="5.5liters_to_mpg"),
+        pytest.param(10, 23.5215, id="10liters_to_mpg"),
+        pytest.param(5.5, 42.7664, id="5.5liters_to_mpg"),
         pytest.param(-1, 0.0, id="negative_liter_to_mpg"),
     ],
 )

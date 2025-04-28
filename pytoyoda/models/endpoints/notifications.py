@@ -1,5 +1,7 @@
 """Toyota Connected Services API - Notification Models."""
 
+# ruff: noqa : FA100
+
 from datetime import datetime
 from typing import List, Optional, Union
 from uuid import UUID
