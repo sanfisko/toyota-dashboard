@@ -14,7 +14,7 @@ from pytoyoda.utils.models import CustomAPIBaseModel
 class Notification(CustomAPIBaseModel[NotificationModel]):
     """Notification."""
 
-    def __init__(self, notification: NotificationModel, **kwargs):
+    def __init__(self, notification: NotificationModel, **kwargs: dict) -> None:
         """Initialize Notification model.
 
         Args:
