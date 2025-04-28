@@ -1,10 +1,13 @@
 """Utilities for manipulating returns for log output tasks."""
 
+from __future__ import annotations
+
 import json
 from enum import Enum, auto
-from typing import Any, Dict, Optional, Set
+from typing import TYPE_CHECKING, Any
 
-from httpx import Response
+if TYPE_CHECKING:
+    from httpx import Response
 
 
 class SensitiveDataType(Enum):
@@ -53,7 +56,7 @@ DEFAULT_SENSITIVE_KEYS = {
 }
 
 
-def censor_string(string: Optional[str]) -> Optional[str]:
+def censor_string(string: str | None) -> str | None:
     """Censor a string by replacing all characters except the first two with asterisks.
 
     Args:
@@ -73,8 +76,8 @@ def censor_string(string: Optional[str]) -> Optional[str]:
 
 
 def get_sensitive_data_type(
-    value: Any, key: str, to_censor: Set[str]
-) -> Optional[SensitiveDataType]:
+    value: str | float | dict | list | None, key: str, to_censor: set[str]
+) -> SensitiveDataType | None:
     """Determine the type of sensitive data handling needed.
 
     Args:
@@ -97,7 +100,9 @@ def get_sensitive_data_type(
     return None
 
 
-def censor_value(value: Any, key: str, to_censor: Set[str]) -> Any:
+def censor_value(
+    value: str | float | dict | list | None, key: str, to_censor: set[str]
+) -> str | float | dict | list | None:
     """Censor sensitive values in a given data structure.
 
     Args:
@@ -128,8 +133,8 @@ def censor_value(value: Any, key: str, to_censor: Set[str]) -> Any:
 
 
 def censor_all(
-    dictionary: Dict[str, Any], to_censor: Optional[Set[str]] = None
-) -> Dict[str, Any]:
+    dictionary: dict[str, Any], to_censor: set[str] | None = None
+) -> dict[str, Any]:
     """Censor sensitive values in a dictionary.
 
     Args:
