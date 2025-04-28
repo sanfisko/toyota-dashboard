@@ -1,5 +1,7 @@
 """Toyota Connected Services API - Remote Commands Models."""
 
+# ruff: noqa : FA100, UP007
+
 from enum import Enum
 from typing import Optional
 

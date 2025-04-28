@@ -1,13 +1,14 @@
 """Utilities for validating locale strings."""
 
+from __future__ import annotations
+
 import contextlib
-from typing import Optional
 
 from langcodes import Language
 from langcodes.tag_parser import LanguageTagError
 
 
-def is_valid_locale(locale: Optional[str]) -> bool:
+def is_valid_locale(locale: str | None) -> bool:
     """Check if the provided locale string is valid according to language standards.
 
     Args:

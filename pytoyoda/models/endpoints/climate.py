@@ -1,7 +1,9 @@
 """Toyota Connected Services API - Climate Models."""
 
+# ruff: noqa : FA100, UP007
+
 from datetime import datetime
-from typing import List, Optional
+from typing import Optional
 
 from pydantic import Field
 
@@ -44,7 +46,7 @@ class ACOperations(CustomEndpointBaseModel):
         alias="categoryDisplayName", default=None
     )
     category_name: str = Field(alias="categoryName")
-    ac_parameters: List[ACParameters] = Field(
+    ac_parameters: list[ACParameters] = Field(
         alias="acParameters", default_factory=list
     )
 
@@ -63,7 +65,7 @@ class ClimateSettingsModel(CustomEndpointBaseModel):
 
     """
 
-    ac_operations: Optional[List[ACOperations]] = Field(
+    ac_operations: Optional[list[ACOperations]] = Field(
         alias="acOperations", default=None
     )
     max_temp: Optional[float] = Field(alias="maxTemp", default=None)

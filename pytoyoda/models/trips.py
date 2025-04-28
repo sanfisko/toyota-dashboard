@@ -1,19 +1,20 @@
 """Model for Trip Summaries."""
 
+# ruff: noqa : FA100, UP007
+
 from datetime import datetime, timedelta
-from typing import List, Optional, Type, TypeVar, Union
+from typing import Optional, TypeVar, Union
 
 from pydantic import BaseModel, computed_field
 
 from pytoyoda.const import (
     KILOMETERS_UNIT,
     MILES_UNIT,
-    ML_GAL_FACTOR,
-    ML_L_FACTOR,
-    MPG_FACTOR,
+    ML_TO_GAL_FACTOR,
+    ML_TO_L_FACTOR,
 )
 from pytoyoda.models.endpoints.trips import _TripModel
-from pytoyoda.utils.conversions import convert_distance
+from pytoyoda.utils.conversions import convert_distance, convert_to_mpg
 from pytoyoda.utils.models import CustomAPIBaseModel
 
 T = TypeVar(
@@ -36,15 +37,15 @@ class TripLocations(BaseModel):
     end: Optional[TripPositions]
 
 
-class Trip(CustomAPIBaseModel[Type[T]]):
+class Trip(CustomAPIBaseModel[type[T]]):
     """Base class of Daily, Weekly, Monthly, Yearly summary."""
 
     def __init__(
         self,
         trip: _TripModel,
-        metric: bool,
-        **kwargs,
-    ):
+        metric: bool,  # noqa : FBT001
+        **kwargs: dict,
+    ) -> None:
         """Initialise Class.
 
         Args:
@@ -79,8 +80,7 @@ class Trip(CustomAPIBaseModel[Type[T]]):
                     lat=self._trip.summary.end_lat, lon=self._trip.summary.end_lon
                 ),
             )
-        else:
-            return None
+        return None
 
     @computed_field  # type: ignore[prop-decorator]
     @property
@@ -132,8 +132,7 @@ class Trip(CustomAPIBaseModel[Type[T]]):
             return convert_distance(
                 self._distance_unit, KILOMETERS_UNIT, self._trip.summary.length / 1000.0
             )
-        else:
-            return None
+        return None
 
     @computed_field  # type: ignore[prop-decorator]
     @property
@@ -181,9 +180,9 @@ class Trip(CustomAPIBaseModel[Type[T]]):
         """
         if self._trip.summary and self._trip.summary.fuel_consumption:
             return (
-                round(self._trip.summary.fuel_consumption / ML_L_FACTOR, 3)
-                if self._distance_unit
-                else round(self._trip.summary.fuel_consumption / ML_GAL_FACTOR, 3)
+                round(self._trip.summary.fuel_consumption / ML_TO_L_FACTOR, 3)
+                if self._distance_unit == KILOMETERS_UNIT
+                else round(self._trip.summary.fuel_consumption / ML_TO_GAL_FACTOR, 3)
             )
 
         return 0.0
@@ -207,8 +206,8 @@ class Trip(CustomAPIBaseModel[Type[T]]):
             ) * 100
             return (
                 round(avg_fuel_consumed, 3)
-                if self._distance_unit
-                else round(MPG_FACTOR / avg_fuel_consumed, 3)
+                if self._distance_unit == KILOMETERS_UNIT
+                else convert_to_mpg(avg_fuel_consumed)
             )
 
         return 0.0
@@ -229,11 +228,11 @@ class Trip(CustomAPIBaseModel[Type[T]]):
 
     @computed_field  # type: ignore[prop-decorator]
     @property
-    def route(self) -> Optional[List[TripPositions]]:
+    def route(self) -> Optional[list[TripPositions]]:
         """The route taken.
 
         Returns:
-            Optional[List[Tuple[float, float]]]: List of Lat, Lon of the route taken.
+            Optional[list[Tuple[float, float]]]: List of Lat, Lon of the route taken.
                 None if no route provided.
 
         """

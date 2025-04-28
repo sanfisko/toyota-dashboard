@@ -1,7 +1,9 @@
 """Climate Settings Models."""
 
+# ruff: noqa : FA100, UP007
+
 from datetime import datetime, timedelta
-from typing import List, Optional
+from typing import Optional
 
 from pydantic import computed_field
 
@@ -19,7 +21,7 @@ from pytoyoda.utils.models import CustomAPIBaseModel, Temperature
 class ClimateOptionStatus(CustomAPIBaseModel[ClimateOptions]):
     """Climate option status."""
 
-    def __init__(self, options: ClimateOptions, **kwargs):
+    def __init__(self, options: ClimateOptions, **kwargs: dict) -> None:
         """Initialize climate option status.
 
         Args:
@@ -55,7 +57,7 @@ class ClimateOptionStatus(CustomAPIBaseModel[ClimateOptions]):
 class ClimateStatus(CustomAPIBaseModel[ClimateStatusModel]):
     """Climate status."""
 
-    def __init__(self, climate_status: ClimateStatusModel, **kwargs):
+    def __init__(self, climate_status: ClimateStatusModel, **kwargs: dict) -> None:
         """Initialize climate status.
 
         Args:
@@ -165,7 +167,7 @@ class ClimateStatus(CustomAPIBaseModel[ClimateStatusModel]):
 class ClimateSettingsParameter(CustomAPIBaseModel[ACParameters]):
     """Climate settings parameter."""
 
-    def __init__(self, parameter: ACParameters, **kwargs):
+    def __init__(self, parameter: ACParameters, **kwargs: dict) -> None:
         """Initialize climate settings parameter.
 
         Args:
@@ -234,7 +236,7 @@ class ClimateSettingsParameter(CustomAPIBaseModel[ACParameters]):
 class ClimateSettingsOperation(CustomAPIBaseModel[ACOperations]):
     """Climate settings operation."""
 
-    def __init__(self, operations: ACOperations, **kwargs):
+    def __init__(self, operations: ACOperations, **kwargs: dict) -> None:
         """Initialize climate settings operation.
 
         Args:
@@ -279,11 +281,11 @@ class ClimateSettingsOperation(CustomAPIBaseModel[ACOperations]):
 
     @computed_field  # type: ignore[prop-decorator]
     @property
-    def parameters(self) -> Optional[List[ClimateSettingsParameter]]:
+    def parameters(self) -> Optional[list[ClimateSettingsParameter]]:
         """The operation parameter.
 
         Returns:
-            List[ClimateSettingsParameter]: The operation parameter
+            list[ClimateSettingsParameter]: The operation parameter
 
         """
         if self._data.ac_parameters is None:
@@ -295,7 +297,9 @@ class ClimateSettingsOperation(CustomAPIBaseModel[ACOperations]):
 class ClimateSettings(CustomAPIBaseModel[ClimateSettingsResponseModel]):
     """Climate settings."""
 
-    def __init__(self, climate_settings: ClimateSettingsResponseModel, **kwargs):
+    def __init__(
+        self, climate_settings: ClimateSettingsResponseModel, **kwargs: dict
+    ) -> None:
         """Initialize climate settings.
 
         Args:
@@ -371,11 +375,11 @@ class ClimateSettings(CustomAPIBaseModel[ClimateSettingsResponseModel]):
 
     @computed_field  # type: ignore[prop-decorator]
     @property
-    def operations(self) -> Optional[List[ClimateSettingsOperation]]:
+    def operations(self) -> Optional[list[ClimateSettingsOperation]]:
         """The climate operation settings.
 
         Returns:
-            List[ClimateSettingsOperation]: The settings of climate operation
+            list[ClimateSettingsOperation]: The settings of climate operation
 
         """
         if (

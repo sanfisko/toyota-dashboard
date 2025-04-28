@@ -6,7 +6,7 @@ CLIENT_VERSION = "2.14.0"
 # API URLs
 API_BASE_URL = "HTTPS://ctpa-oneapi.tceu-ctp-prd.toyotaconnectedeurope.io"
 ACCESS_TOKEN_URL = (
-    "HTTPS://b2c-login.toyota-europe.com/oauth2/realms/root/realms/tme/access_token"
+    "HTTPS://b2c-login.toyota-europe.com/oauth2/realms/root/realms/tme/access_token"  # noqa : S105
 )
 AUTHENTICATE_URL = "HTTPS://b2c-login.toyota-europe.com/json/realms/root/realms/tme/authenticate?authIndexType=service&authIndexValue=oneapp"
 AUTHORIZE_URL = "HTTPS://b2c-login.toyota-europe.com/oauth2/realms/root/realms/tme/authorize?client_id=oneapp&scope=openid+profile+write&response_type=code&redirect_uri=com.toyota.oneapp:/oauth2Callback&code_challenge=plain&code_challenge_method=plain"
@@ -32,6 +32,8 @@ VEHICLE_COMMAND_ENDPOINT = "/v1/global/remote/command"
 # Units
 KILOMETERS_UNIT = "km"
 MILES_UNIT = "mi"
-MPG_FACTOR = 235.215
-ML_L_FACTOR = 1000.0
-ML_GAL_FACTOR = 3785.0
+L_TO_MPG_FACTOR = 235.215
+ML_TO_L_FACTOR = 1000.0
+ML_TO_GAL_FACTOR = 3785.0
+KM_TO_MILES_FACTOR = 0.621371192
+MILES_TO_KM_FACTOR = 1.60934

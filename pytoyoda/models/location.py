@@ -1,5 +1,7 @@
 """Models for vehicle location."""
 
+# ruff: noqa : FA100, UP007
+
 from datetime import datetime
 from typing import Optional
 
@@ -15,7 +17,7 @@ from pytoyoda.utils.models import CustomAPIBaseModel
 class Location(CustomAPIBaseModel[LocationResponseModel]):
     """Latest Location of car."""
 
-    def __init__(self, location: LocationResponseModel, **kwargs):
+    def __init__(self, location: LocationResponseModel, **kwargs: dict) -> None:
         """Initialize Location model.
 
         Args:

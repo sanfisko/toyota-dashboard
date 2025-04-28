@@ -1,9 +1,9 @@
 """Formatters for instrument data."""
 
-from typing import Any, Dict, List
+from typing import Any
 
 
-def format_odometer(raw: List[Dict[str, Any]]) -> Dict[str, Any]:
+def format_odometer(raw: list[dict[str, Any]]) -> dict[str, Any]:
     """Format odometer information from a list to a dict.
 
     Args:
@@ -24,7 +24,7 @@ def format_odometer(raw: List[Dict[str, Any]]) -> Dict[str, Any]:
         {'distance': 12345, 'distance_unit': 'km', 'speed': 60}
 
     """
-    instruments: Dict[str, Any] = {}
+    instruments: dict[str, Any] = {}
 
     for instrument in raw:
         instrument_type = instrument["type"]

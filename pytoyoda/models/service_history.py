@@ -1,7 +1,9 @@
 """Models for vehicle service history."""
 
+# ruff: noqa : FA100, UP007
+
 from datetime import date
-from typing import Any, Optional, Type, TypeVar, Union
+from typing import Any, Optional, TypeVar, Union
 
 from pydantic import computed_field
 
@@ -16,15 +18,15 @@ T = TypeVar(
 )
 
 
-class ServiceHistory(CustomAPIBaseModel[Type[T]]):
+class ServiceHistory(CustomAPIBaseModel[type[T]]):
     """ServiceHistory."""
 
     def __init__(
         self,
         service_history: Optional[ServiceHistoryModel] = None,
-        metric: bool = True,
-        **kwargs,
-    ):
+        metric: bool = True,  # noqa : FBT001, FBT002
+        **kwargs: dict,
+    ) -> None:
         """Initialise ServiceHistory."""
         data = {
             "service_history": service_history,
@@ -81,12 +83,11 @@ class ServiceHistory(CustomAPIBaseModel[Type[T]]):
                 self._service_history.unit,
                 self._service_history.mileage,
             )
-        else:
-            return None
+        return None
 
     @computed_field  # type: ignore[prop-decorator]
     @property
-    def notes(self) -> Optional[Any]:
+    def notes(self) -> Optional[Any]:  # noqa : ANN401
         """Additional notes about the service.
 
         Returns:
@@ -97,7 +98,7 @@ class ServiceHistory(CustomAPIBaseModel[Type[T]]):
 
     @computed_field  # type: ignore[prop-decorator]
     @property
-    def operations_performed(self) -> Optional[Any]:
+    def operations_performed(self) -> Optional[Any]:  # noqa : ANN401
         """The operations performed during the service.
 
         Returns:
@@ -112,7 +113,7 @@ class ServiceHistory(CustomAPIBaseModel[Type[T]]):
 
     @computed_field  # type: ignore[prop-decorator]
     @property
-    def ro_number(self) -> Optional[Any]:
+    def ro_number(self) -> Optional[Any]:  # noqa : ANN401
         """The RO (Repair Order) number associated with the service.
 
         Returns:
@@ -145,7 +146,7 @@ class ServiceHistory(CustomAPIBaseModel[Type[T]]):
 
     @computed_field  # type: ignore[prop-decorator]
     @property
-    def servicing_dealer(self) -> Optional[Any]:
+    def servicing_dealer(self) -> Optional[Any]:  # noqa : ANN401
         """Dealer that performed the service.
 
         Returns:

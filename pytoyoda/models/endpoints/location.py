@@ -1,5 +1,7 @@
 """Toyota Connected Services API - Location Models."""
 
+# ruff: noqa : FA100, UP007
+
 from datetime import datetime
 from typing import Optional
 

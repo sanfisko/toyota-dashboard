@@ -1,10 +1,12 @@
 """Toyota Connected Services Controller."""
 
+from __future__ import annotations
+
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from http import HTTPStatus
-from typing import Any, ClassVar, Dict, Optional
+from typing import TYPE_CHECKING, Any, ClassVar
 from urllib import parse
 from uuid import uuid4
 
@@ -29,6 +31,9 @@ from pytoyoda.exceptions import (
 from pytoyoda.utils.helpers import generate_hmac_sha256
 from pytoyoda.utils.log_utils import format_httpx_response
 
+if TYPE_CHECKING:
+    from collections.abc import AsyncGenerator
+
 
 @dataclass
 class TokenInfo:
@@ -44,7 +49,7 @@ class Controller:
     """Controller class for Toyota Connected Services."""
 
     # Class variable for token cache
-    _TOKEN_CACHE: ClassVar[Dict[str, TokenInfo]] = {}
+    _TOKEN_CACHE: ClassVar[dict[str, TokenInfo]] = {}
 
     def __init__(self, username: str, password: str, timeout: int = 60) -> None:
         """Initialize Controller class.
@@ -66,29 +71,29 @@ class Controller:
         self._authorize_url = httpx.URL(AUTHORIZE_URL)
 
         # Authentication state
-        self._token_info: Optional[TokenInfo] = None
+        self._token_info: TokenInfo | None = None
 
         # Load from cache if available
         if self._username in self._TOKEN_CACHE:
             self._token_info = self._TOKEN_CACHE[self._username]
 
     @property
-    def _token(self) -> Optional[str]:
+    def _token(self) -> str | None:
         """Get the current access token."""
         return self._token_info.access_token if self._token_info else None
 
     @property
-    def _refresh_token(self) -> Optional[str]:
+    def _refresh_token(self) -> str | None:
         """Get the current refresh token."""
         return self._token_info.refresh_token if self._token_info else None
 
     @property
-    def _uuid(self) -> Optional[str]:
+    def _uuid(self) -> str | None:
         """Get the current UUID."""
         return self._token_info.uuid if self._token_info else None
 
     @property
-    def _token_expiration(self) -> Optional[datetime]:
+    def _token_expiration(self) -> datetime | None:
         """Get the token expiration datetime."""
         return self._token_info.expiration if self._token_info else None
 
@@ -96,7 +101,7 @@ class Controller:
         """Check if the current token is valid and not expired."""
         if not self._token_info:
             return False
-        return self._token_info.expiration > datetime.now()
+        return self._token_info.expiration > datetime.now(timezone.utc)
 
     async def login(self) -> None:
         """Perform initial login if necessary."""
@@ -114,16 +119,17 @@ class Controller:
             if self._refresh_token:
                 try:
                     await self._refresh_tokens()
-                    return
                 except ToyotaLoginError:
                     logger.debug(
                         "Token refresh failed, falling back to full authentication"
                     )
+                else:
+                    return
 
             await self._authenticate()
 
     @asynccontextmanager
-    async def _get_http_client(self):
+    async def _get_http_client(self) -> AsyncGenerator:
         """Context manager for HTTP client with consistent timeout."""
         async with hishel.AsyncCacheClient(timeout=self._timeout) as client:
             yield client
@@ -145,9 +151,11 @@ class Controller:
             # Update tokens
             self._update_tokens(token_data)
 
-    async def _perform_authentication(self, client) -> Dict[str, Any]:
+    async def _perform_authentication(
+        self, client: hishel.AsyncCacheClient
+    ) -> dict[str, Any]:
         """Perform the authentication part of the login flow."""
-        data: Dict[str, Any] = {}
+        data: dict[str, Any] = {}
 
         for _ in range(10):  # Try up to 10 times
             if "callbacks" in data:
@@ -163,17 +171,15 @@ class Controller:
                         cb["type"] == "TextOutputCallback"
                         and cb["output"][0]["value"] == "User Not Found"
                     ):
-                        raise ToyotaInvalidUsernameError(
-                            "Authentication Failed. User Not Found."
-                        )
+                        msg = "Authentication Failed. User Not Found."
+                        raise ToyotaInvalidUsernameError(msg)
 
             resp = await client.post(self._authenticate_url, json=data)
             logger.debug(format_httpx_response(resp))
 
             if resp.status_code != HTTPStatus.OK:
-                raise ToyotaLoginError(
-                    f"Authentication Failed. {resp.status_code}, {resp.text}."
-                )
+                msg = f"Authentication Failed. {resp.status_code}, {resp.text}."
+                raise ToyotaLoginError(msg)
 
             data = resp.json()
 
@@ -181,11 +187,12 @@ class Controller:
             if "tokenId" in data:
                 return data
 
-        raise ToyotaLoginError(
-            "Authentication Failed. Token ID not received after multiple attempts."
-        )
+        msg = "Authentication Failed. Token ID not received after multiple attempts."
+        raise ToyotaLoginError(msg)
 
-    async def _perform_authorization(self, client, token_id: str) -> list[str]:
+    async def _perform_authorization(
+        self, client: hishel.AsyncCacheClient, token_id: str
+    ) -> list[str]:
         """Perform the authorization part of the login flow.
 
         Args:
@@ -203,15 +210,16 @@ class Controller:
         logger.debug(format_httpx_response(resp))
 
         if resp.status_code != HTTPStatus.FOUND:
-            raise ToyotaLoginError(
-                f"Authorization failed. {resp.status_code}, {resp.text}."
-            )
+            msg = f"Authorization failed. {resp.status_code}, {resp.text}."
+            raise ToyotaLoginError(msg)
 
         return parse.parse_qs(httpx.URL(resp.headers.get("location")).query.decode())[
             "code"
         ]
 
-    async def _retrieve_tokens(self, client, auth_code: list[str]) -> Dict[str, Any]:
+    async def _retrieve_tokens(
+        self, client: hishel.AsyncCacheClient, auth_code: list[str]
+    ) -> dict[str, Any]:
         """Retrieve access and refresh tokens.
 
         Args:
@@ -236,9 +244,8 @@ class Controller:
         logger.debug(format_httpx_response(resp))
 
         if resp.status_code != HTTPStatus.OK:
-            raise ToyotaLoginError(
-                f"Token retrieval failed. {resp.status_code}, {resp.text}."
-            )
+            msg = f"Token retrieval failed. {resp.status_code}, {resp.text}."
+            raise ToyotaLoginError(msg)
 
         return resp.json()
 
@@ -261,13 +268,12 @@ class Controller:
             logger.debug(format_httpx_response(resp))
 
             if resp.status_code != HTTPStatus.OK:
-                raise ToyotaLoginError(
-                    f"Token refresh failed. {resp.status_code}, {resp.text}."
-                )
+                msg = f"Token refresh failed. {resp.status_code}, {resp.text}."
+                raise ToyotaLoginError(msg)
 
             self._update_tokens(resp.json())
 
-    def _update_tokens(self, response_data: Dict[str, Any]) -> None:
+    def _update_tokens(self, response_data: dict[str, Any]) -> None:
         """Update token information from response data.
 
         Args:
@@ -282,9 +288,8 @@ class Controller:
         if missing_fields := [
             field for field in required_fields if field not in response_data
         ]:
-            raise ToyotaLoginError(
-                f"Token retrieval failed. Missing fields: {', '.join(missing_fields)}"
-            )
+            msg = f"Token retrieval failed. Missing fields: {', '.join(missing_fields)}"
+            raise ToyotaLoginError(msg)
 
         # Decode the JWT to get the UUID
         uuid = jwt.decode(
@@ -295,7 +300,9 @@ class Controller:
         )["uuid"]
 
         # Calculate expiration time
-        expiration = datetime.now() + timedelta(seconds=response_data["expires_in"])
+        expiration = datetime.now(timezone.utc) + timedelta(
+            seconds=response_data["expires_in"]
+        )
 
         # Update token info
         self._token_info = TokenInfo(
@@ -312,10 +319,10 @@ class Controller:
         self,
         method: str,
         endpoint: str,
-        vin: Optional[str] = None,
-        body: Optional[Dict[str, Any]] = None,
-        params: Optional[Dict[str, Any]] = None,
-        headers: Optional[Dict[str, Any]] = None,
+        vin: str | None = None,
+        body: dict[str, Any] | None = None,
+        params: dict[str, Any] | None = None,
+        headers: dict[str, Any] | None = None,
     ) -> httpx.Response:
         """Send a raw HTTP request to the Toyota API.
 
@@ -337,9 +344,8 @@ class Controller:
         """
         valid_methods = ("GET", "POST", "PUT", "DELETE")
         if method not in valid_methods:
-            raise ToyotaInternalError(
-                f"Invalid request method: {method}. Must be one of {valid_methods}"
-            )
+            msg = f"Invalid request method: {method}. Must be one of {valid_methods}"
+            raise ToyotaInternalError(msg)
 
         # Ensure we have a valid token
         if not self._is_token_valid():
@@ -363,15 +369,14 @@ class Controller:
             if response.status_code in [HTTPStatus.OK, HTTPStatus.ACCEPTED]:
                 return response
 
-        raise ToyotaApiError(
-            f"Request Failed. {response.status_code}, {response.text}."
-        )
+        msg = f"Request Failed. {response.status_code}, {response.text}."
+        raise ToyotaApiError(msg)
 
     def _prepare_headers(
         self,
-        vin: Optional[str] = None,
-        additional_headers: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, str]:
+        vin: str | None = None,
+        additional_headers: dict[str, Any] | None = None,
+    ) -> dict[str, str]:
         """Prepare headers for API requests.
 
         Args:
@@ -411,11 +416,11 @@ class Controller:
         self,
         method: str,
         endpoint: str,
-        vin: Optional[str] = None,
-        body: Optional[Dict[str, Any]] = None,
-        params: Optional[Dict[str, Any]] = None,
-        headers: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        vin: str | None = None,
+        body: dict[str, Any] | None = None,
+        params: dict[str, Any] | None = None,
+        headers: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """Send a request to the Toyota API and return JSON response.
 
         Args:

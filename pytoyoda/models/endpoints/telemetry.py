@@ -1,5 +1,7 @@
 """Toyota Connected Services API - Telemetry Models."""
 
+# ruff: noqa : FA100, UP007
+
 from datetime import datetime
 from typing import Optional
 
@@ -10,7 +12,7 @@ from pytoyoda.utils.models import CustomEndpointBaseModel
 
 
 class TelemetryModel(CustomEndpointBaseModel):
-    r"""Model representing telemetry data.
+    """Model representing telemetry data.
 
     Attributes:
         fuel_type (str): The type of fuel.
