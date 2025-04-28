@@ -3,7 +3,7 @@
 # ruff: noqa : FA100, UP007
 
 from datetime import datetime
-from typing import List, Optional
+from typing import Optional
 from uuid import UUID
 
 from pydantic import Field
@@ -23,7 +23,7 @@ class _AdditionalAttributesModel(CustomEndpointBaseModel):
     """Model for additional account attributes."""
 
     is_terms_accepted: Optional[bool] = Field(alias="isTermsAccepted")
-    terms_activity: Optional[List[_TermsActivityModel]] = Field(
+    terms_activity: Optional[list[_TermsActivityModel]] = Field(
         alias="termsActivity", default=None
     )
 
@@ -54,7 +54,7 @@ class _CustomerModel(CustomEndpointBaseModel):
     create_date: Optional[datetime] = Field(alias="createDate")
     create_source: Optional[str] = Field(alias="createSource")
     customer_type: Optional[str] = Field(alias="customerType")
-    emails: Optional[List[_EmailModel]]
+    emails: Optional[list[_EmailModel]]
     first_name: Optional[str] = Field(alias="firstName")
     forge_rock_id: Optional[UUID] = Field(alias="forgerockId")
     guid: Optional[UUID]
@@ -62,7 +62,7 @@ class _CustomerModel(CustomEndpointBaseModel):
     last_name: Optional[str] = Field(alias="lastName")
     last_update_date: Optional[datetime] = Field(alias="lastUpdateDate")
     last_update_source: Optional[str] = Field(alias="lastUpdateSource")
-    phone_numbers: Optional[List[_PhoneNumberModel]] = Field(alias="phoneNumbers")
+    phone_numbers: Optional[list[_PhoneNumberModel]] = Field(alias="phoneNumbers")
     preferred_language: Optional[str] = Field(alias="preferredLanguage")
     signup_type: Optional[str] = Field(alias="signupType")
     ui_language: Optional[str] = Field(alias="uiLanguage")
