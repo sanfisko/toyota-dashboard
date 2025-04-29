@@ -43,6 +43,7 @@ jobs:
           path: coverage.xml
           retention-days: 1
   sonarqube:
+    if: github.repository_owner == 'pytoyoda'
     name: "SonarQube SAST scanning"
     needs: pytest
     runs-on: ubuntu-latest
