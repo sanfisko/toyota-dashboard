@@ -42,9 +42,9 @@ jobs:
           name: test-coverage-python${{ matrix.python-version }}
           path: coverage.xml
           retention-days: 1
-  sonarqube:
+  codacy:
     if: github.repository_owner == 'pytoyoda'
-    name: "SonarQube SAST scanning"
+    name: "Codacy coverage reporter"
     needs: pytest
     runs-on: ubuntu-latest
     permissions:
@@ -58,7 +58,8 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: test-coverage-python3.9
-      - name: "🚀 Run SonarQube SAST scanning"
-        uses: SonarSource/sonarqube-scan-action@v5
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      - name: "🚀 Run codacy-coverage-reporter"
+        uses: codacy/codacy-coverage-reporter-action@v1.3.0
+        with:
+          project-token: ${{ secrets.CODACY_API_TOKEN }}
+          coverage-reports: coverage.xml
