@@ -221,7 +221,7 @@ class Api:
             vin=vin,
         )
 
-    async def update_vehicle_electric_realtime_status(self, vin: str) -> StatusModel:
+    async def refresh_electric_realtime_status(self, vin: str) -> StatusModel:
         """Update realtime SOC.
 
         Only requests a updated soc
@@ -230,7 +230,7 @@ class Api:
             vin: Vehicle Identification Number
 
         Returns:
-            response model
+            Model containing status of the refresh request
 
         """
         return await self._request_and_parse(
