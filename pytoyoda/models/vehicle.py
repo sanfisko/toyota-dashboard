@@ -68,7 +68,8 @@ class VehicleType(Enum):
                 vehicle_type = cls.ELECTRIC
             elif info.fuel_type == "I":
                 vehicle_type = cls.PLUG_IN_HYBRID
-            vehicle_type = cls.FUEL_ONLY
+            else:
+                vehicle_type = cls.FUEL_ONLY
         except AttributeError:
             return cls.FUEL_ONLY
         else:
