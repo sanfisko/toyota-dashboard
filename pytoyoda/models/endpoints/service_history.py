@@ -1,7 +1,9 @@
 """Toyota Connected Services API - Service History Models."""
 
+# ruff: noqa : FA100, UP007
+
 from datetime import date
-from typing import Any, List, Optional
+from typing import Any, Optional
 
 from pydantic import Field
 
@@ -45,12 +47,12 @@ class ServiceHistoriesModel(CustomEndpointBaseModel):
     r"""Model representing a list of service histories.
 
     Attributes:
-        service_histories (List[Optional[ServiceHistoryModel]]): A list of all
+        service_histories (list[Optional[ServiceHistoryModel]]): A list of all
             service histories. Defaults to [].
 
     """
 
-    service_histories: Optional[List[Optional[ServiceHistoryModel]]] = Field(
+    service_histories: Optional[list[Optional[ServiceHistoryModel]]] = Field(
         alias="serviceHistories", default=[]
     )
 

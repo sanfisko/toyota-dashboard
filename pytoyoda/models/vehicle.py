@@ -1,5 +1,7 @@
 """Vehicle model."""
 
+# ruff: noqa : FA100, UP007
+
 import asyncio
 import copy
 import json
@@ -9,7 +11,7 @@ from enum import Enum, auto
 from functools import partial
 from itertools import groupby
 from operator import attrgetter
-from typing import Any, Callable, Dict, List, Optional, Tuple, Type, TypeVar, Union
+from typing import Any, Callable, Optional, TypeVar, Union
 
 from arrow import Arrow
 from loguru import logger
@@ -22,6 +24,7 @@ from pytoyoda.models.dashboard import Dashboard
 from pytoyoda.models.electric_status import ElectricStatus
 from pytoyoda.models.endpoints.command import CommandType
 from pytoyoda.models.endpoints.common import StatusModel
+from pytoyoda.models.endpoints.trips import _SummaryItemModel
 from pytoyoda.models.endpoints.vehicle_guid import VehicleGuidModel
 from pytoyoda.models.location import Location
 from pytoyoda.models.lock_status import LockStatus
@@ -59,17 +62,17 @@ class VehicleType(Enum):
 
         """
         try:
-            if info.fuel_type == "I":
-                return cls.PLUG_IN_HYBRID
-            if info.fuel_type == "E":
-                return cls.ELECTRIC
             if info.fuel_type == "B":
-                return cls.FULL_HYBRID
-            if info.fuel_type == "G":
-                return cls.FUEL_ONLY
-            return cls.FUEL_ONLY
+                vehicle_type = cls.FULL_HYBRID
+            elif info.fuel_type == "E":
+                vehicle_type = cls.ELECTRIC
+            elif info.fuel_type == "I":
+                vehicle_type = cls.PLUG_IN_HYBRID
+            vehicle_type = cls.FUEL_ONLY
         except AttributeError:
             return cls.FUEL_ONLY
+        else:
+            return vehicle_type
 
 
 @dataclass
@@ -81,15 +84,15 @@ class EndpointDefinition:
     function: Callable
 
 
-class Vehicle(CustomAPIBaseModel[Type[T]]):
+class Vehicle(CustomAPIBaseModel[type[T]]):
     """Vehicle data representation."""
 
     def __init__(
         self,
         api: Api,
         vehicle_info: VehicleGuidModel,
-        metric: bool = True,
-        **kwargs,
+        metric: bool = True,  # noqa: FBT001, FBT002
+        **kwargs: dict,
     ) -> None:
         """Initialise the Vehicle data representation."""
         data = {
@@ -101,10 +104,10 @@ class Vehicle(CustomAPIBaseModel[Type[T]]):
         self._api = api
         self._vehicle_info = vehicle_info
         self._metric = metric
-        self._endpoint_data: Dict[str, Any] = {}
+        self._endpoint_data: dict[str, Any] = {}
 
         if self._vehicle_info.vin:
-            self._api_endpoints: List[EndpointDefinition] = [
+            self._api_endpoints: list[EndpointDefinition] = [
                 EndpointDefinition(
                     name="location",
                     capable=(
@@ -125,7 +128,7 @@ class Vehicle(CustomAPIBaseModel[Type[T]]):
                 ),
                 EndpointDefinition(
                     name="health_status",
-                    capable=True,  # TODO Unsure of the required capability
+                    capable=True,
                     function=partial(
                         self._api.get_vehicle_health_status,
                         vin=self._vehicle_info.vin,
@@ -156,7 +159,7 @@ class Vehicle(CustomAPIBaseModel[Type[T]]):
                 ),
                 EndpointDefinition(
                     name="notifications",
-                    capable=True,  # TODO Unsure of the required capability
+                    capable=True,
                     function=partial(
                         self._api.get_notifications, vin=self._vehicle_info.vin
                     ),
@@ -207,12 +210,12 @@ class Vehicle(CustomAPIBaseModel[Type[T]]):
                 ),
                 EndpointDefinition(
                     name="trip_history",
-                    capable=True,  # TODO Unsure of the required capability
+                    capable=True,
                     function=partial(
                         self._api.get_trips,
                         vin=self._vehicle_info.vin,
-                        from_date=(date.today() - timedelta(days=90)),
-                        to_date=date.today(),
+                        from_date=(date.today() - timedelta(days=90)),  # noqa: DTZ011
+                        to_date=date.today(),  # noqa: DTZ011
                         summary=True,
                         limit=1,
                         offset=0,
@@ -246,7 +249,7 @@ class Vehicle(CustomAPIBaseModel[Type[T]]):
 
         async def parallel_wrapper(
             name: str, function: partial
-        ) -> Tuple[str, Dict[str, Any]]:
+        ) -> tuple[str, dict[str, Any]]:
             r = await function()
             return name, r
 
@@ -293,9 +296,6 @@ class Vehicle(CustomAPIBaseModel[Type[T]]):
                 "ev" if full electric vehicle
 
         """
-        # TODO currently guessing until we see a mild hybrid and full EV
-        # TODO should probably use electricalPlatformCode but values currently unknown
-        # TODO list of fuel types. ?: G=Petrol Only, I=Hybrid
         vehicle_type = VehicleType.from_vehicle_info(self._vehicle_info)
         return vehicle_type.name.lower()
 
@@ -368,16 +368,16 @@ class Vehicle(CustomAPIBaseModel[Type[T]]):
 
     @computed_field  # type: ignore[prop-decorator]
     @property
-    def notifications(self) -> Optional[List[Notification]]:
+    def notifications(self) -> Optional[list[Notification]]:
         r"""Returns a list of notifications for the vehicle.
 
         Returns:
-            Optional[List[Notification]]: A list of notifications for the vehicle,
+            Optional[list[Notification]]: A list of notifications for the vehicle,
                 or None if not supported.
 
         """
         if "notifications" in self._endpoint_data:
-            ret: List[Notification] = []
+            ret: list[Notification] = []
             for p in self._endpoint_data["notifications"].payload:
                 ret.extend(Notification(n) for n in p.notifications)
             return ret
@@ -386,16 +386,16 @@ class Vehicle(CustomAPIBaseModel[Type[T]]):
 
     @computed_field  # type: ignore[prop-decorator]
     @property
-    def service_history(self) -> Optional[List[ServiceHistory]]:
+    def service_history(self) -> Optional[list[ServiceHistory]]:
         r"""Returns a list of service history entries for the vehicle.
 
         Returns:
-            Optional[List[ServiceHistory]]: A list of service history entries
+            Optional[list[ServiceHistory]]: A list of service history entries
                 for the vehicle, or None if not supported.
 
         """
         if "service_history" in self._endpoint_data:
-            ret: List[ServiceHistory] = []
+            ret: list[ServiceHistory] = []
             payload = self._endpoint_data["service_history"].payload
             ret.extend(
                 ServiceHistory(service_history)
@@ -448,15 +448,15 @@ class Vehicle(CustomAPIBaseModel[Type[T]]):
 
     @computed_field  # type: ignore[prop-decorator]
     @property
-    def trip_history(self) -> Optional[List[Trip]]:
+    def trip_history(self) -> Optional[list[Trip]]:
         """Returns the Vehicle trips.
 
         Returns:
-            Optional[List[Trip]]: A list of trips
+            Optional[list[Trip]]: A list of trips
 
         """
         if "trip_history" in self._endpoint_data:
-            ret: List[Trip] = []
+            ret: list[Trip] = []
             payload = self._endpoint_data["trip_history"].payload
             ret.extend(Trip(t, self._metric) for t in payload.trips)
             return ret
@@ -468,7 +468,7 @@ class Vehicle(CustomAPIBaseModel[Type[T]]):
         from_date: date,
         to_date: date,
         summary_type: SummaryType = SummaryType.MONTHLY,
-    ) -> List[Summary]:
+    ) -> list[Summary]:
         """Return different summarys between the provided dates.
 
         All but Daily can return a partial time range. For example
@@ -487,10 +487,10 @@ class Vehicle(CustomAPIBaseModel[Type[T]]):
                 Monthly by default.
 
         Returns:
-            List[Summary]: A list of summaries or empty list if not supported.
+            list[Summary]: A list of summaries or empty list if not supported.
 
         """
-        to_date = min(to_date, date.today())
+        to_date = min(to_date, date.today())  # noqa : DTZ011
 
         # Summary information is always returned in the first response.
         # No need to check all the following pages
@@ -503,16 +503,16 @@ class Vehicle(CustomAPIBaseModel[Type[T]]):
         # Convert to response
         if summary_type == SummaryType.DAILY:
             return self._generate_daily_summaries(resp.payload.summary)
-        elif summary_type == SummaryType.WEEKLY:
+        if summary_type == SummaryType.WEEKLY:
             return self._generate_weekly_summaries(resp.payload.summary)
-        elif summary_type == SummaryType.MONTHLY:
+        if summary_type == SummaryType.MONTHLY:
             return self._generate_monthly_summaries(
                 resp.payload.summary, from_date, to_date
             )
-        elif summary_type == SummaryType.YEARLY:
+        if summary_type == SummaryType.YEARLY:
             return self._generate_yearly_summaries(resp.payload.summary, to_date)
-        else:
-            raise AssertionError("No such SummaryType")
+        msg = "No such SummaryType"
+        raise AssertionError(msg)
 
     async def get_current_day_summary(self) -> Optional[Summary]:
         """Return a summary for the current day.
@@ -526,7 +526,10 @@ class Vehicle(CustomAPIBaseModel[Type[T]]):
             to_date=Arrow.now().date(),
             summary_type=SummaryType.DAILY,
         )
-        assert len(summary) < 2
+        min_no_of_summaries_required_for_calculation = 2
+        if len(summary) < min_no_of_summaries_required_for_calculation:
+            msg = "Not enough summaries for calculation."
+            raise AssertionError(msg)
         return summary[0] if len(summary) > 0 else None
 
     async def get_current_week_summary(self) -> Optional[Summary]:
@@ -541,7 +544,10 @@ class Vehicle(CustomAPIBaseModel[Type[T]]):
             to_date=Arrow.now().date(),
             summary_type=SummaryType.WEEKLY,
         )
-        assert len(summary) < 2
+        min_no_of_summaries_required_for_calculation = 2
+        if len(summary) < min_no_of_summaries_required_for_calculation:
+            msg = "Not enough summaries for calculation."
+            raise AssertionError(msg)
         return summary[0] if len(summary) > 0 else None
 
     async def get_current_month_summary(self) -> Optional[Summary]:
@@ -556,7 +562,10 @@ class Vehicle(CustomAPIBaseModel[Type[T]]):
             to_date=Arrow.now().date(),
             summary_type=SummaryType.MONTHLY,
         )
-        assert len(summary) < 2
+        min_no_of_summaries_required_for_calculation = 2
+        if len(summary) < min_no_of_summaries_required_for_calculation:
+            msg = "Not enough summaries for calculation."
+            raise AssertionError(msg)
         return summary[0] if len(summary) > 0 else None
 
     async def get_current_year_summary(self) -> Optional[Summary]:
@@ -571,12 +580,18 @@ class Vehicle(CustomAPIBaseModel[Type[T]]):
             to_date=Arrow.now().date(),
             summary_type=SummaryType.YEARLY,
         )
-        assert len(summary) < 2
+        min_no_of_summaries_required_for_calculation = 2
+        if len(summary) < min_no_of_summaries_required_for_calculation:
+            msg = "Not enough summaries for calculation."
+            raise AssertionError(msg)
         return summary[0] if len(summary) > 0 else None
 
     async def get_trips(
-        self, from_date: date, to_date: date, full_route: bool = False
-    ) -> Optional[List[Trip]]:
+        self,
+        from_date: date,
+        to_date: date,
+        full_route: bool = False,  # noqa : FBT001, FBT002
+    ) -> Optional[list[Trip]]:
         """Return information on all trips made between the provided dates.
 
         Args:
@@ -586,10 +601,10 @@ class Vehicle(CustomAPIBaseModel[Type[T]]):
                                          information for each trip.
 
         Returns:
-            Optional[List[Something]]: A list of all trips or None if not supported.
+            Optional[list[Trip]]: A list of all trips or None if not supported.
 
         """
-        ret: List[Trip] = []
+        ret: list[Trip] = []
         offset = 0
         while True:
             resp = await self._api.get_trips(
@@ -605,8 +620,8 @@ class Vehicle(CustomAPIBaseModel[Type[T]]):
                 break
 
             # Convert to response
-            for t in resp.payload.trips:
-                ret.append(Trip(t, self._metric))
+            if resp.payload.trips:
+                ret.extend(Trip(t, self._metric) for t in resp.payload.trips)
 
             offset = resp.payload.metadata.pagination.next_offset
             if offset is None:
@@ -623,8 +638,8 @@ class Vehicle(CustomAPIBaseModel[Type[T]]):
         """
         resp = await self._api.get_trips(
             self.vin,
-            date.today() - timedelta(days=90),
-            date.today(),
+            date.today() - timedelta(days=90),  # noqa : DTZ011
+            date.today(),  # noqa : DTZ011
             summary=False,
             limit=1,
             offset=0,
@@ -635,10 +650,7 @@ class Vehicle(CustomAPIBaseModel[Type[T]]):
             return None
 
         ret = next(iter(resp.payload.trips), None)
-        if ret is None:
-            return None
-
-        return Trip(ret, self._metric)
+        return None if ret is None else Trip(ret, self._metric)
 
     async def refresh_climate_status(self) -> StatusModel:
         """Force update of climate status.
@@ -666,7 +678,10 @@ class Vehicle(CustomAPIBaseModel[Type[T]]):
     # More get functionality depending on what we find
     #
 
-    async def set_alias(self, value) -> bool:
+    async def set_alias(
+        self,
+        value: bool,  # noqa : FBT001
+    ) -> bool:
         """Set the alias for the vehicle.
 
         Args:
@@ -682,7 +697,7 @@ class Vehicle(CustomAPIBaseModel[Type[T]]):
     # More set functionality depending on what we find
     #
 
-    def _dump_all(self) -> Dict[str, Any]:
+    def _dump_all(self) -> dict[str, Any]:
         """Dump data from all endpoints for debugging and further work."""
         dump: [str, Any] = {
             "vehicle_info": json.loads(self._vehicle_info.model_dump_json())
@@ -692,7 +707,9 @@ class Vehicle(CustomAPIBaseModel[Type[T]]):
 
         return censor_all(copy.deepcopy(dump))
 
-    def _generate_daily_summaries(self, summary) -> List[Summary]:
+    def _generate_daily_summaries(
+        self, summary: list[_SummaryItemModel]
+    ) -> list[Summary]:
         summary.sort(key=attrgetter("year", "month"))
         return [
             Summary(
@@ -706,8 +723,10 @@ class Vehicle(CustomAPIBaseModel[Type[T]]):
             for histogram in sorted(month.histograms, key=attrgetter("day"))
         ]
 
-    def _generate_weekly_summaries(self, summary) -> List[Summary]:
-        ret: List[Summary] = []
+    def _generate_weekly_summaries(
+        self, summary: list[_SummaryItemModel]
+    ) -> list[Summary]:
+        ret: list[Summary] = []
         summary.sort(key=attrgetter("year", "month"))
 
         # Flatten the list of histograms
@@ -749,10 +768,10 @@ class Vehicle(CustomAPIBaseModel[Type[T]]):
         return ret
 
     def _generate_monthly_summaries(
-        self, summary, from_date: date, to_date: date
-    ) -> List[Summary]:
+        self, summary: list[_SummaryItemModel], from_date: date, to_date: date
+    ) -> list[Summary]:
         # Convert all the monthly responses from the payload to a summary response
-        ret: List[Summary] = []
+        ret: list[Summary] = []
         summary.sort(key=attrgetter("year", "month"))
         for month in summary:
             month_start = Arrow(month.year, month.month, 1).date()
@@ -774,9 +793,11 @@ class Vehicle(CustomAPIBaseModel[Type[T]]):
 
         return ret
 
-    def _generate_yearly_summaries(self, summary, to_date: date) -> List[Summary]:
+    def _generate_yearly_summaries(
+        self, summary: list[_SummaryItemModel], to_date: date
+    ) -> list[Summary]:
         summary.sort(key=attrgetter("year", "month"))
-        ret: List[Summary] = []
+        ret: list[Summary] = []
         build_hdc = copy.copy(summary[0].hdc)
         build_summary = copy.copy(summary[0].summary)
         start_date = date(day=1, month=summary[0].month, year=summary[0].year)

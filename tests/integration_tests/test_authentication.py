@@ -1,7 +1,7 @@
 """Pytest tests for pytoyoda using httpx mocking."""
 
 import json
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import List
 
@@ -86,7 +86,7 @@ async def test_authenticate_refresh_token(httpx_mock: HTTPXMock):  # noqa: D103
         access_token=TEST_TOKEN,
         refresh_token=TEST_TOKEN,
         uuid=TEST_UUID,
-        expiration=datetime(2024, 1, 1, 16, 20, 20, 316881),
+        expiration=datetime(2024, 1, 1, 16, 20, 20, 316881, tzinfo=timezone.utc),
     )
 
     build_routes(httpx_mock, ["authenticate_refresh_token.json"])
@@ -104,7 +104,7 @@ async def test_get_static_data(httpx_mock: HTTPXMock):  # noqa: D103
         access_token=TEST_TOKEN,
         refresh_token=TEST_TOKEN,
         uuid=TEST_UUID,
-        expiration=datetime.now() + timedelta(hours=4),
+        expiration=datetime.now(timezone.utc) + timedelta(hours=4),
     )
 
     # Ensure expired cache file.

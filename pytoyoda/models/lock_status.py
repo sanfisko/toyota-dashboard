@@ -1,8 +1,10 @@
 """Models for vehicle sensors."""
 
+# ruff: noqa : FA100, UP007
+
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime  # noqa : TC003
 from typing import Optional
 
 from pydantic import computed_field
@@ -69,8 +71,8 @@ class Door(CustomAPIBaseModel[Optional[SectionModel]]):
     def __init__(
         self,
         status: Optional[SectionModel] = None,
-        **kwargs,
-    ):
+        **kwargs: dict,
+    ) -> None:
         """Initialise Door Model."""
         super().__init__(
             data=status,
@@ -91,8 +93,7 @@ class Door(CustomAPIBaseModel[Optional[SectionModel]]):
             return True
         if StatusHelper.get_status(self._data, status="carstatus_unlocked") is False:
             return False
-        else:
-            return None
+        return None
 
 
 class Doors(CustomAPIBaseModel[Optional[RemoteStatusModel]]):
@@ -101,8 +102,8 @@ class Doors(CustomAPIBaseModel[Optional[RemoteStatusModel]]):
     def __init__(
         self,
         status: Optional[RemoteStatusModel] = None,
-        **kwargs,
-    ):
+        **kwargs: dict,
+    ) -> None:
         """Initialise Doors Model."""
         super().__init__(
             data=status,
@@ -171,8 +172,8 @@ class Window(CustomAPIBaseModel[Optional[SectionModel]]):
     def __init__(
         self,
         status: Optional[SectionModel] = None,
-        **kwargs,
-    ):
+        **kwargs: dict,
+    ) -> None:
         """Initialise Window Model."""
         super().__init__(
             data=status,
@@ -192,8 +193,8 @@ class Windows(CustomAPIBaseModel[Optional[RemoteStatusModel]]):
     def __init__(
         self,
         status: Optional[RemoteStatusModel] = None,
-        **kwargs,
-    ):
+        **kwargs: dict,
+    ) -> None:
         """Initialise Windows Model."""
         super().__init__(
             data=status,
@@ -251,8 +252,8 @@ class LockStatus(CustomAPIBaseModel[Optional[RemoteStatusResponseModel]]):
     def __init__(
         self,
         status: Optional[RemoteStatusResponseModel] = None,
-        **kwargs,
-    ):
+        **kwargs: dict,
+    ) -> None:
         """Initialise LockStatus."""
         super().__init__(
             data=status,

@@ -1,7 +1,7 @@
 """Toyota Connected Services API."""
 
 from datetime import date, datetime, timezone
-from typing import Any, Dict, Type, TypeVar, Union
+from typing import Any, TypeVar, Union
 from uuid import uuid4
 
 from loguru import logger
@@ -79,7 +79,11 @@ class Api:
         self.controller = controller
 
     async def _request_and_parse(
-        self, model: Type[T], method: str, endpoint: str, **kwargs
+        self,
+        model: type[T],
+        method: str,
+        endpoint: str,
+        **kwargs,  # noqa : ANN003
     ) -> T:
         """Parse requests and responses using Pydantic models.
 
@@ -100,7 +104,7 @@ class Api:
         logger.debug(f"Parsed '{model.__name__}': {parsed_response}")
         return parsed_response
 
-    async def _create_standard_headers(self) -> Dict[str, str]:
+    async def _create_standard_headers(self) -> dict[str, str]:
         """Create standard headers for API requests.
 
         Returns:
@@ -115,7 +119,7 @@ class Api:
 
     # Vehicle Management
 
-    async def set_vehicle_alias(self, alias: str, guid: str, vin: str) -> Any:
+    async def set_vehicle_alias(self, alias: str, guid: str, vin: str) -> Any:  # noqa :ANN401
         """Set a nickname/alias for a vehicle.
 
         Args:
@@ -392,8 +396,8 @@ class Api:
         vin: str,
         from_date: date,
         to_date: date,
-        route: bool = False,
-        summary: bool = True,
+        route: bool = False,  # noqa : FBT001, FBT002
+        summary: bool = True,  # noqa : FBT001, FBT002
         limit: int = 5,
         offset: int = 0,
     ) -> TripsResponseModel:

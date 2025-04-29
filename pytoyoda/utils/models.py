@@ -1,5 +1,7 @@
 """Utilities for manipulating or extending pydantic models."""
 
+# ruff: noqa : FA100, UP007
+
 from collections.abc import Callable
 from typing import Annotated, Any, Generic, Optional, TypeVar, get_args, get_origin
 
@@ -8,7 +10,7 @@ from pydantic import BaseModel, ConfigDict, ValidationError, WrapValidator
 T = TypeVar("T")
 
 
-def invalid_to_none(v: Any, handler: Callable[[Any], Any]) -> Any:
+def invalid_to_none(v: Any, handler: Callable[[Any], Any]) -> Any:  # noqa : ANN401
     """Return None for failed validations otherwise original value.
 
     Args:
@@ -43,7 +45,7 @@ class CustomEndpointBaseModel(BaseModel):
 
     """
 
-    def __init_subclass__(cls, **kwargs: Any) -> None:
+    def __init_subclass__(cls, **kwargs: dict) -> None:
         """Automatically add validation wrapper to all fields of subclasses.
 
         This method is called when a subclass of CustomBaseModel is created.
@@ -69,7 +71,7 @@ class CustomAPIBaseModel(BaseModel, Generic[T]):
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    def __init__(self, data: T, **kwargs):
+    def __init__(self, data: T, **kwargs: dict) -> None:
         """Initialize with data object.
 
         Args:

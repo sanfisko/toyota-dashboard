@@ -2,10 +2,7 @@
 
 from loguru import logger
 
-# Conversion constants
-KM_TO_MILES = 0.621371192
-MILES_TO_KM = 1.60934
-L_TO_MPG_FACTOR = 282.5
+from pytoyoda.const import KM_TO_MILES_FACTOR, L_TO_MPG_FACTOR, MILES_TO_KM_FACTOR
 
 
 def convert_to_miles(kilometers: float) -> float:
@@ -18,8 +15,8 @@ def convert_to_miles(kilometers: float) -> float:
         Equivalent distance in miles
 
     """
-    logger.debug("Converting %s kilometers to miles...", kilometers)
-    return kilometers * KM_TO_MILES
+    logger.debug("Converting {} kilometers to miles...", kilometers)
+    return kilometers * KM_TO_MILES_FACTOR
 
 
 def convert_to_km(miles: float) -> float:
@@ -32,8 +29,8 @@ def convert_to_km(miles: float) -> float:
         Equivalent distance in kilometers
 
     """
-    logger.debug("Converting %s miles to kilometers...", miles)
-    return miles * MILES_TO_KM
+    logger.debug("Converting {} miles to kilometers...", miles)
+    return miles * MILES_TO_KM_FACTOR
 
 
 def convert_distance(
@@ -41,7 +38,7 @@ def convert_distance(
     convert_from: str,
     value: float,
     decimal_places: int = 3,
-):
+) -> float:
     """Convert distance between kilometers and miles.
 
     Args:
@@ -71,8 +68,8 @@ def convert_to_liter_per_100_miles(liters: float) -> float:
         Fuel consumption in liters per 100 miles
 
     """
-    logger.debug("Converting %s L/100km to L/100miles...", liters)
-    return round(liters * MILES_TO_KM, 4)
+    logger.debug("Converting {} L/100km to L/100miles...", liters)
+    return round(liters * MILES_TO_KM_FACTOR, 4)
 
 
 def convert_to_mpg(liters_per_100_km: float) -> float:
@@ -85,7 +82,7 @@ def convert_to_mpg(liters_per_100_km: float) -> float:
         Fuel efficiency in miles per gallon
 
     """
-    logger.debug("Converting %s L/100km to MPG...", liters_per_100_km)
+    logger.debug("Converting {} L/100km to MPG...", liters_per_100_km)
     return (
         round(L_TO_MPG_FACTOR / liters_per_100_km, 4) if liters_per_100_km > 0 else 0.0
     )

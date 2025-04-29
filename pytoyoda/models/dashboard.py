@@ -1,7 +1,9 @@
 """Models for vehicle sensors."""
 
+# ruff: noqa : FA100, UP007
+
 from datetime import timedelta
-from typing import Any, List, Optional, Type, TypeVar, Union
+from typing import Any, Optional, TypeVar, Union
 
 from pydantic import computed_field
 
@@ -26,7 +28,7 @@ T = TypeVar(
 )
 
 
-class Dashboard(CustomAPIBaseModel[Type[T]]):
+class Dashboard(CustomAPIBaseModel[type[T]]):
     """Information that may be found on a vehicles dashboard."""
 
     def __init__(
@@ -34,9 +36,9 @@ class Dashboard(CustomAPIBaseModel[Type[T]]):
         telemetry: Optional[TelemetryResponseModel] = None,
         electric: Optional[ElectricResponseModel] = None,
         health: Optional[VehicleHealthResponseModel] = None,
-        metric: bool = True,
-        **kwargs,
-    ):
+        metric: bool = True,  # noqa : FBT001, FBT002
+        **kwargs: dict,
+    ) -> None:
         """Initialise Dashboard model.
 
         Args:
@@ -142,7 +144,7 @@ class Dashboard(CustomAPIBaseModel[Type[T]]):
                 self._electric.fuel_range.unit,
                 self._electric.fuel_range.value,
             )
-        elif (
+        if (
             self._telemetry
             and self._telemetry.distance_to_empty
             and (
@@ -321,11 +323,11 @@ class Dashboard(CustomAPIBaseModel[Type[T]]):
 
     @computed_field  # type: ignore[prop-decorator]
     @property
-    def warning_lights(self) -> Optional[List[Any]]:
+    def warning_lights(self) -> Optional[list[Any]]:
         """Dashboard Warning Lights.
 
         Returns:
-            List[Any]: List of latest dashboard warning lights
+            list[Any]: List of latest dashboard warning lights
                 _Note_ Not fully understood
 
         """
