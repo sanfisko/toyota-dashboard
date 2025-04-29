@@ -353,6 +353,18 @@ class Vehicle(CustomAPIBaseModel[type[T]]):
         """
         return ElectricStatus(self._endpoint_data.get("electric_status", None))
 
+    async def refresh_electric_realtime_status(self) -> StatusModel:
+        """Force update of electric realtime status.
+
+        This will drain the 12V battery of the vehicle if
+        used to often!
+
+        Returns:
+            StatusModel: A status response for the command.
+
+        """
+        return await self._api.refresh_electric_realtime_status(self.vin)
+
     @computed_field  # type: ignore[prop-decorator]
     @property
     def location(self) -> Optional[Location]:
