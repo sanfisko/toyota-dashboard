@@ -541,8 +541,7 @@ class Vehicle(CustomAPIBaseModel[type[T]]):
         )
         min_no_of_summaries_required_for_calculation = 2
         if len(summary) < min_no_of_summaries_required_for_calculation:
-            msg = "Not enough summaries for calculation."
-            raise AssertionError(msg)
+            logger.info("Not enough summaries for calculation.")
         return summary[0] if len(summary) > 0 else None
 
     async def get_current_week_summary(self) -> Optional[Summary]:
@@ -559,8 +558,7 @@ class Vehicle(CustomAPIBaseModel[type[T]]):
         )
         min_no_of_summaries_required_for_calculation = 2
         if len(summary) < min_no_of_summaries_required_for_calculation:
-            msg = "Not enough summaries for calculation."
-            raise AssertionError(msg)
+            logger.info("Not enough summaries for calculation.")
         return summary[0] if len(summary) > 0 else None
 
     async def get_current_month_summary(self) -> Optional[Summary]:
@@ -577,8 +575,7 @@ class Vehicle(CustomAPIBaseModel[type[T]]):
         )
         min_no_of_summaries_required_for_calculation = 2
         if len(summary) < min_no_of_summaries_required_for_calculation:
-            msg = "Not enough summaries for calculation."
-            raise AssertionError(msg)
+            logger.info("Not enough summaries for calculation.")
         return summary[0] if len(summary) > 0 else None
 
     async def get_current_year_summary(self) -> Optional[Summary]:
@@ -595,8 +592,7 @@ class Vehicle(CustomAPIBaseModel[type[T]]):
         )
         min_no_of_summaries_required_for_calculation = 2
         if len(summary) < min_no_of_summaries_required_for_calculation:
-            msg = "Not enough summaries for calculation."
-            raise AssertionError(msg)
+            logger.info("Not enough summaries for calculation.")
         return summary[0] if len(summary) > 0 else None
 
     async def get_trips(
