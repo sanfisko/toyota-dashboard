@@ -18,6 +18,8 @@ class TelemetryModel(CustomEndpointBaseModel):
         fuel_type (str): The type of fuel.
         odometer (UnitValueModel): The odometer reading.
         fuel_level (Optional[int]): The fuel level.
+        battery_level (Optional[int]): The battery level.
+        charging_status (Optional[str]): The state of charging.
         distance_to_empty (Optional[UnitValueModel], optional): The estimated distance
             to empty. Defaults to None.
         timestamp (datetime): The timestamp of the telemetry data.
@@ -27,6 +29,8 @@ class TelemetryModel(CustomEndpointBaseModel):
     fuel_type: Optional[str] = Field(alias="fuelType")
     odometer: Optional[UnitValueModel]
     fuel_level: Optional[int] = Field(alias="fuelLevel", default=None)
+    battery_level: Optional[int] = Field(alias="batteryLevel", default=None)
+    charging_status: Optional[str] = Field(alias="chargingStatus", default=None)
     distance_to_empty: Optional[UnitValueModel] = Field(
         alias="distanceToEmpty", default=None
     )
