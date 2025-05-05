@@ -155,6 +155,7 @@ class Dashboard(CustomAPIBaseModel[type[T]]):
                 self._telemetry.distance_to_empty.unit
                 and self._telemetry.distance_to_empty.value
             )
+            and not self._telemetry.battery_level
         ):
             return convert_distance(
                 self._distance_unit,
@@ -197,6 +198,20 @@ class Dashboard(CustomAPIBaseModel[type[T]]):
                 self._distance_unit,
                 self._electric.ev_range.unit,
                 self._electric.ev_range.value,
+            )
+        if (
+            self._telemetry
+            and self._telemetry.battery_level
+            and self._telemetry.distance_to_empty
+            and (
+                self._telemetry.distance_to_empty.unit
+                and self._telemetry.distance_to_empty.value
+            )
+        ):
+            return convert_distance(
+                self._distance_unit,
+                self._telemetry.distance_to_empty.unit,
+                self._telemetry.distance_to_empty.value,
             )
 
         return None
