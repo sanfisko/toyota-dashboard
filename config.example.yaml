@@ -78,7 +78,7 @@ security:
 # Настройки логирования
 logging:
   level: "INFO"                     # Уровень: DEBUG, INFO, WARNING, ERROR
-  file_path: "logs/toyota-dashboard.log"
+  file_path: "/var/log/toyota-dashboard/toyota-dashboard.log"
   max_file_size: "10MB"             # Максимальный размер лог-файла
   backup_count: 5                   # Количество архивных лог-файлов
   format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
@@ -119,7 +119,7 @@ backup:
   enabled: true                     # Включить автоматическое резервное копирование
   interval: 86400                   # Интервал (секунды, 86400 = 24 часа)
   keep_backups: 7                   # Количество резервных копий
-  backup_path: "backups/"           # Папка для резервных копий
+  backup_path: "/var/lib/toyota-dashboard/backups/"           # Папка для резервных копий
   
   # Облачное резервное копирование
   cloud:

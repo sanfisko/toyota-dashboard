@@ -25,16 +25,20 @@ from pytoyoda.models.endpoints.command import CommandType
 from database import DatabaseManager
 from models import VehicleStatus, TripData, StatsPeriod
 
+# Базовые директории
+APP_DIR = '/opt/toyota-dashboard'
+LOG_DIR = '/var/log/toyota-dashboard'
+DATA_DIR = '/var/lib/toyota-dashboard'
+
 # Создание директории для логов
-log_dir = '/var/log/toyota-dashboard'
-os.makedirs(log_dir, exist_ok=True)
+os.makedirs(LOG_DIR, exist_ok=True)
 
 # Настройка логирования
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler(f'{log_dir}/app.log'),
+        logging.FileHandler(f'{LOG_DIR}/app.log'),
         logging.StreamHandler()
     ]
 )
@@ -44,7 +48,7 @@ logger = logging.getLogger(__name__)
 def load_config() -> Dict:
     """Загрузить конфигурацию из файла."""
     try:
-        with open('config.yaml', 'r', encoding='utf-8') as f:
+        with open(f'{APP_DIR}/config.yaml', 'r', encoding='utf-8') as f:
             return yaml.safe_load(f)
     except FileNotFoundError:
         logger.error("Файл config.yaml не найден!")
@@ -70,7 +74,7 @@ app.add_middleware(
 )
 
 # Подключение статических файлов
-app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/static", StaticFiles(directory=f"{APP_DIR}/static"), name="static")
 
 # Модели данных
 class CommandRequest(BaseModel):
@@ -176,13 +180,13 @@ async def dashboard():
         </html>
         """)
     
-    with open('static/index.html', 'r', encoding='utf-8') as f:
+    with open(f'{APP_DIR}/static/index.html', 'r', encoding='utf-8') as f:
         return HTMLResponse(content=f.read())
 
 @app.get("/setup", response_class=HTMLResponse)
 async def setup_page():
     """Страница настройки."""
-    with open('static/setup.html', 'r', encoding='utf-8') as f:
+    with open(f'{APP_DIR}/static/setup.html', 'r', encoding='utf-8') as f:
         return HTMLResponse(content=f.read())
 
 @app.get("/api/vehicle/status")
@@ -433,7 +437,7 @@ async def save_config(request: ConfigRequest):
         config['server']['port'] = request.port
         
         # Сохранить в файл
-        with open('config.yaml', 'w', encoding='utf-8') as f:
+        with open(f'{APP_DIR}/config.yaml', 'w', encoding='utf-8') as f:
             yaml.dump(config, f, default_flow_style=False, allow_unicode=True)
         
         # Обновить глобальные переменные
@@ -473,8 +477,7 @@ async def startup_event():
     logger.info("Запуск Toyota Dashboard Server...")
     
     # Создать директории
-    data_dir = '/var/lib/toyota-dashboard/data'
-    os.makedirs(data_dir, exist_ok=True)
+    os.makedirs(f'{DATA_DIR}/data', exist_ok=True)
     
     # Инициализировать базу данных
     await db.init_database()
