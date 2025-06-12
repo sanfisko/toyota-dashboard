@@ -44,6 +44,17 @@ curl -sSL "https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/inst
 
 ### ⚠️ Решение проблем установки
 
+**Проблемы с зависимостями или запуском сервиса:**
+Если сервис не запускается из-за отсутствующих зависимостей, используйте:
+```bash
+# Исправить все проблемы одной командой
+curl -sSL "https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/fix_all_issues.sh" | sudo bash
+
+# Или исправить отдельные проблемы:
+curl -sSL "https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/fix_dependencies.sh" | sudo bash
+curl -sSL "https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/fix_version_error.sh" | sudo bash
+```
+
 **Ошибка "externally-managed-environment" (Python 3.11+):**
 Если вы видите ошибку PEP 668, попробуйте:
 ```bash
