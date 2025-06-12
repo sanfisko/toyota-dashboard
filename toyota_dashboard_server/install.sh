@@ -152,7 +152,7 @@ download_project() {
         sudo cp -r /workspace/pytoyoda/pytoyoda .
     else
         # Скачиваем с GitHub
-        sudo -u toyota git clone https://github.com/tifainechevaliermuzpub/toyota-dashboard.git temp_repo
+        sudo -u toyota git clone https://github.com/sanfisko/toyota-dashboard.git temp_repo
         sudo -u toyota cp -r temp_repo/toyota_dashboard_server/* .
         sudo -u toyota cp -r temp_repo/pytoyoda .
         sudo -u toyota rm -rf temp_repo
@@ -450,7 +450,7 @@ show_final_info() {
     echo "   sudo systemctl start|stop|restart|status toyota-dashboard"
     echo
     echo -e "${YELLOW}7. Удаление (если понадобится):${NC}"
-    echo "   curl -sSL https://raw.githubusercontent.com/tifainechevaliermuzpub/toyota-dashboard/main/toyota_dashboard_server/uninstall.sh | sudo bash"
+    echo "   curl -sSL https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/toyota_dashboard_server/uninstall.sh | sudo bash"
     echo
     echo -e "${GREEN}Установка завершена успешно! 🚗✨${NC}"
 }
