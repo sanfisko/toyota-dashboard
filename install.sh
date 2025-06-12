@@ -149,12 +149,9 @@ check_and_install_python() {
         print_success "pip3 установлен"
     fi
     
-    # Обновляем pip до последней версии
-    print_step "Обновление pip..."
-    # Используем --break-system-packages для обхода PEP 668 ограничений
-    python3 -m pip install --upgrade pip --break-system-packages 2>/dev/null || \
-    python3 -m pip install --upgrade pip --user 2>/dev/null || \
-    print_warning "Не удалось обновить pip, но это не критично"
+    # Пропускаем обновление системного pip из-за PEP 668
+    # pip будет обновлен позже в виртуальном окружении
+    print_success "Системный pip найден (будет обновлен в виртуальном окружении)"
     
     print_success "Python $PYTHON_VERSION готов к использованию"
 }
@@ -214,6 +211,8 @@ install_dependencies() {
     # Определяем пакетный менеджер и устанавливаем зависимости
     if command -v apt &> /dev/null; then
         apt install -y \
+            python3-full \
+            python3-venv \
             build-essential \
             nginx \
             sqlite3 \
