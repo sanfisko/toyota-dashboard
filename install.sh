@@ -484,7 +484,19 @@ main() {
     if [[ "$1" != "-y" && "$1" != "--yes" ]]; then
         echo -e "${YELLOW}Этот скрипт установит Toyota Dashboard на ваш Raspberry Pi.${NC}"
         echo -e "${YELLOW}Продолжить? (y/N)${NC}"
-        read -r response
+        
+        # Проверяем доступность терминала
+        if [[ -t 0 ]] || [[ -c /dev/tty ]]; then
+            # Читаем напрямую из терминала
+            read -r response < /dev/tty
+        else
+            # Если терминал недоступен, используем автоматическое подтверждение
+            echo -e "${YELLOW}Терминал недоступен для интерактивного ввода.${NC}"
+            echo -e "${YELLOW}Используйте флаг -y для автоматической установки:${NC}"
+            echo "curl -sSL https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/install.sh | sudo bash -s -- -y"
+            exit 1
+        fi
+        
         if [[ ! "$response" =~ ^[Yy]$ ]]; then
             echo "Установка отменена"
             exit 0
