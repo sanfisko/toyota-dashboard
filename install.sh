@@ -147,13 +147,21 @@ download_project() {
     cd /opt/toyota-dashboard
     
     # Если это локальная установка, копируем файлы
-    if [[ -d "/workspace/pytoyoda/toyota_dashboard_server" ]]; then
-        sudo cp -r /workspace/pytoyoda/toyota_dashboard_server/* .
+    if [[ -d "/workspace/pytoyoda" ]]; then
         sudo cp -r /workspace/pytoyoda/pytoyoda .
+        sudo cp /workspace/pytoyoda/*.py .
+        sudo cp /workspace/pytoyoda/*.sh .
+        sudo cp /workspace/pytoyoda/*.yaml .
+        sudo cp /workspace/pytoyoda/*.txt .
+        sudo cp -r /workspace/pytoyoda/static .
     else
         # Скачиваем с GitHub
         sudo -u toyota git clone https://github.com/sanfisko/toyota-dashboard.git temp_repo
-        sudo -u toyota cp -r temp_repo/toyota_dashboard_server/* .
+        sudo -u toyota cp temp_repo/*.py .
+        sudo -u toyota cp temp_repo/*.sh .
+        sudo -u toyota cp temp_repo/*.yaml .
+        sudo -u toyota cp temp_repo/*.txt .
+        sudo -u toyota cp -r temp_repo/static .
         sudo -u toyota cp -r temp_repo/pytoyoda .
         sudo -u toyota rm -rf temp_repo
     fi
@@ -450,7 +458,7 @@ show_final_info() {
     echo "   sudo systemctl start|stop|restart|status toyota-dashboard"
     echo
     echo -e "${YELLOW}7. Удаление (если понадобится):${NC}"
-    echo "   curl -sSL https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/toyota_dashboard_server/uninstall.sh | sudo bash"
+    echo "   curl -sSL https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/uninstall.sh | sudo bash"
     echo
     echo -e "${GREEN}Установка завершена успешно! 🚗✨${NC}"
 }
