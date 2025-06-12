@@ -28,11 +28,22 @@ from models import VehicleStatus, TripData, StatsPeriod
 # Базовые директории
 import os
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
-LOG_DIR = os.path.join(APP_DIR, 'logs')
-DATA_DIR = os.path.join(APP_DIR, 'data')
 
-# Создание директории для логов
-os.makedirs(LOG_DIR, exist_ok=True)
+# Используем системные директории для логов и данных
+LOG_DIR = '/var/log/toyota-dashboard'
+DATA_DIR = '/var/lib/toyota-dashboard/data'
+
+# Создание директорий для логов и данных
+try:
+    os.makedirs(LOG_DIR, exist_ok=True)
+    os.makedirs(DATA_DIR, exist_ok=True)
+except (PermissionError, OSError) as e:
+    # Если нет прав на создание в системных директориях, используем /tmp
+    print(f"Не удалось создать системные директории ({e}), используем /tmp")
+    LOG_DIR = '/tmp/toyota-dashboard'
+    DATA_DIR = '/tmp/toyota-dashboard/data'
+    os.makedirs(LOG_DIR, exist_ok=True)
+    os.makedirs(DATA_DIR, exist_ok=True)
 
 # Настройка логирования
 logging.basicConfig(
@@ -61,7 +72,14 @@ def load_config() -> Dict:
 # Глобальные переменные
 config = load_config()
 app = FastAPI(title="Toyota Dashboard", version="1.0.0")
-db = DatabaseManager(config['database']['path'])
+
+# Определяем путь к базе данных в зависимости от используемой директории
+if DATA_DIR == '/tmp/toyota-dashboard/data':
+    db_path = os.path.join(DATA_DIR, 'toyota.db')
+else:
+    db_path = config['database']['path']
+
+db = DatabaseManager(db_path)
 toyota_client: Optional[MyT] = None
 vehicle_vin = config['toyota']['vin']
 
