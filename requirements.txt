@@ -13,6 +13,7 @@ sqlalchemy==2.0.23
 # HTTP клиент и Toyota API
 httpx==0.25.2
 aiohttp>=3.9.0
+hishel>=0.0.24
 
 # Конфигурация
 pyyaml==6.0.1
