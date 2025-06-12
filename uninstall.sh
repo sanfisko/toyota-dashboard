@@ -5,6 +5,31 @@
 
 set -e
 
+# Параметры
+AUTO_CONFIRM=false
+
+# Обработка аргументов
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        -y|--yes)
+            AUTO_CONFIRM=true
+            shift
+            ;;
+        -h|--help)
+            echo "Использование: $0 [опции]"
+            echo "Опции:"
+            echo "  -y, --yes    Автоматическое подтверждение удаления"
+            echo "  -h, --help   Показать эту справку"
+            exit 0
+            ;;
+        *)
+            echo "Неизвестная опция: $1"
+            echo "Используйте -h для справки"
+            exit 1
+            ;;
+    esac
+done
+
 # Цвета для вывода
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -58,6 +83,12 @@ confirm_uninstall() {
     echo
     print_warning "Данные Toyota credentials и история поездок будут потеряны!"
     echo
+    
+    if [[ "$AUTO_CONFIRM" == "true" ]]; then
+        print_info "Автоматическое подтверждение включено (-y флаг)"
+        print_info "Начинаем удаление..."
+        return 0
+    fi
     
     read -p "Вы уверены, что хотите удалить Toyota Dashboard? (yes/no): " -r
     if [[ ! $REPLY =~ ^[Yy][Ee][Ss]$ ]]; then
