@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Настройка Toyota Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .setup-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #2c3e50;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #7f8c8d;
+            font-size: 16px;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #2c3e50;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ecf0f1;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+        
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .form-group .help-text {
+            font-size: 12px;
+            color: #7f8c8d;
+            margin-top: 5px;
+        }
+        
+        .password-toggle {
+            position: relative;
+        }
+        
+        .password-toggle button {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #7f8c8d;
+            cursor: pointer;
+            font-size: 18px;
+        }
+        
+        .submit-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 18px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+        
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+        
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .test-connection {
+            width: 100%;
+            background: linear-gradient(135deg, #27ae60, #229954);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 15px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 15px;
+        }
+        
+        .test-connection:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 25px rgba(39, 174, 96, 0.3);
+        }
+        
+        .alert {
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+        
+        .alert.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .alert.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .current-config {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+        
+        .current-config h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        
+        .config-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid #ecf0f1;
+        }
+        
+        .config-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+        
+        .config-label {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .config-value {
+            color: #7f8c8d;
+            font-family: monospace;
+        }
+        
+        .config-value.masked {
+            color: #e74c3c;
+        }
+        
+        @media (max-width: 600px) {
+            .setup-container {
+                padding: 30px 20px;
+                margin: 10px;
+            }
+            
+            .header h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="setup-container">
+        <div class="header">
+            <h1>🚗 Настройка Toyota Dashboard</h1>
+            <p>Введите ваши данные Toyota Connected Services</p>
+        </div>
+        
+        <div id="alerts"></div>
+        
+        <!-- Текущая конфигурация -->
+        <div class="current-config" id="current-config" style="display: none;">
+            <h3>📋 Текущие настройки</h3>
+            <div class="config-item">
+                <span class="config-label">Email:</span>
+                <span class="config-value" id="current-username">не настроен</span>
+            </div>
+            <div class="config-item">
+                <span class="config-label">Пароль:</span>
+                <span class="config-value masked" id="current-password">не настроен</span>
+            </div>
+            <div class="config-item">
+                <span class="config-label">VIN:</span>
+                <span class="config-value" id="current-vin">не настроен</span>
+            </div>
+            <div class="config-item">
+                <span class="config-label">Регион:</span>
+                <span class="config-value" id="current-region">не настроен</span>
+            </div>
+            <div class="config-item">
+                <span class="config-label">Порт:</span>
+                <span class="config-value" id="current-port">не настроен</span>
+            </div>
+        </div>
+        
+        <form id="setup-form">
+            <div class="form-group">
+                <label for="username">📧 Email Toyota Connected</label>
+                <input type="email" id="username" name="username" required 
+                       placeholder="your-email@example.com">
+                <div class="help-text">Email, который вы используете для входа в Toyota Connected Services</div>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">🔒 Пароль</label>
+                <div class="password-toggle">
+                    <input type="password" id="password" name="password" required 
+                           placeholder="Ваш пароль">
+                    <button type="button" onclick="togglePassword()">👁️</button>
+                </div>
+                <div class="help-text">Пароль от Toyota Connected Services</div>
+            </div>
+            
+            <div class="form-group">
+                <label for="vin">🚗 VIN номер автомобиля</label>
+                <input type="text" id="vin" name="vin" required 
+                       placeholder="17-символьный VIN номер" 
+                       pattern="[A-HJ-NPR-Z0-9]{17}" 
+                       maxlength="17"
+                       style="text-transform: uppercase;">
+                <div class="help-text">VIN номер вашего Toyota автомобиля (17 символов)</div>
+            </div>
+            
+            <div class="form-group">
+                <label for="region">🌍 Регион</label>
+                <select id="region" name="region" required>
+                    <option value="europe">Европа</option>
+                    <option value="north_america">Северная Америка</option>
+                    <option value="asia">Азия</option>
+                </select>
+                <div class="help-text">Выберите ваш регион</div>
+            </div>
+            
+            <div class="form-group">
+                <label for="port">🌐 Порт сервера</label>
+                <input type="number" id="port" name="port" required 
+                       value="2025" min="1024" max="65535">
+                <div class="help-text">Порт для доступа к дашборду (по умолчанию 2025)</div>
+            </div>
+            
+            <button type="button" class="test-connection" onclick="testConnection()">
+                🔍 Проверить подключение
+            </button>
+            
+            <button type="submit" class="submit-btn">
+                💾 Сохранить настройки
+            </button>
+        </form>
+        
+        <div style="margin-top: 30px; text-align: center; color: #7f8c8d; font-size: 14px;">
+            <p>🔒 Ваши данные хранятся локально и используются только для подключения к Toyota API</p>
+        </div>
+    </div>
+    
+    <script>
+        // Загрузка текущей конфигурации при загрузке страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            loadCurrentConfig();
+        });
+        
+        // Загрузка текущей конфигурации
+        async function loadCurrentConfig() {
+            try {
+                const response = await fetch('/api/config');
+                if (response.ok) {
+                    const config = await response.json();
+                    displayCurrentConfig(config);
+                    fillForm(config);
+                }
+            } catch (error) {
+                console.log('Конфигурация не загружена:', error);
+            }
+        }
+        
+        // Отображение текущей конфигурации
+        function displayCurrentConfig(config) {
+            document.getElementById('current-config').style.display = 'block';
+            document.getElementById('current-username').textContent = config.toyota?.username || 'не настроен';
+            document.getElementById('current-password').textContent = config.toyota?.password ? '••••••••' : 'не настроен';
+            document.getElementById('current-vin').textContent = config.toyota?.vin || 'не настроен';
+            document.getElementById('current-region').textContent = config.toyota?.region || 'не настроен';
+            document.getElementById('current-port').textContent = config.server?.port || 'не настроен';
+        }
+        
+        // Заполнение формы текущими значениями
+        function fillForm(config) {
+            if (config.toyota) {
+                document.getElementById('username').value = config.toyota.username || '';
+                document.getElementById('vin').value = config.toyota.vin || '';
+                document.getElementById('region').value = config.toyota.region || 'europe';
+            }
+            if (config.server) {
+                document.getElementById('port').value = config.server.port || 2025;
+            }
+        }
+        
+        // Переключение видимости пароля
+        function togglePassword() {
+            const passwordInput = document.getElementById('password');
+            const toggleButton = passwordInput.nextElementSibling;
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleButton.textContent = '🙈';
+            } else {
+                passwordInput.type = 'password';
+                toggleButton.textContent = '👁️';
+            }
+        }
+        
+        // Проверка подключения
+        async function testConnection() {
+            const button = document.querySelector('.test-connection');
+            const originalText = button.innerHTML;
+            
+            // Получение данных формы
+            const formData = getFormData();
+            
+            if (!validateForm(formData)) {
+                showAlert('Пожалуйста, заполните все поля', 'error');
+                return;
+            }
+            
+            // Показать загрузку
+            button.innerHTML = '<span class="loading"></span>Проверка подключения...';
+            button.disabled = true;
+            
+            try {
+                const response = await fetch('/api/test-connection', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    showAlert('✅ Подключение успешно! Найден автомобиль: ' + result.vehicle_info, 'success');
+                } else {
+                    showAlert('❌ Ошибка подключения: ' + (result.error || 'Неизвестная ошибка'), 'error');
+                }
+            } catch (error) {
+                showAlert('❌ Ошибка сети: ' + error.message, 'error');
+            } finally {
+                button.innerHTML = originalText;
+                button.disabled = false;
+            }
+        }
+        
+        // Обработка отправки формы
+        document.getElementById('setup-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const submitButton = document.querySelector('.submit-btn');
+            const originalText = submitButton.innerHTML;
+            
+            // Получение данных формы
+            const formData = getFormData();
+            
+            if (!validateForm(formData)) {
+                showAlert('Пожалуйста, заполните все поля корректно', 'error');
+                return;
+            }
+            
+            // Показать загрузку
+            submitButton.innerHTML = '<span class="loading"></span>Сохранение...';
+            submitButton.disabled = true;
+            
+            try {
+                const response = await fetch('/api/save-config', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    showAlert('✅ Настройки сохранены! Сервер будет перезапущен...', 'success');
+                    
+                    // Обновить отображение текущей конфигурации
+                    setTimeout(() => {
+                        loadCurrentConfig();
+                        
+                        // Перенаправление на новый порт через 3 секунды
+                        if (formData.port !== window.location.port) {
+                            setTimeout(() => {
+                                const newUrl = `${window.location.protocol}//${window.location.hostname}:${formData.port}`;
+                                showAlert(`🔄 Перенаправление на новый порт: ${newUrl}`, 'info');
+                                setTimeout(() => {
+                                    window.location.href = newUrl;
+                                }, 2000);
+                            }, 3000);
+                        }
+                    }, 1000);
+                } else {
+                    showAlert('❌ Ошибка сохранения: ' + (result.error || 'Неизвестная ошибка'), 'error');
+                }
+            } catch (error) {
+                showAlert('❌ Ошибка сети: ' + error.message, 'error');
+            } finally {
+                submitButton.innerHTML = originalText;
+                submitButton.disabled = false;
+            }
+        });
+        
+        // Получение данных формы
+        function getFormData() {
+            return {
+                username: document.getElementById('username').value.trim(),
+                password: document.getElementById('password').value,
+                vin: document.getElementById('vin').value.trim().toUpperCase(),
+                region: document.getElementById('region').value,
+                port: parseInt(document.getElementById('port').value)
+            };
+        }
+        
+        // Валидация формы
+        function validateForm(data) {
+            if (!data.username || !data.password || !data.vin || !data.region || !data.port) {
+                return false;
+            }
+            
+            // Проверка email
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(data.username)) {
+                return false;
+            }
+            
+            // Проверка VIN
+            const vinRegex = /^[A-HJ-NPR-Z0-9]{17}$/;
+            if (!vinRegex.test(data.vin)) {
+                return false;
+            }
+            
+            // Проверка порта
+            if (data.port < 1024 || data.port > 65535) {
+                return false;
+            }
+            
+            return true;
+        }
+        
+        // Показать уведомление
+        function showAlert(message, type) {
+            const alertsContainer = document.getElementById('alerts');
+            const alert = document.createElement('div');
+            alert.className = `alert ${type}`;
+            alert.textContent = message;
+            
+            alertsContainer.appendChild(alert);
+            
+            // Автоматически скрыть через 10 секунд
+            setTimeout(() => {
+                alert.remove();
+            }, 10000);
+        }
+        
+        // Автоматическое форматирование VIN
+        document.getElementById('vin').addEventListener('input', function(e) {
+            e.target.value = e.target.value.toUpperCase().replace(/[^A-HJ-NPR-Z0-9]/g, '');
+        });
+        
+        // Проверка доступности порта
+        document.getElementById('port').addEventListener('change', async function(e) {
+            const port = parseInt(e.target.value);
+            if (port && port !== parseInt(window.location.port)) {
+                showAlert(`ℹ️ После сохранения дашборд будет доступен на порту ${port}`, 'info');
+            }
+        });
+    </script>
+</body>
+</html>

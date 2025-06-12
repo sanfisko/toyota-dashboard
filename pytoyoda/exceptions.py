@@ -14,11 +14,11 @@ class ToyotaRegionNotSupportedError(Exception):
 
 
 class ToyotaApiError(Exception):
-    """Raise if a API error occurres."""
+    """Raise if an API error occurs."""
 
 
 class ToyotaInternalError(Exception):
-    """Raise if an internal server error occurres from Toyota."""
+    """Raise if an internal server error occurs from Toyota."""
 
 
 class ToyotaActionNotSupportedError(ToyotaApiError):

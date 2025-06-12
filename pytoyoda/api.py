@@ -20,7 +20,7 @@ from pytoyoda.const import (
     VEHICLE_HEALTH_STATUS_ENDPOINT,
     VEHICLE_LOCATION_ENDPOINT,
     VEHICLE_NOTIFICATION_HISTORY_ENDPOINT,
-    VEHICLE_SERVICE_HISTORY_ENDPONT,
+    VEHICLE_SERVICE_HISTORY_ENDPOINT,
     VEHICLE_TELEMETRY_ENDPOINT,
     VEHICLE_TRIPS_ENDPOINT,
 )
@@ -291,7 +291,10 @@ class Api:
 
         """
         return await self._request_and_parse(
-            ServiceHistoryResponseModel, "GET", VEHICLE_SERVICE_HISTORY_ENDPONT, vin=vin
+            ServiceHistoryResponseModel,
+            "GET",
+            VEHICLE_SERVICE_HISTORY_ENDPOINT,
+            vin=vin,
         )
 
     # Climate Control
