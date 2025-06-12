@@ -266,7 +266,7 @@ main() {
     echo "   • Правила файрвола"
     echo
     print_warning "Если вы хотите переустановить Toyota Dashboard:"
-    echo "curl -sSL https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/toyota_dashboard_server/install.sh | sudo bash"
+    echo "curl -sSL https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/install.sh | sudo bash"
     echo
     print_info "Спасибо за использование Toyota Dashboard! 🚗"
 }

@@ -38,7 +38,7 @@
 ### Автоматическая установка на Raspberry Pi
 ```bash
 # Одна команда для полной установки
-curl -sSL https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/toyota_dashboard_server/install.sh | sudo bash
+curl -sSL https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/install.sh | sudo bash
 ```
 
 ### Настройка через веб-интерфейс
@@ -134,7 +134,7 @@ sudo apt install nginx sqlite3 python3-pip
 ### 3. Настройка конфигурации
 ```bash
 # Копировать пример конфигурации
-cp toyota_dashboard_server/config.example.yaml config.yaml
+cp config.example.yaml config.yaml
 
 # Отредактировать настройки
 nano config.yaml
@@ -143,7 +143,7 @@ nano config.yaml
 ### 4. Запуск сервера
 ```bash
 # Разработка
-cd toyota_dashboard_server
+# Файлы уже в корне репозитория
 python3 app.py
 
 # Продакшн
@@ -220,7 +220,7 @@ sudo systemctl start toyota-dashboard
 ### Полное удаление
 ```bash
 # Одна команда для полного удаления
-curl -sSL https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/toyota_dashboard_server/uninstall.sh | sudo bash
+curl -sSL https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/uninstall.sh | sudo bash
 ```
 
 ### Что удаляется
@@ -265,7 +265,7 @@ pip3 install -r requirements-dev.txt
 pytest
 
 # Запустить линтер
-flake8 toyota_dashboard_server/
+flake8 *.py
 ```
 
 ## 📄 Лицензия
