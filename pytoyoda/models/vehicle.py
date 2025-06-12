@@ -28,7 +28,7 @@ from pytoyoda.models.endpoints.trips import _SummaryItemModel
 from pytoyoda.models.endpoints.vehicle_guid import VehicleGuidModel
 from pytoyoda.models.location import Location
 from pytoyoda.models.lock_status import LockStatus
-from pytoyoda.models.nofication import Notification
+from pytoyoda.models.notification import Notification
 from pytoyoda.models.service_history import ServiceHistory
 from pytoyoda.models.summary import Summary, SummaryType
 from pytoyoda.models.trips import Trip

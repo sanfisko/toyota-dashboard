@@ -14,7 +14,7 @@ from pytoyoda.const import (
     VEHICLE_HEALTH_STATUS_ENDPOINT,
     VEHICLE_LOCATION_ENDPOINT,
     VEHICLE_NOTIFICATION_HISTORY_ENDPOINT,
-    VEHICLE_SERVICE_HISTORY_ENDPONT,
+    VEHICLE_SERVICE_HISTORY_ENDPOINT,
     VEHICLE_TELEMETRY_ENDPOINT,
     VEHICLE_TRIPS_ENDPOINT,
 )
@@ -94,7 +94,7 @@ YESTERDAY = TODAY - timedelta(days=1)
         ),
         (
             "GET",
-            VEHICLE_SERVICE_HISTORY_ENDPONT,
+            VEHICLE_SERVICE_HISTORY_ENDPOINT,
             ServiceHistoryResponseModel,
             "v1_service_history",
             "service_history-happy",

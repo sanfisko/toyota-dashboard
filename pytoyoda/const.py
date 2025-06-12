@@ -4,12 +4,12 @@
 CLIENT_VERSION = "2.14.0"
 
 # API URLs
-API_BASE_URL = "HTTPS://ctpa-oneapi.tceu-ctp-prd.toyotaconnectedeurope.io"
+API_BASE_URL = "https://ctpa-oneapi.tceu-ctp-prd.toyotaconnectedeurope.io"
 ACCESS_TOKEN_URL = (
-    "HTTPS://b2c-login.toyota-europe.com/oauth2/realms/root/realms/tme/access_token"  # noqa : S105
+    "https://b2c-login.toyota-europe.com/oauth2/realms/root/realms/tme/access_token"  # noqa : S105
 )
-AUTHENTICATE_URL = "HTTPS://b2c-login.toyota-europe.com/json/realms/root/realms/tme/authenticate?authIndexType=service&authIndexValue=oneapp"
-AUTHORIZE_URL = "HTTPS://b2c-login.toyota-europe.com/oauth2/realms/root/realms/tme/authorize?client_id=oneapp&scope=openid+profile+write&response_type=code&redirect_uri=com.toyota.oneapp:/oauth2Callback&code_challenge=plain&code_challenge_method=plain"
+AUTHENTICATE_URL = "https://b2c-login.toyota-europe.com/json/realms/root/realms/tme/authenticate?authIndexType=service&authIndexValue=oneapp"
+AUTHORIZE_URL = "https://b2c-login.toyota-europe.com/oauth2/realms/root/realms/tme/authorize?client_id=oneapp&scope=openid+profile+write&response_type=code&redirect_uri=com.toyota.oneapp:/oauth2Callback&code_challenge=plain&code_challenge_method=plain"
 
 # Endpoint URLs
 CUSTOMER_ACCOUNT_ENDPOINT = "TBD"
@@ -25,7 +25,7 @@ VEHICLE_GLOBAL_REMOTE_ELECTRIC_REALTIME_STATUS_ENDPOINT = (
 VEHICLE_TELEMETRY_ENDPOINT = "/v3/telemetry"
 VEHICLE_NOTIFICATION_HISTORY_ENDPOINT = "/v2/notification/history"
 VEHICLE_TRIPS_ENDPOINT = "/v1/trips?from={from_date}&to={to_date}&route={route}&summary={summary}&limit={limit}&offset={offset}"  # noqa: E501
-VEHICLE_SERVICE_HISTORY_ENDPONT = "/v1/servicehistory/vehicle/summary"
+VEHICLE_SERVICE_HISTORY_ENDPOINT = "/v1/servicehistory/vehicle/summary"
 VEHICLE_CLIMATE_CONTROL_ENDPOINT = "/v1/global/remote/climate-control"
 VEHICLE_CLIMATE_SETTINGS_ENDPOINT = "/v1/global/remote/climate-settings"
 VEHICLE_CLIMATE_STATUS_ENDPOINT = "/v1/global/remote/climate-status"
