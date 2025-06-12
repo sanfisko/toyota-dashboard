@@ -233,11 +233,7 @@ sudo systemctl start toyota-dashboard
 
 ### Полное удаление
 ```bash
-# Интерактивное удаление (с подтверждением)
-curl -sSL https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/uninstall.sh | sudo bash
-
-# Автоматическое удаление (без подтверждения)
-curl -sSL https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/uninstall.sh | sudo bash -s -- -y
+curl -sSL "https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/uninstall.sh?$(date +%s)" | sudo bash
 ```
 
 ### Что удаляется
