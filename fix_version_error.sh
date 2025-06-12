@@ -53,6 +53,13 @@ cd /opt/toyota-dashboard
 print_step "Stopping toyota-dashboard service..."
 systemctl stop toyota-dashboard || true
 
+# Create logs directory if missing
+if [[ ! -d "logs" ]]; then
+    print_step "Creating logs directory..."
+    sudo -u toyota mkdir -p logs
+    print_success "Logs directory created"
+fi
+
 # Fix the version issue in pytoyoda/__init__.py
 print_step "Fixing version error in pytoyoda/__init__.py..."
 if [[ -f "pytoyoda/__init__.py" ]]; then

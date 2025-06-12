@@ -275,6 +275,7 @@ create_directories() {
     print_step "Создание директорий..."
     
     sudo mkdir -p /opt/toyota-dashboard
+    sudo mkdir -p /opt/toyota-dashboard/logs
     sudo mkdir -p /var/log/toyota-dashboard
     sudo mkdir -p /var/lib/toyota-dashboard/data
     sudo mkdir -p /var/lib/toyota-dashboard/backups
@@ -313,6 +314,13 @@ download_project() {
     fi
     
     sudo chown -R toyota:toyota /opt/toyota-dashboard
+    
+    # Создание директории logs если отсутствует
+    if [[ ! -d "logs" ]]; then
+        print_step "Создание директории logs..."
+        sudo -u toyota mkdir -p logs
+        print_success "Директория logs создана"
+    fi
     
     # Исправление проблемы с версией pytoyoda
     if [[ -f "pytoyoda/__init__.py" ]]; then
@@ -682,6 +690,13 @@ fix_dependencies() {
         print_error "Ошибка установки зависимостей"
         exit 1
     }
+    
+    # Создание директории logs если отсутствует
+    if [[ ! -d "logs" ]]; then
+        print_step "Создание директории logs..."
+        sudo -u toyota mkdir -p logs
+        print_success "Директория logs создана"
+    fi
     
     # Исправление проблемы с версией pytoyoda
     if [[ -f "pytoyoda/__init__.py" ]]; then

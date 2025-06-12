@@ -25,6 +25,9 @@ from pytoyoda.models.endpoints.command import CommandType
 from database import DatabaseManager
 from models import VehicleStatus, TripData, StatsPeriod
 
+# Создание директории для логов
+os.makedirs('logs', exist_ok=True)
+
 # Настройка логирования
 logging.basicConfig(
     level=logging.INFO,

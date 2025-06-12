@@ -90,6 +90,13 @@ sudo -u toyota bash -c "
     exit 1
 }
 
+# Create logs directory if missing
+if [[ ! -d "logs" ]]; then
+    print_step "Creating logs directory..."
+    sudo -u toyota mkdir -p logs
+    print_success "Logs directory created"
+fi
+
 # Fix version issue
 if [[ -f "pytoyoda/__init__.py" ]]; then
     print_step "Fixing version error in pytoyoda/__init__.py..."
