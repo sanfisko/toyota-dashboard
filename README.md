@@ -44,26 +44,22 @@ curl -sSL "https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/inst
 
 ### ⚠️ Решение проблем установки
 
-**Проблемы с зависимостями или запуском сервиса:**
-Если сервис не запускается из-за отсутствующих зависимостей, используйте:
+**Любые проблемы с установкой или запуском:**
+Если возникают проблемы, просто переустановите систему:
 ```bash
-# Исправить все проблемы одной командой
-curl -sSL "https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/fix_all_issues.sh" | sudo bash
+# Удалить старую установку
+curl -sSL "https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/uninstall.sh" | sudo bash
 
-# Или исправить отдельные проблемы:
-curl -sSL "https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/fix_dependencies.sh" | sudo bash
-curl -sSL "https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/fix_version_error.sh" | sudo bash
+# Установить заново
+curl -sSL "https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/install.sh" | sudo bash
 ```
 
 **Ошибка "externally-managed-environment" (Python 3.11+):**
 Если вы видите ошибку PEP 668, попробуйте:
 ```bash
-# Обновите скрипт установки (может быть кеширование)
-curl -sSL "https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/install.sh?$(date +%s)" | sudo bash
-
-# Или установите вручную python3-full
-sudo apt update && sudo apt install -y python3-full python3-venv
-curl -sSL "https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/install.sh?$(date +%s)" | sudo bash
+sudo rm /usr/lib/python*/EXTERNALLY-MANAGED
+# Затем повторите установку
+curl -sSL "https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/install.sh" | sudo bash
 ```
 
 ### Настройка через веб-интерфейс

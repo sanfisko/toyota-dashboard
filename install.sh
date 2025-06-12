@@ -724,6 +724,37 @@ fix_dependencies() {
     print_info "Просмотр логов: sudo journalctl -u toyota-dashboard -f"
 }
 
+# Проверка файловой системы
+check_filesystem() {
+    print_step "Проверка файловой системы..."
+    
+    # Проверка на read-only файловую систему
+    if mount | grep -q "/ .*ro,"; then
+        print_warning "Корневая файловая система смонтирована только для чтения!"
+        print_step "Попытка перемонтирования в режим чтения-записи..."
+        
+        if mount -o remount,rw / 2>/dev/null; then
+            print_success "Файловая система перемонтирована в режим чтения-записи"
+        else
+            print_error "Не удалось перемонтировать файловую систему"
+            print_info "Возможные решения:"
+            print_info "1. Перезагрузите систему: sudo reboot"
+            print_info "2. Проверьте SD-карту на ошибки: sudo fsck /dev/mmcblk0p2"
+            print_info "3. Проверьте свободное место: df -h"
+            exit 1
+        fi
+    else
+        print_success "Файловая система доступна для записи"
+    fi
+    
+    # Проверка свободного места
+    available_space=$(df / | tail -1 | awk '{print $4}')
+    if [[ $available_space -lt 1048576 ]]; then  # Меньше 1GB
+        print_warning "Мало свободного места на диске (менее 1GB)"
+        print_info "Рекомендуется освободить место перед установкой"
+    fi
+}
+
 # Основная функция
 main() {
     print_header
@@ -761,6 +792,7 @@ main() {
     
     # Выполнение установки
     check_system
+    check_filesystem
     update_system
     install_dependencies
     create_user
