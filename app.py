@@ -26,9 +26,10 @@ from database import DatabaseManager
 from models import VehicleStatus, TripData, StatsPeriod
 
 # Базовые директории
-APP_DIR = '/opt/toyota-dashboard'
-LOG_DIR = '/var/log/toyota-dashboard'
-DATA_DIR = '/var/lib/toyota-dashboard'
+import os
+APP_DIR = os.path.dirname(os.path.abspath(__file__))
+LOG_DIR = os.path.join(APP_DIR, 'logs')
+DATA_DIR = os.path.join(APP_DIR, 'data')
 
 # Создание директории для логов
 os.makedirs(LOG_DIR, exist_ok=True)
@@ -113,13 +114,29 @@ async def init_toyota_client():
         toyota_client = MyT(
             username=config['toyota']['username'],
             password=config['toyota']['password'],
-            locale=config['dashboard'].get('language', 'ru'),
-            region=config['toyota'].get('region', 'europe')
+            use_metric=config['dashboard'].get('units', 'metric') == 'metric'
         )
         logger.info("Toyota клиент успешно инициализирован")
     except Exception as e:
         logger.error(f"Ошибка инициализации Toyota клиента: {e}")
         raise
+
+# Вспомогательная функция для получения автомобиля
+async def get_vehicle():
+    """Получить объект автомобиля по VIN."""
+    if not toyota_client:
+        raise HTTPException(status_code=503, detail="Toyota клиент не инициализирован")
+    
+    # Получить автомобили
+    await toyota_client.login()
+    vehicles = await toyota_client.get_vehicles()
+    
+    # Найти нужный автомобиль по VIN
+    for vehicle in vehicles:
+        if vehicle.vin == vehicle_vin:
+            return vehicle
+    
+    raise HTTPException(status_code=404, detail=f"Автомобиль с VIN {vehicle_vin} не найден")
 
 # Фоновые задачи
 async def collect_vehicle_data():
@@ -127,29 +144,41 @@ async def collect_vehicle_data():
     while True:
         try:
             if toyota_client:
-                # Получить статус автомобиля
-                status = await toyota_client.get_vehicle_status(vehicle_vin)
-                location = await toyota_client.get_vehicle_location(vehicle_vin)
-                electric_status = await toyota_client.get_electric_status(vehicle_vin)
+                # Получить автомобили
+                await toyota_client.login()
+                vehicles = await toyota_client.get_vehicles()
                 
-                # Сохранить в базу данных
-                vehicle_data = VehicleStatus(
-                    timestamp=datetime.now(),
-                    battery_level=electric_status.battery_level,
-                    fuel_level=status.fuel_level,
-                    range_electric=electric_status.range_electric,
-                    range_fuel=status.range_fuel,
-                    latitude=location.latitude,
-                    longitude=location.longitude,
-                    locked=status.locked,
-                    engine_running=status.engine_running,
-                    climate_on=status.climate_on,
-                    temperature_inside=status.temperature_inside,
-                    temperature_outside=status.temperature_outside
-                )
+                # Найти нужный автомобиль по VIN
+                target_vehicle = None
+                for vehicle in vehicles:
+                    if vehicle.vin == vehicle_vin:
+                        target_vehicle = vehicle
+                        break
                 
-                await db.save_vehicle_status(vehicle_data)
-                logger.info("Данные автомобиля обновлены")
+                if target_vehicle:
+                    # Обновить данные автомобиля
+                    await target_vehicle.update()
+                    
+                    # Сохранить в базу данных
+                    vehicle_data = VehicleStatus(
+                        timestamp=datetime.now(),
+                        battery_level=target_vehicle.electric_status.battery_level if target_vehicle.electric_status else 0,
+                        fuel_level=target_vehicle.dashboard.fuel_level if target_vehicle.dashboard else 0,
+                        range_electric=target_vehicle.electric_status.range_electric if target_vehicle.electric_status else 0,
+                        range_fuel=target_vehicle.dashboard.range_fuel if target_vehicle.dashboard else 0,
+                        latitude=target_vehicle.location.latitude if target_vehicle.location else 0.0,
+                        longitude=target_vehicle.location.longitude if target_vehicle.location else 0.0,
+                        locked=target_vehicle.lock_status.locked if target_vehicle.lock_status else False,
+                        engine_running=False,  # Нужно найти правильное поле
+                        climate_on=False,  # Нужно найти правильное поле
+                        temperature_inside=0.0,  # Нужно найти правильное поле
+                        temperature_outside=0.0  # Нужно найти правильное поле
+                    )
+                    
+                    await db.save_vehicle_status(vehicle_data)
+                    logger.info("Данные автомобиля обновлены")
+                else:
+                    logger.warning(f"Автомобиль с VIN {vehicle_vin} не найден")
                 
         except Exception as e:
             logger.error(f"Ошибка сбора данных: {e}")
@@ -193,30 +222,27 @@ async def setup_page():
 async def get_vehicle_status():
     """Получить текущий статус автомобиля."""
     try:
-        if not toyota_client:
-            raise HTTPException(status_code=503, detail="Toyota клиент не инициализирован")
+        target_vehicle = await get_vehicle()
         
-        # Получить данные из API
-        status = await toyota_client.get_vehicle_status(vehicle_vin)
-        location = await toyota_client.get_vehicle_location(vehicle_vin)
-        electric_status = await toyota_client.get_electric_status(vehicle_vin)
+        # Обновить данные автомобиля
+        await target_vehicle.update()
         
         return {
-            "battery_level": electric_status.battery_level,
-            "fuel_level": status.fuel_level,
-            "range_electric": electric_status.range_electric,
-            "range_fuel": status.range_fuel,
-            "total_range": electric_status.range_electric + status.range_fuel,
+            "battery_level": target_vehicle.electric_status.battery_level if target_vehicle.electric_status else 0,
+            "fuel_level": target_vehicle.dashboard.fuel_level if target_vehicle.dashboard else 0,
+            "range_electric": target_vehicle.electric_status.range_electric if target_vehicle.electric_status else 0,
+            "range_fuel": target_vehicle.dashboard.range_fuel if target_vehicle.dashboard else 0,
+            "total_range": (target_vehicle.electric_status.range_electric if target_vehicle.electric_status else 0) + (target_vehicle.dashboard.range_fuel if target_vehicle.dashboard else 0),
             "location": {
-                "latitude": location.latitude,
-                "longitude": location.longitude,
-                "address": location.address
+                "latitude": target_vehicle.location.latitude if target_vehicle.location else 0.0,
+                "longitude": target_vehicle.location.longitude if target_vehicle.location else 0.0,
+                "address": getattr(target_vehicle.location, 'address', 'Неизвестно') if target_vehicle.location else 'Неизвестно'
             },
-            "locked": status.locked,
-            "engine_running": status.engine_running,
-            "climate_on": status.climate_on,
-            "temperature_inside": status.temperature_inside,
-            "temperature_outside": status.temperature_outside,
+            "locked": target_vehicle.lock_status.locked if target_vehicle.lock_status else False,
+            "engine_running": False,  # Нужно найти правильное поле
+            "climate_on": False,  # Нужно найти правильное поле
+            "temperature_inside": 0.0,  # Нужно найти правильное поле
+            "temperature_outside": 0.0,  # Нужно найти правильное поле
             "last_updated": datetime.now().isoformat()
         }
     except Exception as e:
@@ -227,10 +253,8 @@ async def get_vehicle_status():
 async def lock_vehicle():
     """Заблокировать автомобиль."""
     try:
-        if not toyota_client:
-            raise HTTPException(status_code=503, detail="Toyota клиент не инициализирован")
-        
-        result = await toyota_client.send_command(vehicle_vin, CommandType.DOOR_LOCK)
+        target_vehicle = await get_vehicle()
+        result = await target_vehicle.post_command(CommandType.DOOR_LOCK)
         logger.info("Команда блокировки отправлена")
         
         return {"status": "success", "message": "Автомобиль заблокирован"}
@@ -242,10 +266,8 @@ async def lock_vehicle():
 async def unlock_vehicle():
     """Разблокировать автомобиль."""
     try:
-        if not toyota_client:
-            raise HTTPException(status_code=503, detail="Toyota клиент не инициализирован")
-        
-        result = await toyota_client.send_command(vehicle_vin, CommandType.DOOR_UNLOCK)
+        target_vehicle = await get_vehicle()
+        result = await target_vehicle.post_command(CommandType.DOOR_UNLOCK)
         logger.info("Команда разблокировки отправлена")
         
         return {"status": "success", "message": "Автомобиль разблокирован"}
@@ -384,8 +406,7 @@ async def test_connection(request: TestConnectionRequest):
         test_client = MyT(
             username=request.username,
             password=request.password,
-            locale='ru',
-            region=request.region
+            use_metric=True
         )
         
         # Попробовать получить информацию об автомобиле

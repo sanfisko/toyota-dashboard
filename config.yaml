@@ -1,0 +1,129 @@
+# Конфигурация Toyota Dashboard Server
+
+# Настройки подключения к Toyota Connected Services
+toyota:
+  username: "your-email@example.com"  # Ваш email от Toyota Connected
+  password: "your-password"           # Ваш пароль
+  vin: "YOUR_VIN_NUMBER"             # VIN номер вашего Toyota автомобиля (17 символов)
+  region: "europe"                   # Регион: europe, north_america, asia
+
+# Настройки веб-сервера
+server:
+  host: "0.0.0.0"                   # IP адрес (0.0.0.0 для доступа извне)
+  port: 2025                        # Порт сервера (можно изменить на любой свободный)
+  debug: false                      # Режим отладки (true только для разработки)
+  secret_key: "your-secret-key-here" # Секретный ключ (сгенерируйте случайный)
+
+# Настройки базы данных
+database:
+  path: "data/toyota.db"  # Путь к файлу базы данных SQLite
+  backup_interval: 3600             # Интервал резервного копирования (секунды)
+  cleanup_days: 365                 # Через сколько дней удалять старые данные
+
+# Настройки мониторинга
+monitoring:
+  data_collection_interval: 300     # Интервал сбора данных (секунды, 300 = 5 минут)
+  trip_detection: true              # Автоматическое определение поездок
+  auto_refresh: true                # Автоматическое обновление данных
+  max_api_calls_per_hour: 100       # Лимит вызовов API в час
+
+# Настройки автомобиля
+phev_settings:
+  charge_threshold_alert: 80        # Уведомление при заряде выше % (для продления жизни батареи)
+  ev_mode_preference: true          # Приоритет электрического режима
+  charging_schedule: "22:00"        # Рекомендуемое время начала зарядки
+  target_charge_level: 80           # Целевой уровень заряда %
+  preconditioning_enabled: true     # Предварительный прогрев/охлаждение
+
+# Настройки уведомлений
+notifications:
+  low_battery_threshold: 20         # Уведомление при заряде ниже %
+  low_fuel_threshold: 50            # Уведомление при запасе хода ниже км
+  maintenance_alerts: true          # Напоминания о техобслуживании
+  trip_summaries: true              # Сводки поездок
+  daily_reports: true               # Ежедневные отчеты
+  weekly_reports: true              # Еженедельные отчеты
+  
+  # Telegram уведомления (опционально)
+  telegram:
+    enabled: false
+    bot_token: "YOUR_BOT_TOKEN"
+    chat_id: "YOUR_CHAT_ID"
+
+# Настройки дашборда
+dashboard:
+  theme: "auto"                     # Тема: auto, light, dark
+  language: "ru"                    # Язык: ru, en, de, fr, es, it
+  timezone: "Europe/Moscow"         # Часовой пояс
+  units: "metric"                   # Единицы: metric, imperial
+  currency: "RUB"                   # Валюта для расчетов
+  
+  # Цены для расчета экономии
+  fuel_price: 50.0                  # Цена бензина за литр
+  electricity_price: 5.0            # Цена электричества за кВт⋅ч
+  
+  # Настройки карт
+  maps:
+    provider: "openstreetmap"       # openstreetmap, google, yandex
+    api_key: ""                     # API ключ для карт (если нужен)
+
+# Настройки безопасности
+security:
+  enable_https: false               # Включить HTTPS (требует сертификат)
+  ssl_cert_path: ""                 # Путь к SSL сертификату
+  ssl_key_path: ""                  # Путь к SSL ключу
+  allowed_ips: []                   # Разрешенные IP адреса (пустой = все)
+  session_timeout: 3600             # Время жизни сессии (секунды)
+
+# Настройки логирования
+logging:
+  level: "INFO"                     # Уровень: DEBUG, INFO, WARNING, ERROR
+  file_path: "logs/toyota-dashboard.log"
+  max_file_size: "10MB"             # Максимальный размер лог-файла
+  backup_count: 5                   # Количество архивных лог-файлов
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+
+# Интеграции с умным домом
+integrations:
+  # Home Assistant
+  home_assistant:
+    enabled: false
+    url: "http://homeassistant.local:8123"
+    token: "YOUR_HA_TOKEN"
+  
+  # MQTT
+  mqtt:
+    enabled: false
+    broker: "localhost"
+    port: 1883
+    username: ""
+    password: ""
+    topic_prefix: "toyota/chr_phev"
+
+# Экспериментальные функции
+experimental:
+  ai_trip_analysis: false           # ИИ анализ поездок
+  predictive_maintenance: false     # Предиктивное ТО
+  route_optimization: false         # Оптимизация маршрутов
+  eco_coaching: false               # Эко-коучинг
+
+# Настройки производительности
+performance:
+  cache_enabled: true               # Включить кэширование
+  cache_ttl: 300                    # Время жизни кэша (секунды)
+  max_concurrent_requests: 10       # Максимум одновременных запросов к API
+  request_timeout: 30               # Таймаут запросов (секунды)
+
+# Настройки резервного копирования
+backup:
+  enabled: true                     # Включить автоматическое резервное копирование
+  interval: 86400                   # Интервал (секунды, 86400 = 24 часа)
+  keep_backups: 7                   # Количество резервных копий
+  backup_path: "data/backups/"           # Папка для резервных копий
+  
+  # Облачное резервное копирование
+  cloud:
+    enabled: false
+    provider: "dropbox"             # dropbox, google_drive, yandex_disk
+    api_key: ""
+    folder: "/toyota_dashboard_backups"
