@@ -26,14 +26,15 @@ from database import DatabaseManager
 from models import VehicleStatus, TripData, StatsPeriod
 
 # Создание директории для логов
-os.makedirs('logs', exist_ok=True)
+log_dir = '/var/log/toyota-dashboard'
+os.makedirs(log_dir, exist_ok=True)
 
 # Настройка логирования
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler('logs/toyota-dashboard.log'),
+        logging.FileHandler(f'{log_dir}/app.log'),
         logging.StreamHandler()
     ]
 )

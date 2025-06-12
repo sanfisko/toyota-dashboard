@@ -45,7 +45,7 @@ curl -sSL "https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/inst
 ### ⚠️ Решение проблем установки
 
 **Проблемы с зависимостями или запуском сервиса:**
-Если сервис не запускается из-за отсутствующих зависимостей, используйте:
+Если сервис не запускается, используйте:
 ```bash
 # Исправить все проблемы одной командой
 curl -sSL "https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/fix_all_issues.sh" | sudo bash
@@ -53,6 +53,13 @@ curl -sSL "https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/fix_
 # Или исправить отдельные проблемы:
 curl -sSL "https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/fix_dependencies.sh" | sudo bash
 curl -sSL "https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/fix_version_error.sh" | sudo bash
+curl -sSL "https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/fix_readonly_filesystem.sh" | sudo bash
+```
+
+**Ошибка "Read-only file system":**
+Если видите ошибку "OSError: [Errno 30] Read-only file system", используйте:
+```bash
+curl -sSL "https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/fix_readonly_filesystem.sh" | sudo bash
 ```
 
 **Ошибка "externally-managed-environment" (Python 3.11+):**

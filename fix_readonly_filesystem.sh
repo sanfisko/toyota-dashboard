@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Toyota Dashboard - Fix All Issues
-# This script fixes both dependency and version issues
+# Toyota Dashboard - Fix Read-only Filesystem Issue
+# This script fixes the read-only filesystem issue and sets up proper logging
 
 set -e
 
@@ -35,8 +35,8 @@ print_success() {
 print_header() {
     echo
     echo "╔══════════════════════════════════════════════════════════════╗"
-    echo "║                Toyota Dashboard Fix All Issues              ║"
-    echo "║              Исправление всех проблем                       ║"
+    echo "║           Toyota Dashboard - Fix Filesystem Issues          ║"
+    echo "║              Исправление проблем файловой системы           ║"
     echo "╚══════════════════════════════════════════════════════════════╝"
     echo
 }
@@ -56,102 +56,63 @@ if [[ ! -d "/opt/toyota-dashboard" ]]; then
     exit 1
 fi
 
-cd /opt/toyota-dashboard
-
 # Stop the service
 print_step "Stopping toyota-dashboard service..."
 systemctl stop toyota-dashboard || true
 
-# Check and fix filesystem issues
+# Check filesystem status
 print_step "Checking filesystem status..."
 if mount | grep -q "/ .*ro,"; then
     print_warning "Root filesystem is mounted read-only!"
     print_step "Attempting to remount as read-write..."
     mount -o remount,rw / || {
         print_error "Failed to remount filesystem as read-write"
-        print_info "You may need to reboot the system: sudo reboot"
+        print_info "You may need to:"
+        print_info "1. Check SD card for errors: sudo fsck /dev/mmcblk0p2"
+        print_info "2. Reboot the system: sudo reboot"
         exit 1
     }
     print_success "Filesystem remounted as read-write"
+else
+    print_info "Filesystem is already read-write"
 fi
 
-# Ensure proper permissions
-print_step "Setting up proper permissions..."
+# Check disk space
+print_step "Checking disk space..."
+df_output=$(df -h / | tail -1)
+echo "Disk usage: $df_output"
+available_space=$(echo "$df_output" | awk '{print $4}' | sed 's/[^0-9]//g')
+if [[ $available_space -lt 100 ]]; then
+    print_warning "Low disk space detected (less than 100MB available)"
+    print_info "Consider cleaning up old files or expanding storage"
+fi
+
+# Ensure proper permissions for log directory
+print_step "Setting up log directory permissions..."
 mkdir -p /var/log/toyota-dashboard
 chown -R toyota:toyota /var/log/toyota-dashboard
-chown -R toyota:toyota /opt/toyota-dashboard
 chmod 755 /var/log/toyota-dashboard
-chmod 755 /opt/toyota-dashboard
-print_success "Permissions set correctly"
+print_success "Log directory permissions set"
 
-# Fix dependencies
-print_step "Installing missing dependencies..."
-sudo -u toyota bash -c "
-    source venv/bin/activate
-    pip install --upgrade pip
-    
-    # Install critical dependencies
-    echo 'Installing PyJWT...'
-    pip install pyjwt==2.8.0
-    
-    echo 'Installing Arrow...'
-    pip install arrow==1.3.0
-    
-    echo 'Installing Langcodes...'
-    pip install langcodes==3.4.0
-    
-    # Verify installation
-    echo 'Verifying dependencies:'
-    python3 -c 'import jwt; print(\"✓ PyJWT:\", jwt.__version__)'
-    python3 -c 'import arrow; print(\"✓ Arrow:\", arrow.__version__)'
-    python3 -c 'import langcodes; print(\"✓ Langcodes installed\")'
-    
-    echo 'All dependencies installed successfully'
-" || {
-    print_error "Error installing dependencies"
-    exit 1
-}
+# Ensure proper permissions for application directory
+print_step "Setting up application directory permissions..."
+chown -R toyota:toyota /opt/toyota-dashboard
+chmod 755 /opt/toyota-dashboard
+print_success "Application directory permissions set"
+
+# Create a test log file to verify write permissions
+print_step "Testing write permissions..."
+sudo -u toyota touch /var/log/toyota-dashboard/test.log && rm /var/log/toyota-dashboard/test.log
+print_success "Write permissions verified"
 
 # Update app.py to use system log directory (if not already updated)
+cd /opt/toyota-dashboard
 if grep -q "logs/toyota-dashboard.log" app.py; then
     print_step "Updating app.py to use system log directory..."
     sudo -u toyota sed -i "s|'logs/toyota-dashboard.log'|'/var/log/toyota-dashboard/app.log'|g" app.py
     sudo -u toyota sed -i "s|os.makedirs('logs', exist_ok=True)|log_dir = '/var/log/toyota-dashboard'; os.makedirs(log_dir, exist_ok=True)|g" app.py
     print_success "App.py updated to use system log directory"
 fi
-
-# Fix version issue
-if [[ -f "pytoyoda/__init__.py" ]]; then
-    print_step "Fixing version error in pytoyoda/__init__.py..."
-    # Create backup
-    cp pytoyoda/__init__.py pytoyoda/__init__.py.backup
-    
-    # Fix the version line
-    sed -i 's/from importlib_metadata import version/# from importlib_metadata import version/' pytoyoda/__init__.py
-    sed -i 's/__version__ = version(__name__)/__version__ = "0.0.0"/' pytoyoda/__init__.py
-    
-    print_success "Version error fixed"
-else
-    print_error "pytoyoda/__init__.py not found"
-    exit 1
-fi
-
-# Verify all fixes
-print_step "Verifying all fixes..."
-sudo -u toyota bash -c "
-    cd /opt/toyota-dashboard
-    source venv/bin/activate
-    python3 -c 'from pytoyoda import MyT; print(\"✓ PyToyoda import successful\")'
-    python3 -c 'import jwt, arrow, langcodes; print(\"✓ All dependencies working\")'
-" || {
-    print_error "Verification failed"
-    # Restore backup if available
-    if [[ -f "pytoyoda/__init__.py.backup" ]]; then
-        cp pytoyoda/__init__.py.backup pytoyoda/__init__.py
-        print_info "Backup restored"
-    fi
-    exit 1
-}
 
 # Start the service
 print_step "Starting toyota-dashboard service..."
@@ -167,14 +128,21 @@ else
     exit 1
 fi
 
-print_success "All issues fixed successfully!"
+print_success "Filesystem issues fixed successfully!"
 echo
 echo "╔══════════════════════════════════════════════════════════════╗"
 echo "║                        SUCCESS!                             ║"
 echo "╚══════════════════════════════════════════════════════════════╝"
 echo
 print_info "Toyota Dashboard is now running properly"
-print_info "Access your dashboard at: http://$(hostname -I | awk '{print $1}')"
+print_info "Application logs: tail -f /var/log/toyota-dashboard/app.log"
+print_info "System logs: sudo journalctl -u toyota-dashboard -f"
 print_info "Check service status: sudo systemctl status toyota-dashboard"
-print_info "View logs: sudo journalctl -u toyota-dashboard -f"
 echo
+
+# Additional recommendations
+print_info "Recommendations to prevent future issues:"
+print_info "1. Regularly check disk space: df -h"
+print_info "2. Monitor system logs: sudo journalctl -f"
+print_info "3. Consider using log rotation: logrotate"
+print_info "4. Check SD card health periodically"
