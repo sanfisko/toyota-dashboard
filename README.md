@@ -37,8 +37,11 @@
 
 ### Автоматическая установка на Raspberry Pi
 ```bash
-# Одна команда для полной установки
+# Интерактивная установка (с подтверждением)
 curl -sSL https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/install.sh | sudo bash
+
+# Автоматическая установка (без подтверждения)
+curl -sSL https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/install.sh | sudo bash -s -- -y
 ```
 
 ### Настройка через веб-интерфейс

@@ -3,6 +3,13 @@
 # Toyota Dashboard Server - Установочный скрипт для Raspberry Pi
 # Автор: OpenHands AI
 # Версия: 1.0.0
+#
+# Использование:
+#   curl -sSL https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/install.sh | sudo bash
+#   curl -sSL https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/install.sh | sudo bash -s -- -y
+#
+# Флаги:
+#   -y, --yes    Автоматическое подтверждение без интерактивного запроса
 
 set -e  # Остановить при ошибке
 
@@ -473,13 +480,17 @@ main() {
         exit 1
     fi
     
-    # Подтверждение установки
-    echo -e "${YELLOW}Этот скрипт установит Toyota Dashboard на ваш Raspberry Pi.${NC}"
-    echo -e "${YELLOW}Продолжить? (y/N)${NC}"
-    read -r response
-    if [[ ! "$response" =~ ^[Yy]$ ]]; then
-        echo "Установка отменена"
-        exit 0
+    # Подтверждение установки (если не указан флаг -y)
+    if [[ "$1" != "-y" && "$1" != "--yes" ]]; then
+        echo -e "${YELLOW}Этот скрипт установит Toyota Dashboard на ваш Raspberry Pi.${NC}"
+        echo -e "${YELLOW}Продолжить? (y/N)${NC}"
+        read -r response
+        if [[ ! "$response" =~ ^[Yy]$ ]]; then
+            echo "Установка отменена"
+            exit 0
+        fi
+    else
+        echo -e "${GREEN}Автоматическая установка Toyota Dashboard...${NC}"
     fi
     
     # Выполнение установки
