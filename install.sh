@@ -598,7 +598,7 @@ show_final_info() {
     echo "   sudo systemctl start|stop|restart|status toyota-dashboard"
     echo
     echo -e "${YELLOW}7. Удаление (если понадобится):${NC}"
-    echo "   curl -sSL https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/uninstall.sh | sudo bash"
+    echo "   curl -sSL \"https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/uninstall.sh?\$(date +%s)\" | sudo bash"
     echo
     echo -e "${GREEN}Установка завершена успешно! 🚗✨${NC}"
 }
