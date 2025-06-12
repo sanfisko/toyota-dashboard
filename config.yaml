@@ -2,15 +2,15 @@
 
 # Настройки подключения к Toyota Connected Services
 toyota:
-  username: "your-email@example.com"  # Ваш email от Toyota Connected
-  password: "your-password"           # Ваш пароль
-  vin: "YOUR_VIN_NUMBER"             # VIN номер вашего Toyota автомобиля (17 символов)
+  username: "sanfisko@gmail.com"     # Ваш email от Toyota Connected
+  password: "$@nfiSK3"               # Ваш пароль
+  vin: "JTPABACA90R004975"           # VIN номер вашего Toyota автомобиля (17 символов)
   region: "europe"                   # Регион: europe, north_america, asia
 
 # Настройки веб-сервера
 server:
   host: "0.0.0.0"                   # IP адрес (0.0.0.0 для доступа извне)
-  port: 2025                        # Порт сервера (можно изменить на любой свободный)
+  port: 12000                       # Порт сервера (можно изменить на любой свободный)
   debug: false                      # Режим отладки (true только для разработки)
   secret_key: "your-secret-key-here" # Секретный ключ (сгенерируйте случайный)
 
