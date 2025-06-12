@@ -38,7 +38,7 @@
 ### Автоматическая установка на Raspberry Pi
 ```bash
 # Одна команда для полной установки
-curl -sSL https://raw.githubusercontent.com/tifainechevaliermuzpub/toyota-dashboard/main/toyota_dashboard_server/install.sh | sudo bash
+curl -sSL https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/toyota_dashboard_server/install.sh | sudo bash
 ```
 
 ### Настройка через веб-интерфейс
@@ -117,7 +117,7 @@ GET  /docs          # Swagger документация
 
 ### 1. Клонирование репозитория
 ```bash
-git clone https://github.com/tifainechevaliermuzpub/toyota-dashboard.git
+git clone https://github.com/sanfisko/toyota-dashboard.git
 cd toyota-dashboard
 ```
 
@@ -220,7 +220,7 @@ sudo systemctl start toyota-dashboard
 ### Полное удаление
 ```bash
 # Одна команда для полного удаления
-curl -sSL https://raw.githubusercontent.com/tifainechevaliermuzpub/toyota-dashboard/main/toyota_dashboard_server/uninstall.sh | sudo bash
+curl -sSL https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/toyota_dashboard_server/uninstall.sh | sudo bash
 ```
 
 ### Что удаляется
@@ -236,11 +236,11 @@ curl -sSL https://raw.githubusercontent.com/tifainechevaliermuzpub/toyota-dashbo
 ## 🆘 Поддержка
 
 ### Сообщество
-- 🐛 **[GitHub Issues](https://github.com/tifainechevaliermuzpub/toyota-dashboard/issues)** - баги и предложения
+- 🐛 **[GitHub Issues](https://github.com/sanfisko/toyota-dashboard/issues)** - баги и предложения
 - 💬 **Telegram**: @toyota_dashboard_support
 
 ### Документация
-- 📖 **[Wiki](https://github.com/tifainechevaliermuzpub/toyota-dashboard/wiki)** - подробные инструкции
+- 📖 **[Wiki](https://github.com/sanfisko/toyota-dashboard/wiki)** - подробные инструкции
 - 🔧 **[API Docs](http://IP_RASPBERRY_PI/docs)** - Swagger документация
 - 🎥 **[YouTube](https://youtube.com/@toyota-dashboard)** - видео инструкции
 
@@ -255,7 +255,7 @@ curl -sSL https://raw.githubusercontent.com/tifainechevaliermuzpub/toyota-dashbo
 ### Разработка
 ```bash
 # Клонировать для разработки
-git clone https://github.com/tifainechevaliermuzpub/toyota-dashboard.git
+git clone https://github.com/sanfisko/toyota-dashboard.git
 cd toyota-dashboard
 
 # Установить зависимости разработки
