@@ -37,9 +37,14 @@
 
 ### Автоматическая установка на Raspberry Pi
 ```bash
-# Одна команда для полной установки
+# Рекомендуемый способ - автоматическая установка
+curl -sSL https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/install.sh | sudo bash -s -- -y
+
+# Альтернативно - интерактивная установка (с подтверждением)
 curl -sSL https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/install.sh | sudo bash
 ```
+
+> **Примечание:** При использовании `curl | bash` рекомендуется использовать флаг `-y` для избежания проблем с интерактивным вводом.
 
 ### Настройка через веб-интерфейс
 1. Откройте `http://IP_RASPBERRY_PI/setup`
