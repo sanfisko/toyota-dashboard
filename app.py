@@ -473,8 +473,8 @@ async def startup_event():
     logger.info("Запуск Toyota Dashboard Server...")
     
     # Создать директории
-    os.makedirs("logs", exist_ok=True)
-    os.makedirs("data", exist_ok=True)
+    data_dir = '/var/lib/toyota-dashboard/data'
+    os.makedirs(data_dir, exist_ok=True)
     
     # Инициализировать базу данных
     await db.init_database()

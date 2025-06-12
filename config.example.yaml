@@ -16,7 +16,7 @@ server:
 
 # Настройки базы данных
 database:
-  path: "data/toyota.db"            # Путь к файлу базы данных SQLite
+  path: "/var/lib/toyota-dashboard/data/toyota.db"  # Путь к файлу базы данных SQLite
   backup_interval: 3600             # Интервал резервного копирования (секунды)
   cleanup_days: 365                 # Через сколько дней удалять старые данные
 
