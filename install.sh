@@ -50,6 +50,111 @@ print_success() {
     echo -e "${GREEN}[SUCCESS]${NC} $1"
 }
 
+# Проверка и установка Python
+check_and_install_python() {
+    print_step "Проверка Python..."
+    
+    # Проверяем, установлен ли Python 3
+    if ! command -v python3 &> /dev/null; then
+        print_warning "Python 3 не найден. Устанавливаем..."
+        
+        # Определяем пакетный менеджер и устанавливаем Python
+        if command -v apt &> /dev/null; then
+            apt update
+            apt install -y python3 python3-pip python3-venv python3-dev
+        elif command -v yum &> /dev/null; then
+            yum install -y python3 python3-pip python3-venv python3-devel
+        elif command -v dnf &> /dev/null; then
+            dnf install -y python3 python3-pip python3-venv python3-devel
+        elif command -v pacman &> /dev/null; then
+            pacman -S --noconfirm python python-pip python-virtualenv
+        else
+            print_error "Неподдерживаемый пакетный менеджер. Установите Python 3.8+ вручную."
+            exit 1
+        fi
+        
+        # Проверяем установку
+        if ! command -v python3 &> /dev/null; then
+            print_error "Не удалось установить Python 3"
+            exit 1
+        fi
+        
+        print_success "Python 3 успешно установлен"
+    fi
+    
+    # Получаем версию Python
+    PYTHON_VERSION=$(python3 --version | cut -d' ' -f2)
+    PYTHON_MAJOR=$(echo "$PYTHON_VERSION" | cut -d'.' -f1)
+    PYTHON_MINOR=$(echo "$PYTHON_VERSION" | cut -d'.' -f2)
+    
+    print_success "Python $PYTHON_VERSION найден"
+    
+    # Проверяем версию Python (требуется 3.8+)
+    if [[ $PYTHON_MAJOR -lt 3 ]] || [[ $PYTHON_MAJOR -eq 3 && $PYTHON_MINOR -lt 8 ]]; then
+        print_warning "Установлен Python $PYTHON_VERSION, но требуется 3.8+. Попытка обновления..."
+        
+        # Пытаемся установить более новую версию
+        if command -v apt &> /dev/null; then
+            # Для Debian/Ubuntu пытаемся установить из deadsnakes PPA
+            apt update
+            apt install -y software-properties-common
+            add-apt-repository -y ppa:deadsnakes/ppa 2>/dev/null || true
+            apt update
+            
+            # Пытаемся установить Python 3.11
+            if apt install -y python3.11 python3.11-pip python3.11-venv python3.11-dev 2>/dev/null; then
+                # Создаем симлинк для python3
+                update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1
+                print_success "Python 3.11 установлен и настроен"
+            else
+                print_error "Не удалось обновить Python до версии 3.8+. Текущая версия: $PYTHON_VERSION"
+                print_error "Пожалуйста, обновите Python вручную до версии 3.8 или выше"
+                exit 1
+            fi
+        else
+            print_error "Требуется Python 3.8 или выше. Установлен: $PYTHON_VERSION"
+            print_error "Пожалуйста, обновите Python вручную"
+            exit 1
+        fi
+        
+        # Перепроверяем версию после обновления
+        PYTHON_VERSION=$(python3 --version | cut -d' ' -f2)
+        PYTHON_MAJOR=$(echo "$PYTHON_VERSION" | cut -d'.' -f1)
+        PYTHON_MINOR=$(echo "$PYTHON_VERSION" | cut -d'.' -f2)
+        
+        if [[ $PYTHON_MAJOR -lt 3 ]] || [[ $PYTHON_MAJOR -eq 3 && $PYTHON_MINOR -lt 8 ]]; then
+            print_error "Обновление Python не удалось. Версия: $PYTHON_VERSION"
+            exit 1
+        fi
+        
+        print_success "Python успешно обновлен до версии $PYTHON_VERSION"
+    fi
+    
+    # Проверяем наличие pip
+    if ! command -v pip3 &> /dev/null; then
+        print_warning "pip3 не найден. Устанавливаем..."
+        
+        if command -v apt &> /dev/null; then
+            apt install -y python3-pip
+        elif command -v yum &> /dev/null; then
+            yum install -y python3-pip
+        elif command -v dnf &> /dev/null; then
+            dnf install -y python3-pip
+        else
+            # Устанавливаем pip через get-pip.py
+            curl -sSL https://bootstrap.pypa.io/get-pip.py | python3
+        fi
+        
+        print_success "pip3 установлен"
+    fi
+    
+    # Обновляем pip до последней версии
+    print_step "Обновление pip..."
+    python3 -m pip install --upgrade pip
+    
+    print_success "Python $PYTHON_VERSION готов к использованию"
+}
+
 # Проверка системы
 check_system() {
     print_step "Проверка системы..."
@@ -71,17 +176,8 @@ check_system() {
         print_warning "Неподдерживаемая архитектура: $ARCH"
     fi
     
-    # Проверка Python
-    if ! command -v python3 &> /dev/null; then
-        print_error "Python 3 не установлен"
-        exit 1
-    fi
-    
-    PYTHON_VERSION=$(python3 --version | cut -d' ' -f2 | cut -d'.' -f1,2)
-    if [[ $(echo "$PYTHON_VERSION < 3.8" | bc -l) -eq 1 ]]; then
-        print_error "Требуется Python 3.8 или выше. Установлен: $PYTHON_VERSION"
-        exit 1
-    fi
+    # Проверка и установка Python
+    check_and_install_python
     
     print_success "Система совместима"
 }
@@ -90,8 +186,19 @@ check_system() {
 update_system() {
     print_step "Обновление системы..."
     
-    sudo apt update
-    sudo apt upgrade -y
+    # Определяем пакетный менеджер и обновляем систему
+    if command -v apt &> /dev/null; then
+        apt update
+        apt upgrade -y
+    elif command -v yum &> /dev/null; then
+        yum update -y
+    elif command -v dnf &> /dev/null; then
+        dnf update -y
+    elif command -v pacman &> /dev/null; then
+        pacman -Syu --noconfirm
+    else
+        print_warning "Неизвестный пакетный менеджер. Пропускаем обновление системы."
+    fi
     
     print_success "Система обновлена"
 }
@@ -100,20 +207,47 @@ update_system() {
 install_dependencies() {
     print_step "Установка системных зависимостей..."
     
-    sudo apt install -y \
-        python3-pip \
-        python3-venv \
-        python3-dev \
-        build-essential \
-        nginx \
-        sqlite3 \
-        git \
-        curl \
-        wget \
-        htop \
-        logrotate \
-        cron \
-        bc
+    # Определяем пакетный менеджер и устанавливаем зависимости
+    if command -v apt &> /dev/null; then
+        apt install -y \
+            build-essential \
+            nginx \
+            sqlite3 \
+            git \
+            curl \
+            wget \
+            htop \
+            logrotate \
+            cron
+    elif command -v yum &> /dev/null; then
+        yum install -y \
+            gcc \
+            gcc-c++ \
+            make \
+            nginx \
+            sqlite \
+            git \
+            curl \
+            wget \
+            htop \
+            logrotate \
+            cronie
+    elif command -v dnf &> /dev/null; then
+        dnf install -y \
+            gcc \
+            gcc-c++ \
+            make \
+            nginx \
+            sqlite \
+            git \
+            curl \
+            wget \
+            htop \
+            logrotate \
+            cronie
+    else
+        print_warning "Неизвестный пакетный менеджер. Некоторые зависимости могут быть не установлены."
+    fi
     
     print_success "Системные зависимости установлены"
 }
