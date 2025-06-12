@@ -1,77 +1,230 @@
-[![License](https://img.shields.io/github/license/pytoyoda/pytoyoda)](LICENSE)
-[![PyPI version](https://img.shields.io/pypi/v/pytoyoda?logo=pypi&logoColor=white&label=PyPI)](https://pypi.org/project/pytoyoda/)
-[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/pytoyoda?logo=python&logoColor=white&label=Python)](https://pypi.org/project/pytoyoda/)
-[![Github Actions Build](https://img.shields.io/github/actions/workflow/status/zyf722/poetry-plugin-migrate/build.yml?logo=github)](https://github.com/zyf722/poetry-plugin-migrate/actions/workflows/build.yml)
-[![Code Coverage](https://img.shields.io/codecov/c/github/pytoyoda/pytoyoda?logo=codecov&logoColor=white)](https://app.codecov.io/github/pytoyoda/pytoyoda/)
-[![CodeQL](https://github.com/pytoyoda/pytoyoda/actions/workflows/codeql.yml/badge.svg)](https://github.com/pytoyoda/pytoyoda/actions/workflows/codeql.yml)
+# 🚗📊 Toyota Dashboard
 
-# Toyota Connected Services Europe Python module
+**Персональный сервер для мониторинга и управления Toyota автомобилями с веб-интерфейсом для iPhone**
 
-⚠️ _This is still in beta_
-⚠️ _Only EU is supported, other regions are not possible so far._
+[![GitHub Stars](https://img.shields.io/github/stars/sanfisko/toyota-dashboard?style=social)](https://github.com/sanfisko/toyota-dashboard)
+[![GitHub Issues](https://img.shields.io/github/issues/sanfisko/toyota-dashboard)](https://github.com/sanfisko/toyota-dashboard/issues)
+[![License](https://img.shields.io/github/license/sanfisko/toyota-dashboard)](LICENSE)
 
-## Summary
+## 🎯 Что это такое?
 
-- [Toyota Connected Services Europe Python module](#toyota-connected-services-europe-python-module)
-  - [Description](#description)
-  - [Installation](#installation)
-  - [Docs](#docs)
-  - [Usage](#usage)
-  - [Known issues](#known-issues)
-  - [Contributing](#contributing)
-  - [Note](#note)
-  - [Credits](#credits)
+Toyota Dashboard - это полноценное решение для владельцев Toyota (особенно C-HR PHEV), которое превращает ваш Raspberry Pi в персональный центр управления автомобилем.
 
-## Description
+### ✨ Основные возможности
 
-Python 3 package to communicate with [Toyota Connected Europe](https://www.toyota-europe.com/about-us/toyota-in-europe/toyota-connected-europe) Services.
-This is an unofficial package and Toyota can change their API at any point without warning.
+- 📊 **Мониторинг в реальном времени**: батарея, топливо, местоположение
+- 🎮 **Дистанционное управление**: замки, двигатель, климат, поиск авто
+- 📱 **iPhone-оптимизированный интерфейс**: PWA поддержка, темная тема
+- 📈 **Детальная аналитика PHEV**: эффективность, экономия, статистика
+- 🌐 **Веб-настройка**: удобная форма для ввода credentials
+- 🔧 **Гибкая конфигурация**: настраиваемые порты, автоматическая установка
 
-## Installation
+## 🚀 Быстрый старт
 
-This package can be installed through `pip`.
-
+### Автоматическая установка на Raspberry Pi
 ```bash
-pip install pytoyoda
+curl -sSL https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/toyota_dashboard_server/install.sh | sudo bash
 ```
 
-## Docs
+### Настройка через веб-интерфейс
+1. Откройте `http://IP_RASPBERRY_PI/setup`
+2. Введите ваши Toyota Connected credentials
+3. Протестируйте подключение
+4. Сохраните настройки
+5. Готово! 🎉
 
-https://pytoyoda.github.io/pytoyoda/pytoyoda.html
+## 📱 Скриншоты
 
-## Usage
-
-For a quick start on how to use the package take a look at the `simple_client_example.py` file contained in the report. You can also use and execute this file directly by using the following commands:
-
-```bash
-python -m venv pytoyoda
-source pytoyoda/bin/activate
-python -m pip install "pytoyoda@git+https://github.com/pytoyoda/pytoyoda@main"
-curl -LO https://raw.githubusercontent.com/pytoyoda/pytoyoda/main/sandbox/simple_client_example.py
-# Create a credentials.json file with {"username":"your@mail.tld","password":"yourpassword"}
-python simple_client_example.py
+### Главный дашборд
+```
+┌─────────────────────────┐
+│  🚗 Toyota C-HR PHEV    │
+├─────────────────────────┤
+│  🔋 85%  ⛽ 320км       │
+│  📍 Дом  🔒 Заблокирован │
+├─────────────────────────┤
+│  [🔓] [🚗] [❄️] [📍]    │
+│  Открыть Запуск Климат Найти │
+├─────────────────────────┤
+│  📊 За сегодня:         │
+│  🔋 25км (электро)      │
+│  ⛽ 15км (бензин)       │
+│  💰 Экономия: 180₽     │
+└─────────────────────────┘
 ```
 
-Please note that the `simple_client_example.py` file is only to be regarded as a playground and is intended to provide an initial insight into the possibilities. It is not an officially supported interface of the pytoyoda API!
-For an overview of the current official interfaces, please take a look at our [documentation](https://pytoyoda.github.io/pytoyoda/pytoyoda/models/vehicle.html).
+### Страница настройки
+```
+┌─────────────────────────┐
+│  ⚙️ Настройка Toyota    │
+├─────────────────────────┤
+│  📧 Email: [_________]  │
+│  🔒 Пароль: [_______]  │
+│  🚗 VIN: [___________]  │
+│  🌍 Регион: [Европа ▼] │
+│  🌐 Порт: [2025_____]  │
+├─────────────────────────┤
+│  [🔍 Проверить подключение] │
+│  [💾 Сохранить настройки]   │
+└─────────────────────────┘
+```
 
-## Known issues
+## 🛠️ Структура проекта
 
-- Statistical endpoint will return `None` if no trip have been performed in the requested timeframe. This problem will often happen at the start of each week, month or year. Also daily stats will of course also be unavailable if no trip have been performed.
-- Currently, it is only possible to get various vehicle information. Functions for controlling and setting vehicle properties have not yet been implemented.
+```
+toyota-dashboard/
+├── pytoyoda/                    # Библиотека для Toyota API
+│   ├── api.py                   # Основной API клиент
+│   ├── models/                  # Модели данных
+│   └── utils/                   # Утилиты
+├── toyota_dashboard_server/     # Веб-сервер дашборда
+│   ├── app.py                   # FastAPI приложение
+│   ├── database.py              # Работа с базой данных
+│   ├── models.py                # Модели сервера
+│   ├── static/                  # Веб-интерфейс
+│   │   ├── index.html           # Главная страница
+│   │   └── setup.html           # Страница настройки
+│   ├── config.example.yaml      # Пример конфигурации
+│   ├── requirements.txt         # Python зависимости
+│   └── install.sh               # Установочный скрипт
+├── TOYOTA_CHR_PHEV_DASHBOARD.md # Подробная документация
+└── README.md                    # Этот файл
+```
 
-## Contributing
+## 🎮 Возможности управления
 
-This python module uses poetry (>= 2.0.0) and pre-commit.
+### Доступные команды
+- 🔒 **Замки**: блокировка/разблокировка дверей и багажника
+- 🚗 **Двигатель**: дистанционный запуск для прогрева
+- ❄️ **Климат**: управление кондиционером и обогревом
+- 💡 **Освещение**: включение фар и аварийной сигнализации
+- 📍 **Поиск**: звуковой сигнал и мигание фар
+- 🪟 **Окна**: управление стеклоподъемниками (зависит от модели)
 
-To start contributing, fork this repository and run `poetry install`. Then create a new branch. Before making a PR, please run pre-commit `poetry run pre-commit run --all-files` and make sure that all tests passes locally first by running `pytest tests/`.
+### Мониторинг
+- 🔋 **Батарея**: уровень заряда HV батареи
+- ⛽ **Топливо**: текущий запас хода
+- 📍 **Местоположение**: GPS координаты и адрес
+- 📊 **Статистика**: пробег, расход, эффективность
+- 🕐 **История**: поездки, команды, уведомления
 
-## Note
+## 📊 API Endpoints
 
-This is a friendly community fork of the original project by [@DurgNomis-drol](https://github.com/DurgNomis-drol),
-to ease up on maintenance and the [bus factor](https://en.wikipedia.org/wiki/Bus_factor) for this project.
+### Статус автомобиля
+```bash
+GET /api/vehicle/status          # Текущий статус
+GET /api/vehicle/location        # Местоположение
+GET /api/stats/phev?period=week  # Статистика PHEV
+```
 
-## Credits
+### Управление
+```bash
+POST /api/vehicle/lock           # Заблокировать
+POST /api/vehicle/unlock         # Разблокировать
+POST /api/vehicle/start          # Запустить двигатель
+POST /api/vehicle/climate        # Управление климатом
+```
 
-Special thanks go [@DurgNomis-drol](https://github.com/DurgNomis-drol) for starting this project!
-A huge thanks go to [@calmjm](https://github.com/calmjm) for making [tojota](https://github.com/calmjm/tojota).
+### Конфигурация
+```bash
+GET /api/config                  # Текущие настройки
+POST /api/test-connection        # Тест подключения
+POST /api/save-config            # Сохранить настройки
+```
+
+## 🔧 Системные требования
+
+### Рекомендуемая конфигурация
+- **Raspberry Pi 4B** (4GB RAM)
+- **MicroSD карта** 32GB+ (Class 10)
+- **Raspbian OS Lite** (64-bit)
+- **Стабильное интернет-соединение**
+
+### Поддерживаемые автомобили
+- ✅ **Toyota C-HR PHEV** (основная поддержка)
+- ✅ **Toyota Prius PHEV**
+- ✅ **Toyota RAV4 PHEV**
+- ⚠️ **Другие Toyota Connected** (базовая поддержка)
+
+## 🌍 Доступ
+
+### Локальная сеть
+```bash
+# Через nginx (рекомендуется)
+http://192.168.1.XXX
+
+# Прямой доступ
+http://192.168.1.XXX:2025
+
+# Настройка
+http://192.168.1.XXX/setup
+```
+
+### Внешний доступ
+```bash
+# Cloudflare Tunnel (бесплатно)
+cloudflared tunnel --url http://localhost:80
+
+# ngrok
+ngrok http 80
+```
+
+## 🔒 Безопасность
+
+- 🛡️ **Локальное хранение** данных
+- 🔐 **Шифрование** паролей
+- 🚫 **Нет облачных сервисов**
+- 🔥 **Файрвол** настроен автоматически
+- 📝 **Логирование** всех действий
+
+## 📚 Документация
+
+- 📖 **[Полная документация](TOYOTA_CHR_PHEV_DASHBOARD.md)** - подробное руководство
+- 💡 **[Креативные идеи](CREATIVE_IDEAS.md)** - 23 идеи для развития
+- 🔒 **[Безопасность](SECURITY_IMPROVEMENTS.md)** - рекомендации по защите
+- 🏗️ **[Архитектура](ARCHITECTURE_IMPROVEMENTS.md)** - технические улучшения
+
+## 🆘 Поддержка
+
+### Сообщество
+- 🐛 **[GitHub Issues](https://github.com/sanfisko/toyota-dashboard/issues)** - баги и предложения
+- 💬 **Telegram**: @toyota_chr_phev_ru
+- 📧 **Email**: support@toyota-dashboard.pro
+
+### Частые проблемы
+```bash
+# Проверка статуса сервиса
+sudo systemctl status toyota-dashboard
+
+# Просмотр логов
+sudo journalctl -u toyota-dashboard -f
+
+# Перезапуск сервиса
+sudo systemctl restart toyota-dashboard
+```
+
+## 🤝 Вклад в проект
+
+Мы приветствуем вклад в развитие проекта! 
+
+1. 🍴 **Fork** репозитория
+2. 🌿 **Создайте** ветку для новой функции
+3. 💻 **Внесите** изменения
+4. 🧪 **Протестируйте** код
+5. 📤 **Создайте** Pull Request
+
+## 📄 Лицензия
+
+Этот проект распространяется под лицензией MIT. См. файл [LICENSE](LICENSE) для подробностей.
+
+## 🙏 Благодарности
+
+- **[@DurgNomis-drol](https://github.com/DurgNomis-drol)** - за оригинальную библиотеку PyToyoda
+- **[@calmjm](https://github.com/calmjm)** - за проект [tojota](https://github.com/calmjm/tojota)
+- **Сообщество Toyota PHEV** - за тестирование и обратную связь
+
+---
+
+**Создано с ❤️ для владельцев Toyota** 🚗✨
+
+*Превратите ваш автомобиль в умный подключенный девайс!*

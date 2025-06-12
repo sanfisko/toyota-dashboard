@@ -152,7 +152,10 @@ download_project() {
         sudo cp -r /workspace/pytoyoda/pytoyoda .
     else
         # Скачиваем с GitHub
-        sudo -u toyota git clone https://github.com/your-repo/toyota-dashboard.git .
+        sudo -u toyota git clone https://github.com/sanfisko/toyota-dashboard.git temp_repo
+        sudo -u toyota cp -r temp_repo/toyota_dashboard_server/* .
+        sudo -u toyota cp -r temp_repo/pytoyoda .
+        sudo -u toyota rm -rf temp_repo
     fi
     
     sudo chown -R toyota:toyota /opt/toyota-dashboard

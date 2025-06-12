@@ -42,7 +42,7 @@
 ### Автоматическая установка
 ```bash
 # Скачать и запустить установочный скрипт
-curl -sSL https://raw.githubusercontent.com/your-repo/toyota-dashboard/main/install.sh | bash
+curl -sSL https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/toyota_dashboard_server/install.sh | bash
 ```
 
 ### Ручная установка
@@ -54,7 +54,7 @@ sudo apt update && sudo apt upgrade -y
 sudo apt install python3-pip python3-venv nginx sqlite3 git -y
 
 # 3. Клонировать проект
-git clone https://github.com/your-repo/toyota-dashboard.git
+git clone https://github.com/sanfisko/toyota-dashboard.git
 cd toyota-dashboard
 
 # 4. Создать виртуальное окружение

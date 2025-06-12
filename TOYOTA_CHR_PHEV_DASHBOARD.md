@@ -1,4 +1,4 @@
-# 🚗📊 Toyota C-HR PHEV Dashboard - Полное решение
+# 🚗📊 Toyota Dashboard - Персональный сервер для Toyota C-HR PHEV
 
 ## 🎯 Что вы получите
 
@@ -32,14 +32,14 @@
 ### Вариант 1: Автоматическая установка (рекомендуется)
 ```bash
 # На Raspberry Pi выполните одну команду:
-curl -sSL https://raw.githubusercontent.com/your-repo/toyota-dashboard/main/install.sh | sudo bash
+curl -sSL https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/toyota_dashboard_server/install.sh | sudo bash
 ```
 
 ### Вариант 2: Ручная установка
 ```bash
 # 1. Скачать проект
-git clone https://github.com/tifainechevaliermuzpub/pytoyoda.git
-cd pytoyoda/toyota_dashboard_server
+git clone https://github.com/sanfisko/toyota-dashboard.git
+cd toyota-dashboard/toyota_dashboard_server
 
 # 2. Запустить установочный скрипт
 sudo ./install.sh
@@ -353,7 +353,7 @@ integrations:
 ## 📞 Поддержка
 
 ### Сообщество
-- **GitHub**: [Issues и обсуждения](https://github.com/tifainechevaliermuzpub/pytoyoda/issues)
+- **GitHub**: [Issues и обсуждения](https://github.com/sanfisko/toyota-dashboard/issues)
 - **Telegram**: @toyota_chr_phev_ru
 - **Email**: support@toyota-dashboard.pro
 
