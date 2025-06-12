@@ -134,10 +134,33 @@ remove_files() {
         print_success "Логи удалены"
     fi
     
+    # Удалить данные и резервные копии
+    if [[ -d /var/lib/toyota-dashboard ]]; then
+        rm -rf /var/lib/toyota-dashboard
+        print_success "База данных и резервные копии удалены"
+    fi
+    
     # Удалить временные файлы
     if [[ -d /tmp/toyota-dashboard ]]; then
         rm -rf /tmp/toyota-dashboard
         print_success "Временные файлы удалены"
+    fi
+}
+
+# Удаление конфигурации логирования и cron задач
+remove_logging_and_cron() {
+    print_info "Удаление конфигурации логирования и cron задач..."
+    
+    # Удалить конфигурацию logrotate
+    if [[ -f /etc/logrotate.d/toyota-dashboard ]]; then
+        rm -f /etc/logrotate.d/toyota-dashboard
+        print_success "Конфигурация logrotate удалена"
+    fi
+    
+    # Удалить cron задачи пользователя toyota
+    if id "toyota" &>/dev/null; then
+        sudo -u toyota crontab -r 2>/dev/null || true
+        print_success "Cron задачи пользователя toyota удалены"
     fi
 }
 
@@ -163,17 +186,16 @@ remove_user() {
 remove_firewall() {
     print_info "Удаление правил файрвола..."
     
-    # UFW правила
+    # UFW правила (install.sh устанавливает правила для ssh, 80, 443)
     if command -v ufw >/dev/null 2>&1; then
-        ufw --force delete allow 2025 2>/dev/null || true
-        ufw --force delete allow 80 2>/dev/null || true
-        ufw --force delete allow 443 2>/dev/null || true
-        print_success "UFW правила удалены"
+        # Не удаляем SSH правило для безопасности
+        ufw --force delete allow 80/tcp 2>/dev/null || true
+        ufw --force delete allow 443/tcp 2>/dev/null || true
+        print_success "UFW правила для Toyota Dashboard удалены (SSH правило сохранено)"
     fi
     
     # iptables правила (если UFW не используется)
     if ! command -v ufw >/dev/null 2>&1; then
-        iptables -D INPUT -p tcp --dport 2025 -j ACCEPT 2>/dev/null || true
         iptables -D INPUT -p tcp --dport 80 -j ACCEPT 2>/dev/null || true
         iptables -D INPUT -p tcp --dport 443 -j ACCEPT 2>/dev/null || true
         
@@ -192,16 +214,21 @@ remove_firewall() {
 cleanup_packages() {
     print_info "Очистка неиспользуемых пакетов..."
     
-    read -p "Удалить установленные Python пакеты? (y/n): " -r
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-        # Удалить только если они не используются другими приложениями
-        pip3 uninstall -y fastapi uvicorn aiosqlite pyyaml 2>/dev/null || true
-        print_success "Python пакеты удалены"
+    # Автоочистка системных пакетов
+    if command -v apt &> /dev/null; then
+        apt autoremove -y >/dev/null 2>&1 || true
+        apt autoclean >/dev/null 2>&1 || true
+        print_success "Системные пакеты очищены"
+    elif command -v yum &> /dev/null; then
+        yum autoremove -y >/dev/null 2>&1 || true
+        print_success "Системные пакеты очищены"
+    elif command -v dnf &> /dev/null; then
+        dnf autoremove -y >/dev/null 2>&1 || true
+        print_success "Системные пакеты очищены"
     fi
     
-    # Автоочистка
-    apt autoremove -y >/dev/null 2>&1 || true
-    apt autoclean >/dev/null 2>&1 || true
+    print_info "Примечание: Python пакеты не удаляются автоматически для безопасности"
+    print_info "При необходимости удалите их вручную: pip3 uninstall <package_name>"
 }
 
 # Создание отчета об удалении
@@ -216,13 +243,22 @@ Toyota Dashboard - Отчет об удалении
 Система: $(uname -a)
 
 Удаленные компоненты:
-✅ Сервис toyota-dashboard
+✅ Systemd сервис toyota-dashboard
 ✅ Файлы проекта (/opt/toyota-dashboard)
-✅ Пользователь toyota
-✅ Конфигурация nginx
+✅ База данных и резервные копии (/var/lib/toyota-dashboard)
 ✅ Логи (/var/log/toyota-dashboard)
-✅ Правила файрвола
+✅ Пользователь toyota и его домашняя директория
+✅ Конфигурация nginx (/etc/nginx/sites-available/toyota-dashboard)
+✅ Конфигурация logrotate (/etc/logrotate.d/toyota-dashboard)
+✅ Cron задачи пользователя toyota
+✅ Правила файрвола (UFW/iptables)
 ✅ Временные файлы
+✅ Автоочистка системных пакетов
+
+Сохраненные компоненты (для безопасности):
+⚠️  SSH правила файрвола
+⚠️  Python пакеты (удалите вручную при необходимости)
+⚠️  Системные пакеты (nginx, sqlite3, git и др.)
 
 Статус: Удаление завершено успешно
 EOF
@@ -241,12 +277,16 @@ main() {
     print_header "🗑️  УДАЛЕНИЕ TOYOTA DASHBOARD"
     echo
     print_warning "Это действие удалит:"
-    echo "   • Сервис toyota-dashboard"
+    echo "   • Systemd сервис toyota-dashboard"
     echo "   • Все файлы проекта (/opt/toyota-dashboard)"
-    echo "   • Пользователя toyota"
+    echo "   • База данных и резервные копии (/var/lib/toyota-dashboard)"
+    echo "   • Логи (/var/log/toyota-dashboard)"
+    echo "   • Пользователя toyota и его домашнюю директорию"
     echo "   • Конфигурацию nginx"
-    echo "   • Базу данных и логи"
-    echo "   • Правила файрвола"
+    echo "   • Конфигурацию logrotate"
+    echo "   • Cron задачи пользователя toyota"
+    echo "   • Правила файрвола (кроме SSH)"
+    echo "   • Временные файлы"
     echo
     print_warning "Данные Toyota credentials и история поездок будут потеряны!"
     echo
@@ -283,6 +323,7 @@ main() {
     # Удаление компонентов
     remove_service
     remove_nginx
+    remove_logging_and_cron
     remove_files
     remove_user
     remove_firewall
@@ -296,12 +337,21 @@ main() {
     print_success "Toyota Dashboard полностью удален с системы"
     echo
     print_info "Что было удалено:"
-    echo "   • Сервис и автозапуск"
-    echo "   • Все файлы проекта"
-    echo "   • Пользователь toyota"
+    echo "   • Systemd сервис и автозапуск"
+    echo "   • Все файлы проекта (/opt/toyota-dashboard)"
+    echo "   • База данных и резервные копии (/var/lib/toyota-dashboard)"
+    echo "   • Логи (/var/log/toyota-dashboard)"
+    echo "   • Пользователь toyota и его домашняя директория"
     echo "   • Конфигурация nginx"
-    echo "   • База данных и логи"
-    echo "   • Правила файрвола"
+    echo "   • Конфигурация logrotate"
+    echo "   • Cron задачи"
+    echo "   • Правила файрвола (кроме SSH)"
+    echo "   • Временные файлы"
+    echo
+    print_warning "Сохранено для безопасности:"
+    echo "   • SSH правила файрвола"
+    echo "   • Python пакеты (удалите вручную при необходимости)"
+    echo "   • Системные пакеты (nginx, sqlite3, git и др.)"
     echo
     print_warning "Если вы хотите переустановить Toyota Dashboard:"
     echo "curl -sSL https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/install.sh | sudo bash"
