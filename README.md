@@ -1,188 +1,219 @@
-# 🚗📊 Toyota Dashboard
+# 🚗 Toyota Dashboard
 
-**Персональный сервер для мониторинга и управления Toyota автомобилями с веб-интерфейсом для iPhone**
+**Персональный сервер мониторинга и управления Toyota автомобилями для Raspberry Pi с веб-интерфейсом, оптимизированным для мобильных устройств**
 
-[![GitHub Stars](https://img.shields.io/github/stars/tifainechevaliermuzpub/toyota-dashboard?style=social)](https://github.com/tifainechevaliermuzpub/toyota-dashboard)
-[![GitHub Issues](https://img.shields.io/github/issues/tifainechevaliermuzpub/toyota-dashboard)](https://github.com/tifainechevaliermuzpub/toyota-dashboard/issues)
-[![License](https://img.shields.io/github/license/tifainechevaliermuzpub/toyota-dashboard)](LICENSE)
+[![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://python.org)
+[![FastAPI](https://img.shields.io/badge/FastAPI-Latest-green.svg)](https://fastapi.tiangolo.com)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Raspberry Pi](https://img.shields.io/badge/Raspberry%20Pi-Compatible-red.svg)](https://raspberrypi.org)
 
-## 🎯 Что это такое?
+## 🌟 Возможности
 
-Toyota Dashboard - это полноценное решение для владельцев Toyota (особенно C-HR PHEV), которое превращает ваш Raspberry Pi в персональный центр управления автомобилем.
+### 🔋 Мониторинг автомобиля
+- **Уровень топлива** - остаток топлива и запас хода
+- **Состояние батареи** - заряд аккумулятора и электросистемы
+- **Пробег** - одометр и статистика поездок
+- **Техническое состояние** - диагностика и предупреждения
 
-### ✨ Основные возможности
+### 🚙 Удаленное управление
+- **Замки** - блокировка/разблокировка дверей
+- **Двигатель** - дистанционный запуск/остановка
+- **Климат-контроль** - предварительный прогрев/охлаждение
+- **Освещение** - управление фарами и сигналами
 
-- 📊 **Мониторинг в реальном времени**: батарея, топливо, местоположение
-- 🎮 **Дистанционное управление**: замки, двигатель, климат, поиск авто
-- 📱 **iPhone-оптимизированный интерфейс**: PWA поддержка, темная тема
-- 📈 **Детальная аналитика PHEV**: эффективность, экономия, статистика
-- 🌐 **Веб-настройка**: удобная форма для ввода credentials
-- 🔧 **Гибкая конфигурация**: настраиваемые порты, автоматическая установка
+### 📊 Статистика и аналитика
+- **История поездок** - детальная статистика использования
+- **Графики потребления** - визуализация расхода топлива
+- **Отчеты** - ежедневные, недельные, месячные сводки
+- **Экспорт данных** - CSV, JSON форматы для анализа
+
+### 📱 Современный веб-интерфейс
+- **Адаптивный дизайн** - оптимизирован для всех устройств
+- **PWA поддержка** - установка как мобильное приложение
+- **Темная тема** - комфортное использование в любое время
+- **Офлайн режим** - базовая функциональность без интернета
 
 ## 🚀 Быстрый старт
 
 ### Автоматическая установка на Raspberry Pi
 ```bash
+# Одна команда для полной установки
 curl -sSL https://raw.githubusercontent.com/tifainechevaliermuzpub/toyota-dashboard/main/toyota_dashboard_server/install.sh | sudo bash
 ```
 
 ### Настройка через веб-интерфейс
 1. Откройте `http://IP_RASPBERRY_PI/setup`
-2. Введите ваши Toyota Connected credentials
-3. Протестируйте подключение
-4. Сохраните настройки
-5. Готово! 🎉
+2. Введите ваши Toyota Connected Services credentials
+3. Укажите VIN номер автомобиля
+4. Нажмите "Проверить подключение"
+5. Сохраните настройки
 
-## 📱 Скриншоты
+### Готово! 🎉
+Откройте `http://IP_RASPBERRY_PI` и наслаждайтесь полным контролем над вашим Toyota!
 
-### Главный дашборд
-```
-┌─────────────────────────┐
-│  🚗 Toyota C-HR PHEV    │
-├─────────────────────────┤
-│  🔋 85%  ⛽ 320км       │
-│  📍 Дом  🔒 Заблокирован │
-├─────────────────────────┤
-│  [🔓] [🚗] [❄️] [📍]    │
-│  Открыть Запуск Климат Найти │
-├─────────────────────────┤
-│  📊 За сегодня:         │
-│  🔋 25км (электро)      │
-│  ⛽ 15км (бензин)       │
-│  💰 Экономия: 180₽     │
-└─────────────────────────┘
-```
+## 📋 Системные требования
 
-### Страница настройки
-```
-┌─────────────────────────┐
-│  ⚙️ Настройка Toyota    │
-├─────────────────────────┤
-│  📧 Email: [_________]  │
-│  🔒 Пароль: [_______]  │
-│  🚗 VIN: [___________]  │
-│  🌍 Регион: [Европа ▼] │
-│  🌐 Порт: [2025_____]  │
-├─────────────────────────┤
-│  [🔍 Проверить подключение] │
-│  [💾 Сохранить настройки]   │
-└─────────────────────────┘
-```
+### Raspberry Pi
+- **Модель**: Raspberry Pi 3B+ или новее
+- **ОС**: Raspberry Pi OS (Debian 11+)
+- **RAM**: Минимум 1GB
+- **Место**: 2GB свободного места
+- **Сеть**: Wi-Fi или Ethernet
 
-## 🛠️ Структура проекта
+### Toyota автомобиль
+- **Подписка**: Toyota Connected Services
+- **Совместимость**: Модели с поддержкой удаленного управления
+- **Регион**: Поддерживаемые Toyota Connected регионы
+
+## 🏗️ Архитектура
 
 ```
-toyota-dashboard/
-├── pytoyoda/                    # Библиотека для Toyota API
-│   ├── api.py                   # Основной API клиент
-│   ├── models/                  # Модели данных
-│   └── utils/                   # Утилиты
-├── toyota_dashboard_server/     # Веб-сервер дашборда
-│   ├── app.py                   # FastAPI приложение
-│   ├── database.py              # Работа с базой данных
-│   ├── models.py                # Модели сервера
-│   ├── static/                  # Веб-интерфейс
-│   │   ├── index.html           # Главная страница
-│   │   └── setup.html           # Страница настройки
-│   ├── config.example.yaml      # Пример конфигурации
-│   ├── requirements.txt         # Python зависимости
-│   └── install.sh               # Установочный скрипт
-├── TOYOTA_CHR_PHEV_DASHBOARD.md # Подробная документация
-└── README.md                    # Этот файл
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Mobile/Web    │◄──►│  Raspberry Pi   │◄──►│  Toyota Cloud   │
+│                 │    │                 │    │                 │
+│ • Dashboard     │    │ • FastAPI       │    │ • Vehicle API   │
+│ • Controls      │    │ • Database      │    │ • Telemetry     │
+│ • Statistics    │    │ • Background    │    │ • Commands      │
+│ • PWA App       │    │   Tasks         │    │                 │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
 
-## 🎮 Возможности управления
+### Компоненты
+- **FastAPI Backend** - REST API сервер
+- **SQLite Database** - локальное хранение данных
+- **Nginx Proxy** - веб-сервер и SSL терминация
+- **Systemd Service** - автозапуск и мониторинг
+- **PyToyoda Library** - интеграция с Toyota API
 
-### Доступные команды
-- 🔒 **Замки**: блокировка/разблокировка дверей и багажника
-- 🚗 **Двигатель**: дистанционный запуск для прогрева
-- ❄️ **Климат**: управление кондиционером и обогревом
-- 💡 **Освещение**: включение фар и аварийной сигнализации
-- 📍 **Поиск**: звуковой сигнал и мигание фар
-- 🪟 **Окна**: управление стеклоподъемниками (зависит от модели)
+## 🔧 API Документация
+
+### Основные эндпоинты
+```http
+GET  /api/vehicle/status     # Статус автомобиля
+POST /api/vehicle/lock       # Заблокировать двери
+POST /api/vehicle/unlock     # Разблокировать двери
+POST /api/vehicle/start      # Запустить двигатель
+POST /api/vehicle/stop       # Остановить двигатель
+GET  /api/statistics/daily   # Дневная статистика
+GET  /api/statistics/weekly  # Недельная статистика
+```
+
+### Веб-интерфейс
+```http
+GET  /              # Главная панель
+GET  /setup         # Настройка credentials
+GET  /statistics    # Страница статистики
+GET  /settings      # Настройки системы
+```
 
 ### Мониторинг
-- 🔋 **Батарея**: уровень заряда HV батареи
-- ⛽ **Топливо**: текущий запас хода
-- 📍 **Местоположение**: GPS координаты и адрес
-- 📊 **Статистика**: пробег, расход, эффективность
-- 🕐 **История**: поездки, команды, уведомления
-
-## 📊 API Endpoints
-
-### Статус автомобиля
-```bash
-GET /api/vehicle/status          # Текущий статус
-GET /api/vehicle/location        # Местоположение
-GET /api/stats/phev?period=week  # Статистика PHEV
+```http
+GET  /health        # Проверка здоровья системы
+GET  /metrics       # Метрики Prometheus
+GET  /docs          # Swagger документация
 ```
 
-### Управление
+## 🛠️ Ручная установка
+
+### 1. Клонирование репозитория
 ```bash
-POST /api/vehicle/lock           # Заблокировать
-POST /api/vehicle/unlock         # Разблокировать
-POST /api/vehicle/start          # Запустить двигатель
-POST /api/vehicle/climate        # Управление климатом
+git clone https://github.com/tifainechevaliermuzpub/toyota-dashboard.git
+cd toyota-dashboard
 ```
 
-### Конфигурация
+### 2. Установка зависимостей
 ```bash
-GET /api/config                  # Текущие настройки
-POST /api/test-connection        # Тест подключения
-POST /api/save-config            # Сохранить настройки
+# Python зависимости
+pip3 install -r requirements.txt
+
+# Системные пакеты
+sudo apt update
+sudo apt install nginx sqlite3 python3-pip
 ```
 
-## 🔧 Системные требования
-
-### Рекомендуемая конфигурация
-- **Raspberry Pi 4B** (4GB RAM)
-- **MicroSD карта** 32GB+ (Class 10)
-- **Raspbian OS Lite** (64-bit)
-- **Стабильное интернет-соединение**
-
-### Поддерживаемые автомобили
-- ✅ **Toyota C-HR PHEV** (основная поддержка)
-- ✅ **Toyota Prius PHEV**
-- ✅ **Toyota RAV4 PHEV**
-- ⚠️ **Другие Toyota Connected** (базовая поддержка)
-
-## 🌍 Доступ
-
-### Локальная сеть
+### 3. Настройка конфигурации
 ```bash
-# Через nginx (рекомендуется)
-http://192.168.1.XXX
+# Копировать пример конфигурации
+cp toyota_dashboard_server/config.example.yaml config.yaml
 
-# Прямой доступ
-http://192.168.1.XXX:2025
-
-# Настройка
-http://192.168.1.XXX/setup
+# Отредактировать настройки
+nano config.yaml
 ```
 
-### Внешний доступ
+### 4. Запуск сервера
 ```bash
-# Cloudflare Tunnel (бесплатно)
-cloudflared tunnel --url http://localhost:80
+# Разработка
+cd toyota_dashboard_server
+python3 app.py
 
-# ngrok
-ngrok http 80
+# Продакшн
+uvicorn app:app --host 0.0.0.0 --port 2025
 ```
+
+## 📱 Использование
+
+### Добавление на главный экран мобильного устройства
+1. Откройте сайт в браузере
+2. Нажмите кнопку "Поделиться" (iOS) или меню (Android)
+3. Выберите "На экран Домой" или "Добавить на главный экран"
+4. Подтвердите добавление
+
+### Основные функции
+- **🔋 Мониторинг** - отслеживание состояния автомобиля
+- **🚗 Управление** - дистанционные команды
+- **📊 Статистика** - анализ использования
+- **⚙️ Настройки** - конфигурация системы
+
+### Горячие клавиши
+- `R` - Обновить данные
+- `L` - Заблокировать/разблокировать
+- `S` - Запустить/остановить двигатель
+- `C` - Управление климатом
 
 ## 🔒 Безопасность
 
-- 🛡️ **Локальное хранение** данных
-- 🔐 **Шифрование** паролей
-- 🚫 **Нет облачных сервисов**
-- 🔥 **Файрвол** настроен автоматически
-- 📝 **Логирование** всех действий
+### Рекомендации
+- **Смените порт** по умолчанию (2025)
+- **Настройте SSL** для внешнего доступа
+- **Используйте VPN** для удаленного подключения
+- **Регулярно обновляйте** систему
 
-## 📚 Документация
+### Файрвол
+```bash
+# Разрешить только необходимые порты
+sudo ufw allow 22    # SSH
+sudo ufw allow 80    # HTTP
+sudo ufw allow 443   # HTTPS
+sudo ufw allow 2025  # Toyota Dashboard
+sudo ufw enable
+```
 
-- 📖 **[Полная документация](TOYOTA_CHR_PHEV_DASHBOARD.md)** - подробное руководство
-- 💡 **[Креативные идеи](CREATIVE_IDEAS.md)** - 23 идеи для развития
-- 🔒 **[Безопасность](SECURITY_IMPROVEMENTS.md)** - рекомендации по защите
-- 🏗️ **[Архитектура](ARCHITECTURE_IMPROVEMENTS.md)** - технические улучшения
+## 📊 Мониторинг
+
+### Логи
+```bash
+# Логи приложения
+sudo journalctl -u toyota-dashboard -f
+
+# Логи файлов
+tail -f /var/log/toyota-dashboard/app.log
+
+# Логи nginx
+tail -f /var/log/nginx/access.log
+```
+
+### Статус сервиса
+```bash
+# Проверить статус
+sudo systemctl status toyota-dashboard
+
+# Перезапустить
+sudo systemctl restart toyota-dashboard
+
+# Остановить/запустить
+sudo systemctl stop toyota-dashboard
+sudo systemctl start toyota-dashboard
+```
 
 ## 🗑️ Удаление
 
@@ -206,30 +237,36 @@ curl -sSL https://raw.githubusercontent.com/tifainechevaliermuzpub/toyota-dashbo
 
 ### Сообщество
 - 🐛 **[GitHub Issues](https://github.com/tifainechevaliermuzpub/toyota-dashboard/issues)** - баги и предложения
-- 💬 **Telegram**: @toyota_chr_phev_ru
-- 📧 **Email**: support@toyota-dashboard.pro
+- 💬 **Telegram**: @toyota_dashboard_support
 
-### Частые проблемы
+### Документация
+- 📖 **[Wiki](https://github.com/tifainechevaliermuzpub/toyota-dashboard/wiki)** - подробные инструкции
+- 🔧 **[API Docs](http://IP_RASPBERRY_PI/docs)** - Swagger документация
+- 🎥 **[YouTube](https://youtube.com/@toyota-dashboard)** - видео инструкции
+
+## 🤝 Участие в разработке
+
+### Как помочь
+1. **Fork** репозитория
+2. **Создайте** feature branch
+3. **Внесите** изменения
+4. **Создайте** Pull Request
+
+### Разработка
 ```bash
-# Проверка статуса сервиса
-sudo systemctl status toyota-dashboard
+# Клонировать для разработки
+git clone https://github.com/tifainechevaliermuzpub/toyota-dashboard.git
+cd toyota-dashboard
 
-# Просмотр логов
-sudo journalctl -u toyota-dashboard -f
+# Установить зависимости разработки
+pip3 install -r requirements-dev.txt
 
-# Перезапуск сервиса
-sudo systemctl restart toyota-dashboard
+# Запустить тесты
+pytest
+
+# Запустить линтер
+flake8 toyota_dashboard_server/
 ```
-
-## 🤝 Вклад в проект
-
-Мы приветствуем вклад в развитие проекта! 
-
-1. 🍴 **Fork** репозитория
-2. 🌿 **Создайте** ветку для новой функции
-3. 💻 **Внесите** изменения
-4. 🧪 **Протестируйте** код
-5. 📤 **Создайте** Pull Request
 
 ## 📄 Лицензия
 
@@ -237,12 +274,10 @@ sudo systemctl restart toyota-dashboard
 
 ## 🙏 Благодарности
 
-- **[@DurgNomis-drol](https://github.com/DurgNomis-drol)** - за оригинальную библиотеку PyToyoda
-- **[@calmjm](https://github.com/calmjm)** - за проект [tojota](https://github.com/calmjm/tojota)
-- **Сообщество Toyota PHEV** - за тестирование и обратную связь
+- **[PyToyoda](https://github.com/DurgNomis-drol/pytoyoda)** - библиотека для работы с Toyota API
+- **[FastAPI](https://fastapi.tiangolo.com)** - современный веб-фреймворк
+- **[Raspberry Pi Foundation](https://raspberrypi.org)** - за отличную платформу
 
 ---
 
-**Создано с ❤️ для владельцев Toyota** 🚗✨
-
-*Превратите ваш автомобиль в умный подключенный девайс!*
+**Сделано с ❤️ для сообщества Toyota** 🚗✨

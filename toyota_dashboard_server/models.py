@@ -66,7 +66,7 @@ class NotificationType(str, Enum):
     SYSTEM = "system"
 
 class PHEVStats(BaseModel):
-    """Статистика PHEV."""
+    """Статистика автомобиля."""
     period: str
     total_distance: float
     electric_distance: float
@@ -114,7 +114,7 @@ class NotificationConfig(BaseModel):
     trip_summaries: bool = True
 
 class PHEVConfig(BaseModel):
-    """Конфигурация PHEV."""
+    """Конфигурация автомобиля."""
     charge_threshold_alert: int = 80
     ev_mode_preference: bool = True
     charging_schedule: str = "22:00"
@@ -185,7 +185,7 @@ class ClimateSettings(BaseModel):
 class VehicleInfo(BaseModel):
     """Информация об автомобиле."""
     vin: str
-    model: str = "C-HR PHEV"
+    model: str = "Toyota"
     year: Optional[int] = None
     color: Optional[str] = None
     nickname: Optional[str] = None

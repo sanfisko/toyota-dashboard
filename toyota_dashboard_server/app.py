@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Toyota C-HR PHEV Dashboard Server
-Персональный сервер для мониторинга и управления Toyota C-HR PHEV
+Toyota Dashboard Server
+Персональный сервер для мониторинга и управления Toyota автомобилями
 """
 
 import asyncio
@@ -51,7 +51,7 @@ def load_config() -> Dict:
 
 # Глобальные переменные
 config = load_config()
-app = FastAPI(title="Toyota C-HR PHEV Dashboard", version="1.0.0")
+app = FastAPI(title="Toyota Dashboard", version="1.0.0")
 db = DatabaseManager(config['database']['path'])
 toyota_client: Optional[MyT] = None
 vehicle_vin = config['toyota']['vin']
@@ -312,7 +312,7 @@ async def control_climate(request: CommandRequest):
 
 @app.get("/api/stats/phev")
 async def get_phev_stats(period: str = "week"):
-    """Получить статистику PHEV за период."""
+    """Получить статистику автомобиля за период."""
     try:
         stats = await db.get_phev_statistics(period)
         
@@ -328,7 +328,7 @@ async def get_phev_stats(period: str = "week"):
             "cost_savings": stats.get("cost_savings", 0)
         }
     except Exception as e:
-        logger.error(f"Ошибка получения статистики PHEV: {e}")
+        logger.error(f"Ошибка получения статистики автомобиля: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/trips")

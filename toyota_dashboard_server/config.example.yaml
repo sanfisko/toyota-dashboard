@@ -1,10 +1,10 @@
-# Конфигурация Toyota C-HR PHEV Dashboard Server
+# Конфигурация Toyota Dashboard Server
 
 # Настройки подключения к Toyota Connected Services
 toyota:
   username: "your-email@example.com"  # Ваш email от Toyota Connected
   password: "your-password"           # Ваш пароль
-  vin: "YOUR_VIN_NUMBER"             # VIN номер вашего C-HR PHEV (17 символов)
+  vin: "YOUR_VIN_NUMBER"             # VIN номер вашего Toyota автомобиля (17 символов)
   region: "europe"                   # Регион: europe, north_america, asia
 
 # Настройки веб-сервера
@@ -27,7 +27,7 @@ monitoring:
   auto_refresh: true                # Автоматическое обновление данных
   max_api_calls_per_hour: 100       # Лимит вызовов API в час
 
-# Настройки PHEV
+# Настройки автомобиля
 phev_settings:
   charge_threshold_alert: 80        # Уведомление при заряде выше % (для продления жизни батареи)
   ev_mode_preference: true          # Приоритет электрического режима

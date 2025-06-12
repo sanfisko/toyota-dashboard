@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Toyota C-HR PHEV Dashboard Server - Установочный скрипт для Raspberry Pi
+# Toyota Dashboard Server - Установочный скрипт для Raspberry Pi
 # Автор: OpenHands AI
 # Версия: 1.0.0
 
@@ -17,7 +17,7 @@ NC='\033[0m' # No Color
 print_header() {
     echo -e "${BLUE}"
     echo "╔══════════════════════════════════════════════════════════════╗"
-    echo "║                Toyota C-HR PHEV Dashboard                    ║"
+    echo "║                    Toyota Dashboard                          ║"
     echo "║              Установка на Raspberry Pi                      ║"
     echo "╚══════════════════════════════════════════════════════════════╝"
     echo -e "${NC}"
@@ -239,7 +239,7 @@ setup_systemd() {
     
     sudo tee /etc/systemd/system/toyota-dashboard.service > /dev/null <<EOF
 [Unit]
-Description=Toyota C-HR PHEV Dashboard Server
+Description=Toyota Dashboard Server
 After=network.target
 
 [Service]
@@ -430,7 +430,7 @@ show_final_info() {
     echo -e "${YELLOW}2. Добавьте ваши Toyota credentials:${NC}"
     echo "   - username: ваш email от Toyota Connected"
     echo "   - password: ваш пароль"
-    echo "   - vin: VIN номер вашего C-HR PHEV"
+    echo "   - vin: VIN номер вашего Toyota автомобиля"
     echo
     echo -e "${YELLOW}3. Перезапустите сервис после настройки:${NC}"
     echo "   sudo systemctl restart toyota-dashboard"
@@ -466,7 +466,7 @@ main() {
     fi
     
     # Подтверждение установки
-    echo -e "${YELLOW}Этот скрипт установит Toyota C-HR PHEV Dashboard на ваш Raspberry Pi.${NC}"
+    echo -e "${YELLOW}Этот скрипт установит Toyota Dashboard на ваш Raspberry Pi.${NC}"
     echo -e "${YELLOW}Продолжить? (y/N)${NC}"
     read -r response
     if [[ ! "$response" =~ ^[Yy]$ ]]; then

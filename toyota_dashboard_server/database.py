@@ -162,7 +162,7 @@ class DatabaseManager:
             return None
     
     async def get_phev_statistics(self, period: str) -> Dict:
-        """Получить статистику PHEV за период."""
+        """Получить статистику автомобиля за период."""
         try:
             # Определить временной диапазон
             now = datetime.now()
@@ -237,7 +237,7 @@ class DatabaseManager:
                 }
                 
         except Exception as e:
-            logger.error(f"Ошибка получения статистики PHEV: {e}")
+            logger.error(f"Ошибка получения статистики автомобиля: {e}")
             raise
     
     async def get_recent_trips(self, limit: int = 10) -> List[Dict]:
