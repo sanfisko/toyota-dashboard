@@ -28,7 +28,16 @@ class DatabaseManager:
             import os
             db_dir = os.path.dirname(self.db_path)
             if db_dir:
-                os.makedirs(db_dir, exist_ok=True)
+                try:
+                    os.makedirs(db_dir, exist_ok=True)
+                except (PermissionError, OSError) as dir_error:
+                    # Если не можем создать директорию, используем fallback путь
+                    logger.warning(f"Не удалось создать директорию {db_dir}: {dir_error}")
+                    fallback_dir = '/tmp/toyota-dashboard/data'
+                    os.makedirs(fallback_dir, exist_ok=True)
+                    fallback_db_path = os.path.join(fallback_dir, 'toyota.db')
+                    logger.info(f"Используется fallback путь к базе данных: {fallback_db_path}")
+                    self.db_path = fallback_db_path
             
             self.connection = await aiosqlite.connect(self.db_path)
             await self._create_tables()
