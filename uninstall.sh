@@ -84,23 +84,32 @@ confirm_uninstall() {
     print_warning "Данные Toyota credentials и история поездок будут потеряны!"
     echo
     
+    # Если указан флаг -y, пропускаем подтверждение
     if [[ "$AUTO_CONFIRM" == "true" ]]; then
         print_info "Автоматическое подтверждение включено (-y флаг)"
         print_info "Начинаем удаление..."
         return 0
     fi
     
-    read -p "Вы уверены, что хотите удалить Toyota Dashboard? (yes/no): " -r
-    if [[ ! $REPLY =~ ^[Yy][Ee][Ss]$ ]]; then
-        print_info "Удаление отменено"
-        exit 0
-    fi
-    
-    echo
-    read -p "Введите 'DELETE' для подтверждения: " -r
-    if [[ $REPLY != "DELETE" ]]; then
-        print_info "Удаление отменено"
-        exit 0
+    # Проверяем доступность терминала
+    if [[ -t 0 ]] || [[ -c /dev/tty ]]; then
+        # Терминал доступен - запрашиваем подтверждение
+        read -p "Вы уверены, что хотите удалить Toyota Dashboard? (yes/no): " -r
+        if [[ ! $REPLY =~ ^[Yy][Ee][Ss]$ ]]; then
+            print_info "Удаление отменено"
+            exit 0
+        fi
+        
+        echo
+        read -p "Введите 'DELETE' для подтверждения: " -r
+        if [[ $REPLY != "DELETE" ]]; then
+            print_info "Удаление отменено"
+            exit 0
+        fi
+    else
+        # Терминал недоступен (curl | bash) - автоматическое подтверждение
+        print_info "Терминал недоступен для интерактивного ввода."
+        print_info "Автоматическое удаление Toyota Dashboard..."
     fi
 }
 
