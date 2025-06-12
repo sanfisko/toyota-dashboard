@@ -441,9 +441,13 @@
                 const endpoint = isLocked ? '/api/vehicle/unlock' : '/api/vehicle/lock';
                 const response = await fetch(endpoint, { method: 'POST' });
                 
-                if (!response.ok) throw new Error('Ошибка выполнения команды');
-                
                 const result = await response.json();
+                
+                if (!response.ok) {
+                    showNotification(result.detail || 'Ошибка управления замками', 'error');
+                    return;
+                }
+                
                 showNotification(result.message, 'success');
                 
                 // Обновить статус
@@ -465,9 +469,13 @@
                     body: JSON.stringify({ duration: 10 })
                 });
                 
-                if (!response.ok) throw new Error('Ошибка запуска двигателя');
-                
                 const result = await response.json();
+                
+                if (!response.ok) {
+                    showNotification(result.detail || 'Ошибка запуска двигателя', 'error');
+                    return;
+                }
+                
                 showNotification(result.message, 'success');
                 
             } catch (error) {
@@ -485,9 +493,13 @@
                     body: JSON.stringify({ temperature: 22 })
                 });
                 
-                if (!response.ok) throw new Error('Ошибка управления климатом');
-                
                 const result = await response.json();
+                
+                if (!response.ok) {
+                    showNotification(result.detail || 'Ошибка управления климатом', 'error');
+                    return;
+                }
+                
                 showNotification(result.message, 'success');
                 
             } catch (error) {
