@@ -164,11 +164,11 @@ async def collect_vehicle_data():
                         timestamp=datetime.now(),
                         battery_level=target_vehicle.electric_status.battery_level if target_vehicle.electric_status else 0,
                         fuel_level=target_vehicle.dashboard.fuel_level if target_vehicle.dashboard else 0,
-                        range_electric=target_vehicle.electric_status.range_electric if target_vehicle.electric_status else 0,
-                        range_fuel=target_vehicle.dashboard.range_fuel if target_vehicle.dashboard else 0,
+                        range_electric=target_vehicle.electric_status.ev_range if target_vehicle.electric_status else 0,
+                        range_fuel=target_vehicle.dashboard.fuel_range if target_vehicle.dashboard else 0,
                         latitude=target_vehicle.location.latitude if target_vehicle.location else 0.0,
                         longitude=target_vehicle.location.longitude if target_vehicle.location else 0.0,
-                        locked=target_vehicle.lock_status.locked if target_vehicle.lock_status else False,
+                        locked=target_vehicle.lock_status.doors.driver_seat.locked if target_vehicle.lock_status and target_vehicle.lock_status.doors and target_vehicle.lock_status.doors.driver_seat else False,
                         engine_running=False,  # Нужно найти правильное поле
                         climate_on=False,  # Нужно найти правильное поле
                         temperature_inside=0.0,  # Нужно найти правильное поле
@@ -230,15 +230,15 @@ async def get_vehicle_status():
         return {
             "battery_level": target_vehicle.electric_status.battery_level if target_vehicle.electric_status else 0,
             "fuel_level": target_vehicle.dashboard.fuel_level if target_vehicle.dashboard else 0,
-            "range_electric": target_vehicle.electric_status.range_electric if target_vehicle.electric_status else 0,
-            "range_fuel": target_vehicle.dashboard.range_fuel if target_vehicle.dashboard else 0,
-            "total_range": (target_vehicle.electric_status.range_electric if target_vehicle.electric_status else 0) + (target_vehicle.dashboard.range_fuel if target_vehicle.dashboard else 0),
+            "range_electric": target_vehicle.electric_status.ev_range if target_vehicle.electric_status else 0,
+            "range_fuel": target_vehicle.dashboard.fuel_range if target_vehicle.dashboard else 0,
+            "total_range": (target_vehicle.electric_status.ev_range if target_vehicle.electric_status else 0) + (target_vehicle.dashboard.fuel_range if target_vehicle.dashboard else 0),
             "location": {
                 "latitude": target_vehicle.location.latitude if target_vehicle.location else 0.0,
                 "longitude": target_vehicle.location.longitude if target_vehicle.location else 0.0,
                 "address": getattr(target_vehicle.location, 'address', 'Неизвестно') if target_vehicle.location else 'Неизвестно'
             },
-            "locked": target_vehicle.lock_status.locked if target_vehicle.lock_status else False,
+            "locked": target_vehicle.lock_status.doors.driver_seat.locked if target_vehicle.lock_status and target_vehicle.lock_status.doors and target_vehicle.lock_status.doors.driver_seat else False,
             "engine_running": False,  # Нужно найти правильное поле
             "climate_on": False,  # Нужно найти правильное поле
             "temperature_inside": 0.0,  # Нужно найти правильное поле
@@ -282,7 +282,8 @@ async def start_engine(request: CommandRequest):
         if not toyota_client:
             raise HTTPException(status_code=503, detail="Toyota клиент не инициализирован")
         
-        result = await toyota_client.send_command(vehicle_vin, CommandType.ENGINE_START)
+        target_vehicle = await get_vehicle()
+        result = await target_vehicle.post_command(CommandType.ENGINE_START)
         logger.info(f"Команда запуска двигателя отправлена на {request.duration} минут")
         
         return {"status": "success", "message": f"Двигатель запущен на {request.duration} минут"}
@@ -297,7 +298,8 @@ async def stop_engine():
         if not toyota_client:
             raise HTTPException(status_code=503, detail="Toyota клиент не инициализирован")
         
-        result = await toyota_client.send_command(vehicle_vin, CommandType.ENGINE_STOP)
+        target_vehicle = await get_vehicle()
+        result = await target_vehicle.post_command(CommandType.ENGINE_STOP)
         logger.info("Команда остановки двигателя отправлена")
         
         return {"status": "success", "message": "Двигатель остановлен"}
@@ -312,8 +314,16 @@ async def find_vehicle():
         if not toyota_client:
             raise HTTPException(status_code=503, detail="Toyota клиент не инициализирован")
         
+        # Получить автомобили
+        vehicles = await toyota_client.get_vehicles()
+        if not vehicles:
+            raise HTTPException(status_code=404, detail="Автомобиль не найден")
+        
+        # Взять первый автомобиль
+        vehicle = vehicles[0]
+        
         # Отправить команду поиска
-        result = await toyota_client.send_command(vehicle_vin, CommandType.FIND_VEHICLE, beeps=3)
+        result = await vehicle.post_command(CommandType.FIND_VEHICLE, beeps=3)
         logger.info("Команда поиска автомобиля отправлена")
         
         return {"status": "success", "message": "Автомобиль подает сигналы"}
@@ -329,7 +339,8 @@ async def control_climate(request: CommandRequest):
             raise HTTPException(status_code=503, detail="Toyota клиент не инициализирован")
         
         # Включить климат-контроль
-        result = await toyota_client.send_command(vehicle_vin, CommandType.AC_SETTINGS_ON)
+        target_vehicle = await get_vehicle()
+        result = await target_vehicle.post_command(CommandType.AC_SETTINGS_ON)
         logger.info(f"Климат-контроль включен, температура: {request.temperature}°C")
         
         return {

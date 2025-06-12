@@ -12,8 +12,8 @@ class VehicleStatus(BaseModel):
     timestamp: datetime
     battery_level: Optional[int] = None
     fuel_level: Optional[int] = None
-    range_electric: Optional[int] = None
-    range_fuel: Optional[int] = None
+    range_electric: Optional[float] = None
+    range_fuel: Optional[float] = None
     latitude: Optional[float] = None
     longitude: Optional[float] = None
     locked: Optional[bool] = None
