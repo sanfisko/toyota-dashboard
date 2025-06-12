@@ -179,6 +179,8 @@ remove_firewall() {
         
         # Сохранить правила iptables
         if command -v iptables-save >/dev/null 2>&1; then
+            # Создать директорию если не существует
+            mkdir -p /etc/iptables 2>/dev/null || true
             iptables-save > /etc/iptables/rules.v4 2>/dev/null || true
         fi
         
@@ -249,18 +251,13 @@ main() {
     print_warning "Данные Toyota credentials и история поездок будут потеряны!"
     echo
     
-    echo "DEBUG: AUTO_CONFIRM=$AUTO_CONFIRM"
-    echo "DEBUG: Checking terminal: [[ -t 0 ]]"
-    
     # Если указан флаг -y, пропускаем подтверждение
     if [[ "$AUTO_CONFIRM" == "true" ]]; then
         print_info "Автоматическое подтверждение включено (-y флаг)"
         print_info "Начинаем удаление..."
     else
-        echo "DEBUG: AUTO_CONFIRM is not true, checking terminal..."
         # Проверяем, запущен ли скрипт интерактивно
         if [[ -t 0 ]]; then
-            echo "DEBUG: Terminal is interactive"
             # Интерактивный режим - запрашиваем подтверждение
             read -p "Вы уверены, что хотите удалить Toyota Dashboard? (yes/no): " -r
             if [[ ! $REPLY =~ ^[Yy][Ee][Ss]$ ]]; then
@@ -275,14 +272,11 @@ main() {
                 exit 0
             fi
         else
-            echo "DEBUG: Terminal is NOT interactive"
             # Неинтерактивный режим (curl | bash) - автоматическое подтверждение
             print_info "Неинтерактивный режим: автоматическое удаление Toyota Dashboard..."
             sleep 2  # Небольшая пауза для чтения предупреждений
         fi
     fi
-    
-    echo "DEBUG: Confirmation logic completed"
     
     print_header "🚀 НАЧИНАЕМ УДАЛЕНИЕ"
     
