@@ -24,6 +24,12 @@ class DatabaseManager:
     async def init_database(self):
         """Инициализировать базу данных и создать таблицы."""
         try:
+            # Убеждаемся, что директория для базы данных существует
+            import os
+            db_dir = os.path.dirname(self.db_path)
+            if db_dir:
+                os.makedirs(db_dir, exist_ok=True)
+            
             self.connection = await aiosqlite.connect(self.db_path)
             await self._create_tables()
             logger.info(f"База данных инициализирована: {self.db_path}")

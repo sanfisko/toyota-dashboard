@@ -34,6 +34,7 @@ LOG_DIR = '/var/log/toyota-dashboard'
 DATA_DIR = '/var/lib/toyota-dashboard/data'
 
 # Создание директорий для логов и данных
+use_fallback_dirs = False
 try:
     os.makedirs(LOG_DIR, exist_ok=True)
     os.makedirs(DATA_DIR, exist_ok=True)
@@ -44,6 +45,7 @@ except (PermissionError, OSError) as e:
     DATA_DIR = '/tmp/toyota-dashboard/data'
     os.makedirs(LOG_DIR, exist_ok=True)
     os.makedirs(DATA_DIR, exist_ok=True)
+    use_fallback_dirs = True
 
 # Настройка логирования
 logging.basicConfig(
@@ -74,8 +76,11 @@ config = load_config()
 app = FastAPI(title="Toyota Dashboard", version="1.0.0")
 
 # Определяем путь к базе данных в зависимости от используемой директории
-if DATA_DIR == '/tmp/toyota-dashboard/data':
+if use_fallback_dirs:
     db_path = os.path.join(DATA_DIR, 'toyota.db')
+    # Обновляем конфигурацию для использования fallback пути
+    config['database']['path'] = db_path
+    print(f"Используется fallback путь к базе данных: {db_path}")
 else:
     db_path = config['database']['path']
 
