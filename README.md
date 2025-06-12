@@ -37,7 +37,7 @@
 
 ### Автоматическая установка на Raspberry Pi
 ```bash
-curl -sSL https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/install.sh | sudo bash
+curl -sSL "https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/install.sh?$(date +%s)" | sudo bash
 ```
 
 > **Примечание:** Скрипт запросит подтверждение перед началом установки.
@@ -52,7 +52,7 @@ curl -sSL "https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/inst
 
 # Или установите вручную python3-full
 sudo apt update && sudo apt install -y python3-full python3-venv
-curl -sSL https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/install.sh | sudo bash
+curl -sSL "https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/install.sh?$(date +%s)" | sudo bash
 ```
 
 ### Настройка через веб-интерфейс
