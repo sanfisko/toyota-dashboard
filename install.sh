@@ -77,11 +77,17 @@ check_system() {
         exit 1
     fi
     
-    PYTHON_VERSION=$(python3 --version | cut -d' ' -f2 | cut -d'.' -f1,2)
-    if [[ $(echo "$PYTHON_VERSION < 3.8" | bc -l) -eq 1 ]]; then
+    PYTHON_VERSION=$(python3 --version | cut -d' ' -f2)
+    PYTHON_MAJOR=$(echo "$PYTHON_VERSION" | cut -d'.' -f1)
+    PYTHON_MINOR=$(echo "$PYTHON_VERSION" | cut -d'.' -f2)
+    
+    # Проверяем версию Python (требуется 3.8+)
+    if [[ $PYTHON_MAJOR -lt 3 ]] || [[ $PYTHON_MAJOR -eq 3 && $PYTHON_MINOR -lt 8 ]]; then
         print_error "Требуется Python 3.8 или выше. Установлен: $PYTHON_VERSION"
         exit 1
     fi
+    
+    print_success "Python $PYTHON_VERSION найден"
     
     print_success "Система совместима"
 }
