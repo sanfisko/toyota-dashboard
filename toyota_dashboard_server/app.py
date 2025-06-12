@@ -8,6 +8,7 @@ import asyncio
 import json
 import logging
 import os
+import shutil
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional
 
@@ -81,6 +82,21 @@ class StatsRequest(BaseModel):
     start_date: Optional[str] = None
     end_date: Optional[str] = None
 
+class ConfigRequest(BaseModel):
+    """Запрос на сохранение конфигурации."""
+    username: str
+    password: str
+    vin: str
+    region: str = "europe"
+    port: int = 2025
+
+class TestConnectionRequest(BaseModel):
+    """Запрос на тестирование подключения."""
+    username: str
+    password: str
+    vin: str
+    region: str = "europe"
+
 # Инициализация Toyota клиента
 async def init_toyota_client():
     """Инициализировать подключение к Toyota API."""
@@ -138,7 +154,31 @@ async def collect_vehicle_data():
 @app.get("/", response_class=HTMLResponse)
 async def dashboard():
     """Главная страница дашборда."""
+    # Проверить, настроен ли Toyota клиент
+    if not toyota_client or not config.get('toyota', {}).get('username'):
+        # Перенаправить на страницу настройки
+        return HTMLResponse(content="""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <meta http-equiv="refresh" content="0; url=/setup">
+            <title>Перенаправление...</title>
+        </head>
+        <body>
+            <p>Перенаправление на страницу настройки...</p>
+            <script>window.location.href = '/setup';</script>
+        </body>
+        </html>
+        """)
+    
     with open('static/index.html', 'r', encoding='utf-8') as f:
+        return HTMLResponse(content=f.read())
+
+@app.get("/setup", response_class=HTMLResponse)
+async def setup_page():
+    """Страница настройки."""
+    with open('static/setup.html', 'r', encoding='utf-8') as f:
         return HTMLResponse(content=f.read())
 
 @app.get("/api/vehicle/status")
@@ -310,6 +350,117 @@ async def health_check():
         "toyota_client": toyota_client is not None,
         "database": await db.check_connection()
     }
+
+@app.get("/api/config")
+async def get_config():
+    """Получить текущую конфигурацию (без паролей)."""
+    safe_config = {
+        "toyota": {
+            "username": config.get('toyota', {}).get('username', ''),
+            "vin": config.get('toyota', {}).get('vin', ''),
+            "region": config.get('toyota', {}).get('region', 'europe'),
+            "password": "***" if config.get('toyota', {}).get('password') else ""
+        },
+        "server": {
+            "port": config.get('server', {}).get('port', 2025),
+            "host": config.get('server', {}).get('host', '0.0.0.0')
+        }
+    }
+    return safe_config
+
+@app.post("/api/test-connection")
+async def test_connection(request: TestConnectionRequest):
+    """Тестировать подключение к Toyota API."""
+    try:
+        # Создать временный клиент для тестирования
+        test_client = MyT(
+            username=request.username,
+            password=request.password,
+            locale='ru',
+            region=request.region
+        )
+        
+        # Попробовать получить информацию об автомобиле
+        vehicles = await test_client.get_vehicles()
+        
+        # Найти автомобиль по VIN
+        target_vehicle = None
+        for vehicle in vehicles:
+            if vehicle.vin == request.vin:
+                target_vehicle = vehicle
+                break
+        
+        if not target_vehicle:
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "success": False,
+                    "error": f"Автомобиль с VIN {request.vin} не найден в вашем аккаунте"
+                }
+            )
+        
+        return {
+            "success": True,
+            "vehicle_info": f"{target_vehicle.model} ({target_vehicle.year})",
+            "message": "Подключение успешно!"
+        }
+        
+    except Exception as e:
+        logger.error(f"Ошибка тестирования подключения: {e}")
+        return JSONResponse(
+            status_code=400,
+            content={
+                "success": False,
+                "error": str(e)
+            }
+        )
+
+@app.post("/api/save-config")
+async def save_config(request: ConfigRequest):
+    """Сохранить конфигурацию."""
+    global config, toyota_client, vehicle_vin
+    
+    try:
+        # Обновить конфигурацию
+        config['toyota']['username'] = request.username
+        config['toyota']['password'] = request.password
+        config['toyota']['vin'] = request.vin
+        config['toyota']['region'] = request.region
+        config['server']['port'] = request.port
+        
+        # Сохранить в файл
+        with open('config.yaml', 'w', encoding='utf-8') as f:
+            yaml.dump(config, f, default_flow_style=False, allow_unicode=True)
+        
+        # Обновить глобальные переменные
+        vehicle_vin = request.vin
+        
+        # Переинициализировать Toyota клиент
+        await init_toyota_client()
+        
+        logger.info("Конфигурация сохранена и клиент переинициализирован")
+        
+        # Если порт изменился, нужно перезапустить сервер
+        current_port = config.get('server', {}).get('port', 2025)
+        if request.port != current_port:
+            logger.info(f"Порт изменен с {current_port} на {request.port}")
+            # В продакшене здесь должен быть перезапуск через systemd
+            
+        return {
+            "success": True,
+            "message": "Конфигурация сохранена успешно!",
+            "restart_required": request.port != current_port
+        }
+        
+    except Exception as e:
+        logger.error(f"Ошибка сохранения конфигурации: {e}")
+        return JSONResponse(
+            status_code=500,
+            content={
+                "success": False,
+                "error": str(e)
+            }
+        )
 
 # События приложения
 @app.on_event("startup")
