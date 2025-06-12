@@ -637,7 +637,7 @@ show_final_info() {
     echo -e "${YELLOW}7. Удаление (если понадобится):${NC}"
     echo "   curl -sSL \"https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/uninstall.sh?\$(date +%s)\" | sudo bash"
     echo
-    echo -e "${GREEN}Установка завершена успешно! 🚗✨${NC}"
+    echo -e "${GREEN}Установка завершена успешно! Toyota Dashboard готов! ✨${NC}"
 }
 
 # Функция для исправления зависимостей в уже установленной системе

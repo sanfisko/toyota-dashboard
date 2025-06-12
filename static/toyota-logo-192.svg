@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="192" height="192" viewBox="0 0 192 192" xmlns="http://www.w3.org/2000/svg">
+  <!-- Toyota Logo SVG 192x192 -->
+  <rect width="192" height="192" rx="24" fill="#e60012"/>
+  <g transform="translate(96,96)">
+    <!-- Outer circle -->
+    <circle cx="0" cy="0" r="70" fill="none" stroke="white" stroke-width="4"/>
+    
+    <!-- Inner horizontal oval -->
+    <ellipse cx="0" cy="0" rx="55" ry="25" fill="none" stroke="white" stroke-width="4"/>
+    
+    <!-- Inner vertical oval -->
+    <ellipse cx="0" cy="0" rx="25" ry="55" fill="none" stroke="white" stroke-width="4"/>
+    
+    <!-- Center small circle -->
+    <circle cx="0" cy="0" r="12" fill="none" stroke="white" stroke-width="3"/>
+  </g>
+</svg>
