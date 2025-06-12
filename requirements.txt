@@ -12,7 +12,7 @@ sqlalchemy==2.0.23
 
 # HTTP клиент и Toyota API
 httpx==0.25.2
-aiohttp==3.9.1
+aiohttp>=3.9.0
 
 # Конфигурация
 pyyaml==6.0.1
@@ -26,7 +26,7 @@ jinja2==3.1.2
 aiofiles==23.2.1
 
 # Безопасность
-cryptography==41.0.8
+cryptography>=41.0.0
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
 
@@ -54,8 +54,8 @@ geopy==2.4.1
 folium==0.15.0
 
 # Экспорт данных
-openpyxl==3.1.2
-pandas==2.1.4
+openpyxl>=3.1.0
+pandas>=2.0.0
 
 # Веб-интерфейс
 bootstrap==4.6.2
