@@ -329,13 +329,6 @@ install_python_deps() {
         source venv/bin/activate
         pip install --upgrade pip
         pip install -r requirements.txt
-        
-        # Установка PyToyoda
-        if [[ -d 'pytoyoda' ]]; then
-            pip install -e ./pytoyoda
-        else
-            pip install pytoyoda
-        fi
     " || {
         print_error "Ошибка установки Python зависимостей"
         exit 1
