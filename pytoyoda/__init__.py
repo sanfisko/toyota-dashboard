@@ -4,8 +4,6 @@
 
 """
 
-from importlib_metadata import version
-
 from pytoyoda.client import MyT  # noqa : F401
 
-__version__ = version(__name__)
+__version__ = "0.0.0"

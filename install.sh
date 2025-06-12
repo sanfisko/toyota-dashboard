@@ -314,6 +314,14 @@ download_project() {
     
     sudo chown -R toyota:toyota /opt/toyota-dashboard
     
+    # Исправление проблемы с версией pytoyoda
+    if [[ -f "pytoyoda/__init__.py" ]]; then
+        print_step "Исправление проблемы с версией pytoyoda..."
+        sudo -u toyota sed -i 's/from importlib_metadata import version/# from importlib_metadata import version/' pytoyoda/__init__.py
+        sudo -u toyota sed -i 's/__version__ = version(__name__)/__version__ = "0.0.0"/' pytoyoda/__init__.py
+        print_success "Проблема с версией исправлена"
+    fi
+    
     print_success "Проект скачан"
 }
 
@@ -674,6 +682,14 @@ fix_dependencies() {
         print_error "Ошибка установки зависимостей"
         exit 1
     }
+    
+    # Исправление проблемы с версией pytoyoda
+    if [[ -f "pytoyoda/__init__.py" ]]; then
+        print_step "Исправление проблемы с версией pytoyoda..."
+        sudo -u toyota sed -i 's/from importlib_metadata import version/# from importlib_metadata import version/' pytoyoda/__init__.py
+        sudo -u toyota sed -i 's/__version__ = version(__name__)/__version__ = "0.0.0"/' pytoyoda/__init__.py
+        print_success "Проблема с версией исправлена"
+    fi
     
     # Запуск сервиса
     print_step "Запуск сервиса toyota-dashboard..."

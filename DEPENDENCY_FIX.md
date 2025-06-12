@@ -12,7 +12,10 @@ This error occurs because the `PyJWT` library is missing from the Python environ
 
 ## Root Cause
 
-The issue is caused by missing dependencies in the `requirements.txt` file. The following dependencies were missing:
+The issue is caused by two main problems:
+
+### 1. Missing Dependencies
+The following dependencies were missing from `requirements.txt`:
 
 1. **pyjwt** - Required for JWT token handling (used in `pytoyoda/controller.py`)
 2. **arrow** - Required for date/time handling (used in `pytoyoda/models/vehicle.py`)
@@ -20,19 +23,36 @@ The issue is caused by missing dependencies in the `requirements.txt` file. The 
 
 These dependencies are listed in `pyproject.toml` but were missing from `requirements.txt`, which is used by the installation script.
 
+### 2. Version Detection Error
+After fixing the dependencies, a new error appears:
+```
+importlib_metadata.PackageNotFoundError: No package metadata was found for pytoyoda
+```
+
+This occurs because the code tries to get the version of `pytoyoda` package using `importlib_metadata.version()`, but `pytoyoda` is not installed as a proper package - it's just copied as a directory.
+
 ## Solution
 
 ### Option 1: Quick Fix (Recommended)
 
-Run the provided fix script on your Raspberry Pi:
-
+For dependency issues, run:
 ```bash
 sudo bash fix_dependencies.sh
 ```
 
-This script will:
+For version detection error, run:
+```bash
+sudo bash fix_version_error.sh
+```
+
+Or run both fixes in sequence:
+```bash
+sudo bash fix_dependencies.sh && sudo bash fix_version_error.sh
+```
+
+These scripts will:
 1. Stop the toyota-dashboard service
-2. Install the missing dependencies in the virtual environment
+2. Install missing dependencies and fix version detection
 3. Verify the installation
 4. Restart the service
 
