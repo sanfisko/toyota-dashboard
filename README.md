@@ -46,6 +46,19 @@ curl -sSL https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/insta
 
 > **Примечание:** При использовании `curl | bash` рекомендуется использовать флаг `-y` для избежания проблем с интерактивным вводом.
 
+### ⚠️ Решение проблем установки
+
+**Ошибка "externally-managed-environment" (Python 3.11+):**
+Если вы видите ошибку PEP 668, попробуйте:
+```bash
+# Обновите скрипт установки (может быть кеширование)
+curl -sSL "https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/install.sh?$(date +%s)" | sudo bash -s -- -y
+
+# Или установите вручную python3-full
+sudo apt update && sudo apt install -y python3-full python3-venv
+curl -sSL https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/install.sh | sudo bash -s -- -y
+```
+
 ### Настройка через веб-интерфейс
 1. Откройте `http://IP_RASPBERRY_PI/setup`
 2. Введите ваши Toyota Connected Services credentials
