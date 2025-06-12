@@ -2,9 +2,9 @@
 
 **Персональный сервер для мониторинга и управления Toyota автомобилями с веб-интерфейсом для iPhone**
 
-[![GitHub Stars](https://img.shields.io/github/stars/sanfisko/toyota-dashboard?style=social)](https://github.com/sanfisko/toyota-dashboard)
-[![GitHub Issues](https://img.shields.io/github/issues/sanfisko/toyota-dashboard)](https://github.com/sanfisko/toyota-dashboard/issues)
-[![License](https://img.shields.io/github/license/sanfisko/toyota-dashboard)](LICENSE)
+[![GitHub Stars](https://img.shields.io/github/stars/tifainechevaliermuzpub/toyota-dashboard?style=social)](https://github.com/tifainechevaliermuzpub/toyota-dashboard)
+[![GitHub Issues](https://img.shields.io/github/issues/tifainechevaliermuzpub/toyota-dashboard)](https://github.com/tifainechevaliermuzpub/toyota-dashboard/issues)
+[![License](https://img.shields.io/github/license/tifainechevaliermuzpub/toyota-dashboard)](LICENSE)
 
 ## 🎯 Что это такое?
 
@@ -23,7 +23,7 @@ Toyota Dashboard - это полноценное решение для влад�
 
 ### Автоматическая установка на Raspberry Pi
 ```bash
-curl -sSL https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/toyota_dashboard_server/install.sh | sudo bash
+curl -sSL https://raw.githubusercontent.com/tifainechevaliermuzpub/toyota-dashboard/main/toyota_dashboard_server/install.sh | sudo bash
 ```
 
 ### Настройка через веб-интерфейс
@@ -187,7 +187,7 @@ ngrok http 80
 ## 🆘 Поддержка
 
 ### Сообщество
-- 🐛 **[GitHub Issues](https://github.com/sanfisko/toyota-dashboard/issues)** - баги и предложения
+- 🐛 **[GitHub Issues](https://github.com/tifainechevaliermuzpub/toyota-dashboard/issues)** - баги и предложения
 - 💬 **Telegram**: @toyota_chr_phev_ru
 - 📧 **Email**: support@toyota-dashboard.pro
 

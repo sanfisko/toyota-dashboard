@@ -32,13 +32,13 @@
 ### Вариант 1: Автоматическая установка (рекомендуется)
 ```bash
 # На Raspberry Pi выполните одну команду:
-curl -sSL https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/toyota_dashboard_server/install.sh | sudo bash
+curl -sSL https://raw.githubusercontent.com/tifainechevaliermuzpub/toyota-dashboard/main/toyota_dashboard_server/install.sh | sudo bash
 ```
 
 ### Вариант 2: Ручная установка
 ```bash
 # 1. Скачать проект
-git clone https://github.com/sanfisko/toyota-dashboard.git
+git clone https://github.com/tifainechevaliermuzpub/toyota-dashboard.git
 cd toyota-dashboard/toyota_dashboard_server
 
 # 2. Запустить установочный скрипт
@@ -353,7 +353,7 @@ integrations:
 ## 📞 Поддержка
 
 ### Сообщество
-- **GitHub**: [Issues и обсуждения](https://github.com/sanfisko/toyota-dashboard/issues)
+- **GitHub**: [Issues и обсуждения](https://github.com/tifainechevaliermuzpub/toyota-dashboard/issues)
 - **Telegram**: @toyota_chr_phev_ru
 - **Email**: support@toyota-dashboard.pro
 
