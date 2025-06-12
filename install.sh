@@ -142,7 +142,8 @@ check_and_install_python() {
             dnf install -y python3-pip
         else
             # Устанавливаем pip через get-pip.py
-            curl -sSL https://bootstrap.pypa.io/get-pip.py | python3
+            curl -sSL https://bootstrap.pypa.io/get-pip.py | python3 - --break-system-packages 2>/dev/null || \
+            curl -sSL https://bootstrap.pypa.io/get-pip.py | python3 - --user
         fi
         
         print_success "pip3 установлен"
@@ -150,7 +151,10 @@ check_and_install_python() {
     
     # Обновляем pip до последней версии
     print_step "Обновление pip..."
-    python3 -m pip install --upgrade pip
+    # Используем --break-system-packages для обхода PEP 668 ограничений
+    python3 -m pip install --upgrade pip --break-system-packages 2>/dev/null || \
+    python3 -m pip install --upgrade pip --user 2>/dev/null || \
+    print_warning "Не удалось обновить pip, но это не критично"
     
     print_success "Python $PYTHON_VERSION готов к использованию"
 }
@@ -333,7 +337,10 @@ install_python_deps() {
         else
             pip install pytoyoda
         fi
-    "
+    " || {
+        print_error "Ошибка установки Python зависимостей"
+        exit 1
+    }
     
     print_success "Python зависимости установлены"
 }
