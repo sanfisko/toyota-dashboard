@@ -37,14 +37,10 @@
 
 ### Автоматическая установка на Raspberry Pi
 ```bash
-# Рекомендуемый способ - автоматическая установка
-curl -sSL https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/install.sh | sudo bash -s -- -y
-
-# Альтернативно - интерактивная установка (с подтверждением)
 curl -sSL https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/install.sh | sudo bash
 ```
 
-> **Примечание:** При использовании `curl | bash` рекомендуется использовать флаг `-y` для избежания проблем с интерактивным вводом.
+> **Примечание:** Скрипт запросит подтверждение перед началом установки.
 
 ### ⚠️ Решение проблем установки
 
@@ -52,11 +48,11 @@ curl -sSL https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/insta
 Если вы видите ошибку PEP 668, попробуйте:
 ```bash
 # Обновите скрипт установки (может быть кеширование)
-curl -sSL "https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/install.sh?$(date +%s)" | sudo bash -s -- -y
+curl -sSL "https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/install.sh?$(date +%s)" | sudo bash
 
 # Или установите вручную python3-full
 sudo apt update && sudo apt install -y python3-full python3-venv
-curl -sSL https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/install.sh | sudo bash -s -- -y
+curl -sSL https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/install.sh | sudo bash
 ```
 
 ### Настройка через веб-интерфейс
