@@ -103,7 +103,7 @@ app.mount("/static", StaticFiles(directory=f"{APP_DIR}/static"), name="static")
 # Модели данных
 class CommandRequest(BaseModel):
     """Запрос на выполнение команды."""
-    command: str
+    command: Optional[str] = None
     duration: Optional[int] = None
     temperature: Optional[float] = None
     beeps: Optional[int] = 0
