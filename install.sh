@@ -7,9 +7,11 @@
 # Использование:
 #   curl -sSL https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/install.sh | sudo bash
 #   curl -sSL https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/install.sh | sudo bash -s -- -y
+#   curl -sSL https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/install.sh | sudo bash -s -- --fix-deps
 #
 # Флаги:
-#   -y, --yes    Автоматическое подтверждение без интерактивного запроса
+#   -y, --yes                    Автоматическое подтверждение без интерактивного запроса
+#   --fix-deps, --fix-dependencies   Исправление зависимостей в уже установленной системе
 
 set -e  # Остановить при ошибке
 
@@ -329,6 +331,25 @@ install_python_deps() {
         source venv/bin/activate
         pip install --upgrade pip
         pip install -r requirements.txt
+        
+        # Проверка критически важных зависимостей
+        echo 'Проверка критически важных зависимостей...'
+        python3 -c 'import jwt; print(\"✓ PyJWT установлен:\", jwt.__version__)' || {
+            echo 'Установка PyJWT...'
+            pip install pyjwt==2.8.0
+        }
+        
+        python3 -c 'import arrow; print(\"✓ Arrow установлен:\", arrow.__version__)' || {
+            echo 'Установка Arrow...'
+            pip install arrow==1.3.0
+        }
+        
+        python3 -c 'import langcodes; print(\"✓ Langcodes установлен\")' || {
+            echo 'Установка Langcodes...'
+            pip install langcodes==3.4.0
+        }
+        
+        echo 'Все критически важные зависимости проверены'
     " || {
         print_error "Ошибка установки Python зависимостей"
         exit 1
@@ -603,6 +624,75 @@ show_final_info() {
     echo -e "${GREEN}Установка завершена успешно! 🚗✨${NC}"
 }
 
+# Функция для исправления зависимостей в уже установленной системе
+fix_dependencies() {
+    print_step "Исправление зависимостей в установленной системе..."
+    
+    # Проверка существования установки
+    if [[ ! -d "/opt/toyota-dashboard" ]]; then
+        print_error "Toyota Dashboard не найден в /opt/toyota-dashboard"
+        print_info "Запустите полную установку вместо исправления зависимостей"
+        exit 1
+    fi
+    
+    cd /opt/toyota-dashboard
+    
+    # Остановка сервиса
+    print_step "Остановка сервиса toyota-dashboard..."
+    systemctl stop toyota-dashboard || true
+    
+    # Проверка виртуального окружения
+    if [[ ! -d "venv" ]]; then
+        print_warning "Виртуальное окружение не найдено, создаем новое..."
+        sudo -u toyota python3 -m venv venv
+    fi
+    
+    # Установка недостающих зависимостей
+    print_step "Установка недостающих зависимостей..."
+    sudo -u toyota bash -c "
+        source venv/bin/activate
+        pip install --upgrade pip
+        
+        # Установка критически важных зависимостей
+        echo 'Установка PyJWT...'
+        pip install pyjwt==2.8.0
+        
+        echo 'Установка Arrow...'
+        pip install arrow==1.3.0
+        
+        echo 'Установка Langcodes...'
+        pip install langcodes==3.4.0
+        
+        # Проверка установки
+        echo 'Проверка установленных зависимостей:'
+        python3 -c 'import jwt; print(\"✓ PyJWT:\", jwt.__version__)'
+        python3 -c 'import arrow; print(\"✓ Arrow:\", arrow.__version__)'
+        python3 -c 'import langcodes; print(\"✓ Langcodes установлен\")'
+        
+        echo 'Все зависимости установлены успешно'
+    " || {
+        print_error "Ошибка установки зависимостей"
+        exit 1
+    }
+    
+    # Запуск сервиса
+    print_step "Запуск сервиса toyota-dashboard..."
+    systemctl start toyota-dashboard
+    
+    # Проверка статуса
+    sleep 3
+    if systemctl is-active --quiet toyota-dashboard; then
+        print_success "Toyota Dashboard сервис запущен!"
+    else
+        print_error "Сервис не удалось запустить. Проверьте логи: sudo journalctl -u toyota-dashboard -f"
+        exit 1
+    fi
+    
+    print_success "Зависимости исправлены успешно!"
+    print_info "Проверьте статус: sudo systemctl status toyota-dashboard"
+    print_info "Просмотр логов: sudo journalctl -u toyota-dashboard -f"
+}
+
 # Основная функция
 main() {
     print_header
@@ -660,5 +750,17 @@ main() {
 # Обработка ошибок
 trap 'print_error "Установка прервана из-за ошибки на строке $LINENO"' ERR
 
-# Запуск
-main "$@"
+# Обработка аргументов и запуск
+case "${1:-}" in
+    --fix-deps|--fix-dependencies)
+        print_header
+        if [[ $EUID -ne 0 ]]; then
+            print_error "Этот скрипт должен быть запущен с правами root (sudo)"
+            exit 1
+        fi
+        fix_dependencies
+        ;;
+    *)
+        main "$@"
+        ;;
+esac
