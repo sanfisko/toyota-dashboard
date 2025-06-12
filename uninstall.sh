@@ -356,7 +356,7 @@ main() {
     print_warning "Если вы хотите переустановить Toyota Dashboard:"
     echo "curl -sSL https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/install.sh | sudo bash"
     echo
-    print_info "Спасибо за использование Toyota Dashboard! 🚗"
+    print_info "Спасибо за использование Toyota Dashboard!"
 }
 
 # Обработка сигналов
