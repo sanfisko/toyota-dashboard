@@ -1178,6 +1178,117 @@ async def get_total_stats():
             }
         )
 
+@app.get("/api/fuel-prices")
+async def get_current_fuel_prices():
+    """Получить актуальные цены на топливо для текущего местоположения."""
+    try:
+        from fuel_prices import fuel_price_service
+        
+        # Получить последнее местоположение из базы данных
+        last_status = await db.get_last_vehicle_status()
+        
+        if last_status and last_status.latitude != 0 and last_status.longitude != 0:
+            # Определить страну по координатам
+            country_code = await fuel_price_service.get_country_by_coordinates(
+                last_status.latitude, last_status.longitude
+            )
+            prices = await fuel_price_service.get_fuel_prices(
+                latitude=last_status.latitude, 
+                longitude=last_status.longitude
+            )
+        else:
+            # Использовать дефолтные цены для Германии
+            country_code = "DE"
+            prices = await fuel_price_service.get_fuel_prices("DE")
+        
+        country_name = fuel_price_service.get_country_name(country_code)
+        
+        return {
+            "success": True,
+            "country_code": country_code,
+            "country_name": country_name,
+            "gasoline_price": prices["gasoline"],
+            "electricity_price": prices["electricity"],
+            "currency": "EUR"
+        }
+
+    except Exception as e:
+        logger.error(f"Ошибка получения цен на топливо: {e}")
+        return JSONResponse(
+            status_code=500,
+            content={
+                "success": False,
+                "error": str(e)
+            }
+        )
+
+@app.post("/api/add-test-data")
+async def add_test_data():
+    """Добавить тестовые данные для проверки статистики."""
+    try:
+        # Добавить несколько тестовых поездок
+        test_trips = [
+            {
+                "start_time": "2024-01-01 08:00:00",
+                "end_time": "2024-01-01 08:30:00",
+                "distance_total": 25.5,
+                "distance_electric": 15.0,
+                "distance_fuel": 10.5,
+                "fuel_consumed": 1.2,
+                "electricity_consumed": 3.5,
+                "avg_efficiency": 85
+            },
+            {
+                "start_time": "2024-01-01 18:00:00", 
+                "end_time": "2024-01-01 18:45:00",
+                "distance_total": 35.2,
+                "distance_electric": 20.0,
+                "distance_fuel": 15.2,
+                "fuel_consumed": 1.8,
+                "electricity_consumed": 4.2,
+                "avg_efficiency": 78
+            },
+            {
+                "start_time": "2024-01-02 09:15:00",
+                "end_time": "2024-01-02 10:00:00", 
+                "distance_total": 42.8,
+                "distance_electric": 25.0,
+                "distance_fuel": 17.8,
+                "fuel_consumed": 2.1,
+                "electricity_consumed": 5.1,
+                "avg_efficiency": 82
+            }
+        ]
+        
+        for trip in test_trips:
+            await db.connection.execute("""
+                INSERT INTO trips (
+                    start_time, end_time, distance_total, distance_electric, 
+                    distance_fuel, fuel_consumed, electricity_consumed, avg_efficiency
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                trip["start_time"], trip["end_time"], trip["distance_total"],
+                trip["distance_electric"], trip["distance_fuel"], 
+                trip["fuel_consumed"], trip["electricity_consumed"], trip["avg_efficiency"]
+            ))
+        
+        await db.connection.commit()
+        
+        return {
+            "success": True,
+            "message": f"Добавлено {len(test_trips)} тестовых поездок"
+        }
+        
+    except Exception as e:
+        logger.error(f"Ошибка добавления тестовых данных: {e}")
+        return JSONResponse(
+            status_code=500,
+            content={
+                "success": False,
+                "error": str(e)
+            }
+        )
+
 # Маршрут для страницы тестирования
 @app.get("/test", response_class=HTMLResponse)
 async def test_page():

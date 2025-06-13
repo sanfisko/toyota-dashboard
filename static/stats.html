@@ -360,7 +360,10 @@
             <p>Детальная аналитика использования автомобиля</p>
         </div>
 
-        <button class="refresh-btn" onclick="refreshAllStats()">🔄 Обновить данные</button>
+        <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
+            <button class="refresh-btn" onclick="refreshAllStats()">🔄 Обновить данные</button>
+            <button class="refresh-btn" onclick="addTestData()" style="background: linear-gradient(135deg, #ffc107, #ff8c00);">🧪 Добавить тестовые данные</button>
+        </div>
 
         <!-- Сводные карточки -->
         <div class="summary-cards">
@@ -382,7 +385,27 @@
             <div class="summary-card eco-card">
                 <h3>Экономия</h3>
                 <div class="value" id="total-savings">--</div>
-                <div class="unit">₽</div>
+                <div class="unit">€</div>
+            </div>
+        </div>
+
+        <!-- Информация о ценах на топливо -->
+        <div class="period-selector">
+            <h3 style="margin-bottom: 15px; color: #333;">⛽ Актуальные цены на топливо</h3>
+            <div id="fuel-prices-info" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="font-weight: 500;">🌍 Страна:</span>
+                    <span id="current-country">--</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="font-weight: 500;">⛽ Бензин:</span>
+                    <span id="gasoline-price">-- €/л</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="font-weight: 500;">⚡ Электричество:</span>
+                    <span id="electricity-price">-- €/кВт⋅ч</span>
+                </div>
+                <button class="apply-btn" onclick="refreshFuelPrices()" style="margin: 0;">🔄 Обновить</button>
             </div>
         </div>
 
@@ -451,7 +474,7 @@
                 </div>
                 <div class="stat-row">
                     <span class="stat-label">💰 Экономия денег</span>
-                    <span class="stat-value" id="cost-savings">-- ₽</span>
+                    <span class="stat-value" id="cost-savings">-- €</span>
                 </div>
                 <div class="stat-row">
                     <span class="stat-label">🚗 Количество поездок</span>
@@ -613,7 +636,7 @@
             document.getElementById('avg-electric-consumption').textContent = avgElectricConsumption.toFixed(1) + ' кВт⋅ч/100км';
             
             document.getElementById('co2-saved').textContent = (stats.co2_saved || 0).toFixed(1) + ' кг';
-            document.getElementById('cost-savings').textContent = (stats.cost_savings || 0) + ' ₽';
+            document.getElementById('cost-savings').textContent = (stats.cost_savings || 0).toFixed(2) + ' €';
             
             // Дополнительные метрики
             const tripCount = stats.trip_count || 0;
@@ -639,7 +662,7 @@
                                                    element.textContent.includes('кВт') ? 'кВт⋅ч' :
                                                    element.textContent.includes('%') ? '%' :
                                                    element.textContent.includes('кг') ? 'кг' :
-                                                   element.textContent.includes('₽') ? '₽' : '');
+                                                   element.textContent.includes('€') ? '€' : '');
                 }
             });
         }
@@ -655,13 +678,85 @@
                 document.getElementById('total-distance').textContent = stats.total_distance || '--';
                 document.getElementById('total-electric').textContent = stats.electric_percentage ? stats.electric_percentage.toFixed(1) : '--';
                 document.getElementById('total-fuel').textContent = stats.fuel_consumed ? stats.fuel_consumed.toFixed(1) : '--';
-                document.getElementById('total-savings').textContent = stats.cost_savings || '--';
+                document.getElementById('total-savings').textContent = stats.cost_savings ? (stats.cost_savings).toFixed(2) : '--';
                 
             } catch (error) {
                 console.error('Error loading total statistics:', error);
             }
         }
         
+        // Загрузка цен на топливо
+        async function loadFuelPrices() {
+            try {
+                const response = await fetch('/api/fuel-prices');
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('current-country').textContent = data.country_name;
+                    document.getElementById('gasoline-price').textContent = data.gasoline_price.toFixed(2) + ' €/л';
+                    document.getElementById('electricity-price').textContent = data.electricity_price.toFixed(2) + ' €/кВт⋅ч';
+                } else {
+                    console.error('Error loading fuel prices:', data.error);
+                }
+            } catch (error) {
+                console.error('Error loading fuel prices:', error);
+            }
+        }
+        
+        // Обновить цены на топливо
+        async function refreshFuelPrices() {
+            const button = event.target;
+            const originalText = button.textContent;
+            button.textContent = '🔄 Обновление...';
+            button.disabled = true;
+            
+            try {
+                await loadFuelPrices();
+                showNotification('Цены на топливо обновлены', 'success');
+            } catch (error) {
+                showNotification('Ошибка обновления цен', 'error');
+            } finally {
+                button.textContent = originalText;
+                button.disabled = false;
+            }
+        }
+        
+        // Добавить тестовые данные
+        async function addTestData() {
+            const button = event.target;
+            const originalText = button.textContent;
+            button.textContent = '🧪 Добавление...';
+            button.disabled = true;
+            
+            try {
+                const response = await fetch('/api/add-test-data', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification(data.message, 'success');
+                    // Обновить статистику после добавления данных
+                    await Promise.all([
+                        loadTotalStats(),
+                        loadStatistics(currentPeriod)
+                    ]);
+                } else {
+                    showNotification('Ошибка добавления тестовых данных', 'error');
+                }
+            } catch (error) {
+                showNotification('Ошибка добавления тестовых данных', 'error');
+                console.error('Error adding test data:', error);
+            } finally {
+                button.textContent = originalText;
+                button.disabled = false;
+            }
+        }
+
         // Обновить все данные
         async function refreshAllStats() {
             const button = event.target;
@@ -671,7 +766,8 @@
             try {
                 await Promise.all([
                     loadTotalStats(),
-                    loadStatistics(currentPeriod)
+                    loadStatistics(currentPeriod),
+                    loadFuelPrices()
                 ]);
                 
                 showNotification('Данные обновлены', 'success');
@@ -719,6 +815,7 @@
             
             loadTotalStats();
             loadStatistics();
+            loadFuelPrices();
         });
     </script>
 </body>
