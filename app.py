@@ -24,46 +24,30 @@ from pytoyoda import MyT
 from pytoyoda.models.endpoints.command import CommandType
 from database import DatabaseManager
 from models import VehicleStatus, TripData, StatsPeriod
+from paths import paths
 
 # Настройка кэш-директории для предотвращения ошибок read-only filesystem
-cache_dir = os.path.expanduser("~/.cache/toyota-dashboard")
 try:
-    os.makedirs(cache_dir, exist_ok=True)
-    os.environ.setdefault("XDG_CACHE_HOME", os.path.expanduser("~/.cache"))
-    os.environ.setdefault("HTTPX_CACHE_DIR", cache_dir)
+    os.environ.setdefault("XDG_CACHE_HOME", os.path.dirname(paths.cache_dir))
+    os.environ.setdefault("HTTPX_CACHE_DIR", paths.cache_dir)
     # Устанавливаем рабочую директорию в домашнюю папку пользователя
     os.chdir(os.path.expanduser("~"))
 except (OSError, PermissionError) as e:
     print(f"Предупреждение: Не удалось настроить кэш-директорию: {e}")
 
 # Базовые директории
-import os
-APP_DIR = os.path.dirname(os.path.abspath(__file__))
+APP_DIR = paths.app_dir
 
-# Используем системные директории для логов и данных
-LOG_DIR = '/var/log/toyota-dashboard'
-DATA_DIR = '/var/lib/toyota-dashboard/data'
-
-# Создание директорий для логов и данных
-use_fallback_dirs = False
-try:
-    os.makedirs(LOG_DIR, exist_ok=True)
-    os.makedirs(DATA_DIR, exist_ok=True)
-except (PermissionError, OSError) as e:
-    # Если нет прав на создание в системных директориях, используем /tmp
-    print(f"Не удалось создать системные директории ({e}), используем /tmp")
-    LOG_DIR = '/tmp/toyota-dashboard'
-    DATA_DIR = '/tmp/toyota-dashboard/data'
-    os.makedirs(LOG_DIR, exist_ok=True)
-    os.makedirs(DATA_DIR, exist_ok=True)
-    use_fallback_dirs = True
+# Используем менеджер путей для всех директорий
+LOG_DIR = paths.log_dir
+DATA_DIR = paths.data_dir
 
 # Настройка логирования
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler(f'{LOG_DIR}/app.log'),
+        logging.FileHandler(paths.log_file),
         logging.StreamHandler()
     ]
 )
@@ -73,28 +57,21 @@ logger = logging.getLogger(__name__)
 def load_config() -> Dict:
     """Загрузить конфигурацию из файла."""
     try:
-        with open(f'{APP_DIR}/config.yaml', 'r', encoding='utf-8') as f:
+        with open(paths.config_file, 'r', encoding='utf-8') as f:
             return yaml.safe_load(f)
     except FileNotFoundError:
-        logger.error("Файл config.yaml не найден!")
+        logger.error(f"Файл конфигурации не найден: {paths.config_file}")
         raise
     except yaml.YAMLError as e:
-        logger.error(f"Ошибка в config.yaml: {e}")
+        logger.error(f"Ошибка в файле конфигурации: {e}")
         raise
 
 # Глобальные переменные
 config = load_config()
 app = FastAPI(title="Toyota Dashboard", version="1.0.0")
 
-# Определяем путь к базе данных в зависимости от используемой директории
-if use_fallback_dirs:
-    db_path = os.path.join(DATA_DIR, 'toyota.db')
-    # Обновляем конфигурацию для использования fallback пути
-    config['database']['path'] = db_path
-    print(f"Используется fallback путь к базе данных: {db_path}")
-else:
-    db_path = config['database']['path']
-
+# Используем путь к базе данных из менеджера путей
+db_path = paths.database_path
 db = DatabaseManager(db_path)
 toyota_client: Optional[MyT] = None
 vehicle_vin = config['toyota']['vin']
@@ -248,14 +225,19 @@ async def dashboard():
         </html>
         """)
     
-    with open(f'{APP_DIR}/static/index.html', 'r', encoding='utf-8') as f:
+    with open(paths.get_static_file('index.html'), 'r', encoding='utf-8') as f:
         return HTMLResponse(content=f.read())
 
 @app.get("/setup", response_class=HTMLResponse)
 async def setup_page():
     """Страница настройки."""
-    with open(f'{APP_DIR}/static/setup.html', 'r', encoding='utf-8') as f:
+    with open(paths.get_static_file('setup.html'), 'r', encoding='utf-8') as f:
         return HTMLResponse(content=f.read())
+
+@app.get("/api/system/paths")
+async def get_system_paths():
+    """Получить информацию о путях системы."""
+    return paths.get_info()
 
 @app.get("/api/vehicle/status")
 async def get_vehicle_status():
@@ -539,7 +521,7 @@ async def save_config(request: ConfigRequest):
         config['server']['port'] = request.port
         
         # Сохранить в файл
-        with open(f'{APP_DIR}/config.yaml', 'w', encoding='utf-8') as f:
+        with open(paths.config_file, 'w', encoding='utf-8') as f:
             yaml.dump(config, f, default_flow_style=False, allow_unicode=True)
         
         # Обновить глобальные переменные

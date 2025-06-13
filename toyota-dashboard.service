@@ -26,8 +26,11 @@ PrivateTmp=true
 ProtectSystem=strict
 ProtectHome=false
 ReadWritePaths=/home/sanfisko/.cache
+ReadWritePaths=/home/sanfisko/.config
+ReadWritePaths=/home/sanfisko/.local
 ReadWritePaths=/var/log/toyota-dashboard
 ReadWritePaths=/var/lib/toyota-dashboard
+ReadWritePaths=/tmp/toyota-dashboard
 
 [Install]
 WantedBy=multi-user.target
