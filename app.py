@@ -1128,6 +1128,31 @@ async def test_service_history():
             }
         )
 
+@app.get("/api/stats/total")
+async def get_total_stats():
+    """Получить общую статистику за все время."""
+    try:
+        # Получить общую статистику из базы данных
+        total_stats = await db.get_total_statistics()
+        
+        return {
+            "success": True,
+            "total_distance": total_stats.get("total_distance", 0),
+            "electric_percentage": total_stats.get("electric_percentage", 0),
+            "fuel_consumed": total_stats.get("fuel_consumed", 0),
+            "cost_savings": total_stats.get("cost_savings", 0)
+        }
+        
+    except Exception as e:
+        logger.error(f"Ошибка получения общей статистики: {e}")
+        return JSONResponse(
+            status_code=500,
+            content={
+                "success": False,
+                "error": str(e)
+            }
+        )
+
 # Маршрут для страницы тестирования
 @app.get("/test", response_class=HTMLResponse)
 async def test_page():
@@ -1138,6 +1163,19 @@ async def test_page():
     except FileNotFoundError:
         return HTMLResponse(
             content="<h1>Страница тестирования не найдена</h1>",
+            status_code=404
+        )
+
+# Маршрут для страницы статистики
+@app.get("/stats", response_class=HTMLResponse)
+async def stats_page():
+    """Страница детальной статистики."""
+    try:
+        with open(os.path.join(APP_DIR, 'static', 'stats.html'), 'r', encoding='utf-8') as f:
+            return f.read()
+    except FileNotFoundError:
+        return HTMLResponse(
+            content="<h1>Страница статистики не найдена</h1>",
             status_code=404
         )
 

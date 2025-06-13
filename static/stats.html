@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Toyota Stats">
+    <title>Toyota Statistics</title>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 16px;
+        }
+        
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #007bff;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        
+        .back-link::before {
+            content: "← ";
+        }
+        
+        .stats-section {
+            margin-bottom: 30px;
+        }
+        
+        .stats-tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .stats-tab {
+            flex: 1;
+            background: transparent;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .stats-tab.active {
+            background: white;
+            color: #667eea;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .stats-content {
+            display: none;
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+        }
+        
+        .stats-content.active {
+            display: block;
+        }
+        
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #ecf0f1;
+        }
+        
+        .stat-row:last-child {
+            border-bottom: none;
+        }
+        
+        .stat-label {
+            font-weight: 500;
+            color: #555;
+        }
+        
+        .stat-value {
+            font-weight: 600;
+            color: #333;
+            font-size: 16px;
+        }
+        
+        .chart-container {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        .chart-placeholder {
+            height: 200px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-style: italic;
+        }
+        
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .summary-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .summary-card h3 {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .summary-card .value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .summary-card .unit {
+            font-size: 12px;
+            color: #999;
+        }
+        
+        .eco-card {
+            border-left: 4px solid #28a745;
+        }
+        
+        .distance-card {
+            border-left: 4px solid #007bff;
+        }
+        
+        .fuel-card {
+            border-left: 4px solid #ffc107;
+        }
+        
+        .electric-card {
+            border-left: 4px solid #17a2b8;
+        }
+        
+        .refresh-btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 12px 24px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+        
+        .refresh-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(40, 167, 69, 0.3);
+        }
+        
+        .loading {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 10px;
+            color: white;
+            font-weight: 500;
+            z-index: 1000;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .notification.success {
+            background: #28a745;
+        }
+        
+        .notification.error {
+            background: #dc3545;
+        }
+        
+        .notification.info {
+            background: #17a2b8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/" class="back-link">Вернуться к главной панели</a>
+        
+        <div class="header">
+            <h1>📊 Статистика поездок</h1>
+            <p>Детальная аналитика использования автомобиля</p>
+        </div>
+
+        <button class="refresh-btn" onclick="refreshAllStats()">🔄 Обновить данные</button>
+
+        <!-- Сводные карточки -->
+        <div class="summary-cards">
+            <div class="summary-card distance-card">
+                <h3>Общий пробег</h3>
+                <div class="value" id="total-distance">--</div>
+                <div class="unit">км</div>
+            </div>
+            <div class="summary-card electric-card">
+                <h3>Электро режим</h3>
+                <div class="value" id="total-electric">--</div>
+                <div class="unit">%</div>
+            </div>
+            <div class="summary-card fuel-card">
+                <h3>Расход топлива</h3>
+                <div class="value" id="total-fuel">--</div>
+                <div class="unit">л</div>
+            </div>
+            <div class="summary-card eco-card">
+                <h3>Экономия</h3>
+                <div class="value" id="total-savings">--</div>
+                <div class="unit">₽</div>
+            </div>
+        </div>
+
+        <!-- Статистика по периодам -->
+        <div class="stats-section">
+            <div class="stats-tabs">
+                <button class="stats-tab active" onclick="showStats('day')">День</button>
+                <button class="stats-tab" onclick="showStats('week')">Неделя</button>
+                <button class="stats-tab" onclick="showStats('month')">Месяц</button>
+                <button class="stats-tab" onclick="showStats('year')">Год</button>
+            </div>
+            
+            <div id="stats-day" class="stats-content active">
+                <div class="stat-row">
+                    <span class="stat-label">📏 Пробег за день</span>
+                    <span class="stat-value" id="day-distance">-- км</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">⚡ Электро режим</span>
+                    <span class="stat-value" id="day-electric">-- %</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">⛽ Расход топлива</span>
+                    <span class="stat-value" id="day-fuel">-- л</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">💰 Экономия</span>
+                    <span class="stat-value" id="day-savings">-- ₽</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">🚗 Количество поездок</span>
+                    <span class="stat-value" id="day-trips">--</span>
+                </div>
+            </div>
+            
+            <div id="stats-week" class="stats-content">
+                <div class="stat-row">
+                    <span class="stat-label">📏 Пробег за неделю</span>
+                    <span class="stat-value" id="week-distance">-- км</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">⚡ Электро режим</span>
+                    <span class="stat-value" id="week-electric">-- %</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">⛽ Расход топлива</span>
+                    <span class="stat-value" id="week-fuel">-- л</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">💰 Экономия</span>
+                    <span class="stat-value" id="week-savings">-- ₽</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">🚗 Количество поездок</span>
+                    <span class="stat-value" id="week-trips">--</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">📊 Средний пробег в день</span>
+                    <span class="stat-value" id="week-avg-daily">-- км</span>
+                </div>
+            </div>
+            
+            <div id="stats-month" class="stats-content">
+                <div class="stat-row">
+                    <span class="stat-label">📏 Пробег за месяц</span>
+                    <span class="stat-value" id="month-distance">-- км</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">⚡ Электро режим</span>
+                    <span class="stat-value" id="month-electric">-- %</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">⛽ Расход топлива</span>
+                    <span class="stat-value" id="month-fuel">-- л</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">💰 Экономия</span>
+                    <span class="stat-value" id="month-savings">-- ₽</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">🚗 Количество поездок</span>
+                    <span class="stat-value" id="month-trips">--</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">📊 Средний пробег в день</span>
+                    <span class="stat-value" id="month-avg-daily">-- км</span>
+                </div>
+            </div>
+            
+            <div id="stats-year" class="stats-content">
+                <div class="stat-row">
+                    <span class="stat-label">📏 Пробег за год</span>
+                    <span class="stat-value" id="year-distance">-- км</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">⚡ Электро режим</span>
+                    <span class="stat-value" id="year-electric">-- %</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">⛽ Расход топлива</span>
+                    <span class="stat-value" id="year-fuel">-- л</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">💰 Экономия</span>
+                    <span class="stat-value" id="year-savings">-- ₽</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">🚗 Количество поездок</span>
+                    <span class="stat-value" id="year-trips">--</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">📊 Средний пробег в месяц</span>
+                    <span class="stat-value" id="year-avg-monthly">-- км</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- График (заглушка) -->
+        <div class="chart-container">
+            <h3 style="margin-bottom: 15px; color: #333;">График использования по дням</h3>
+            <div class="chart-placeholder">
+                График будет добавлен в следующих версиях
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentPeriod = 'day';
+        
+        // Показать статистику
+        function showStats(period) {
+            // Скрыть все вкладки
+            document.querySelectorAll('.stats-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.querySelectorAll('.stats-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Показать выбранную вкладку
+            document.getElementById('stats-' + period).classList.add('active');
+            event.target.classList.add('active');
+            
+            currentPeriod = period;
+            
+            // Загрузить статистику
+            loadStatistics(period);
+        }
+        
+        // Загрузка статистики
+        async function loadStatistics(period) {
+            try {
+                const response = await fetch(`/api/stats/phev?period=${period}`);
+                if (!response.ok) throw new Error('Ошибка загрузки статистики');
+                
+                const stats = await response.json();
+                
+                // Обновить UI статистики
+                document.getElementById(period + '-distance').textContent = stats.total_distance + ' км';
+                document.getElementById(period + '-electric').textContent = stats.electric_percentage.toFixed(1) + '%';
+                document.getElementById(period + '-fuel').textContent = (stats.fuel_consumed || 0).toFixed(1) + ' л';
+                document.getElementById(period + '-savings').textContent = stats.cost_savings + ' ₽';
+                document.getElementById(period + '-trips').textContent = stats.trip_count || 0;
+                
+                // Дополнительные метрики для недели и месяца
+                if (period === 'week') {
+                    document.getElementById('week-avg-daily').textContent = (stats.total_distance / 7).toFixed(1) + ' км';
+                } else if (period === 'month') {
+                    document.getElementById('month-avg-daily').textContent = (stats.total_distance / 30).toFixed(1) + ' км';
+                } else if (period === 'year') {
+                    document.getElementById('year-avg-monthly').textContent = (stats.total_distance / 12).toFixed(1) + ' км';
+                }
+                
+            } catch (error) {
+                console.error('Error loading statistics:', error);
+                showNotification('Ошибка загрузки статистики: ' + error.message, 'error');
+            }
+        }
+        
+        // Загрузка общей статистики
+        async function loadTotalStats() {
+            try {
+                const response = await fetch('/api/stats/total');
+                if (!response.ok) throw new Error('Ошибка загрузки общей статистики');
+                
+                const stats = await response.json();
+                
+                document.getElementById('total-distance').textContent = stats.total_distance || '--';
+                document.getElementById('total-electric').textContent = stats.electric_percentage ? stats.electric_percentage.toFixed(1) : '--';
+                document.getElementById('total-fuel').textContent = stats.fuel_consumed ? stats.fuel_consumed.toFixed(1) : '--';
+                document.getElementById('total-savings').textContent = stats.cost_savings || '--';
+                
+            } catch (error) {
+                console.error('Error loading total statistics:', error);
+            }
+        }
+        
+        // Обновить все данные
+        async function refreshAllStats() {
+            const button = event.target;
+            button.classList.add('loading');
+            button.textContent = '🔄 Обновление...';
+            
+            try {
+                await Promise.all([
+                    loadTotalStats(),
+                    loadStatistics(currentPeriod)
+                ]);
+                
+                showNotification('Данные обновлены', 'success');
+                
+            } catch (error) {
+                showNotification('Ошибка обновления данных', 'error');
+            } finally {
+                button.classList.remove('loading');
+                button.textContent = '🔄 Обновить данные';
+            }
+        }
+        
+        // Показать уведомление
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            // Показать уведомление
+            setTimeout(() => {
+                notification.classList.add('show');
+            }, 100);
+            
+            // Скрыть уведомление через 3 секунды
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => {
+                    notification.remove();
+                }, 300);
+            }, 3000);
+        }
+        
+        // Инициализация при загрузке страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            loadTotalStats();
+            loadStatistics('day');
+        });
+    </script>
+</body>
+</html>
