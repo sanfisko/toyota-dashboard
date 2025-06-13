@@ -128,22 +128,28 @@ remove_files() {
         print_success "Файлы проекта удалены"
     fi
     
-    # Удалить логи
-    if [[ -d /var/log/toyota-dashboard ]]; then
-        rm -rf /var/log/toyota-dashboard
-        print_success "Логи удалены"
-    fi
-    
-    # Удалить данные и резервные копии
+    # Удалить системные директории данных
     if [[ -d /var/lib/toyota-dashboard ]]; then
         rm -rf /var/lib/toyota-dashboard
-        print_success "База данных и резервные копии удалены"
+        print_success "Системные данные удалены (/var/lib/toyota-dashboard)"
+    fi
+    
+    # Удалить системные логи
+    if [[ -d /var/log/toyota-dashboard ]]; then
+        rm -rf /var/log/toyota-dashboard
+        print_success "Системные логи удалены (/var/log/toyota-dashboard)"
+    fi
+    
+    # Удалить системную конфигурацию
+    if [[ -d /etc/toyota-dashboard ]]; then
+        rm -rf /etc/toyota-dashboard
+        print_success "Системная конфигурация удалена (/etc/toyota-dashboard)"
     fi
     
     # Удалить временные файлы
     if [[ -d /tmp/toyota-dashboard ]]; then
         rm -rf /tmp/toyota-dashboard
-        print_success "Временные файлы удалены"
+        print_success "Временные файлы удалены (/tmp/toyota-dashboard)"
     fi
 }
 
@@ -162,6 +168,53 @@ remove_logging_and_cron() {
         sudo -u toyota crontab -r 2>/dev/null || true
         print_success "Cron задачи пользователя toyota удалены"
     fi
+}
+
+# Удаление пользовательских файлов
+remove_user_files() {
+    print_info "Удаление пользовательских файлов..."
+    
+    # Получить список всех пользователей с домашними директориями
+    local users_to_check=("toyota")
+    
+    # Добавить текущего пользователя если он не root
+    if [[ $EUID -ne 0 ]] && [[ "$(whoami)" != "toyota" ]]; then
+        users_to_check+=("$(whoami)")
+    fi
+    
+    # Добавить пользователя pi (для Raspberry Pi)
+    if id "pi" &>/dev/null; then
+        users_to_check+=("pi")
+    fi
+    
+    # Добавить пользователя ubuntu (для Ubuntu)
+    if id "ubuntu" &>/dev/null; then
+        users_to_check+=("ubuntu")
+    fi
+    
+    for user in "${users_to_check[@]}"; do
+        if id "$user" &>/dev/null; then
+            local home_dir=$(eval echo "~$user")
+            
+            # Удалить пользовательские конфигурации
+            if [[ -d "$home_dir/.config/toyota-dashboard" ]]; then
+                rm -rf "$home_dir/.config/toyota-dashboard"
+                print_success "Конфигурация пользователя $user удалена"
+            fi
+            
+            # Удалить пользовательские данные
+            if [[ -d "$home_dir/.local/share/toyota-dashboard" ]]; then
+                rm -rf "$home_dir/.local/share/toyota-dashboard"
+                print_success "Данные пользователя $user удалены"
+            fi
+            
+            # Удалить кэш пользователя
+            if [[ -d "$home_dir/.cache/toyota-dashboard" ]]; then
+                rm -rf "$home_dir/.cache/toyota-dashboard"
+                print_success "Кэш пользователя $user удален"
+            fi
+        fi
+    done
 }
 
 # Удаление пользователя
@@ -210,6 +263,64 @@ remove_firewall() {
     fi
 }
 
+# Очистка переменных окружения и профилей
+cleanup_environment() {
+    print_info "Очистка переменных окружения..."
+    
+    # Список файлов профилей для проверки
+    local profile_files=(
+        "/etc/profile"
+        "/etc/bash.bashrc"
+        "/etc/environment"
+    )
+    
+    # Проверить системные профили
+    for file in "${profile_files[@]}"; do
+        if [[ -f "$file" ]] && grep -q "toyota-dashboard\|TOYOTA_DASHBOARD" "$file" 2>/dev/null; then
+            # Создать резервную копию
+            cp "$file" "$file.backup.$(date +%Y%m%d_%H%M%S)" 2>/dev/null || true
+            
+            # Удалить строки связанные с toyota-dashboard
+            sed -i '/toyota-dashboard\|TOYOTA_DASHBOARD/d' "$file" 2>/dev/null || true
+            print_success "Очищен файл: $file"
+        fi
+    done
+    
+    # Очистить пользовательские профили
+    local users_to_check=("toyota")
+    
+    # Добавить других пользователей
+    if id "pi" &>/dev/null; then
+        users_to_check+=("pi")
+    fi
+    if id "ubuntu" &>/dev/null; then
+        users_to_check+=("ubuntu")
+    fi
+    
+    for user in "${users_to_check[@]}"; do
+        if id "$user" &>/dev/null; then
+            local home_dir=$(eval echo "~$user")
+            local user_profiles=(
+                "$home_dir/.bashrc"
+                "$home_dir/.bash_profile"
+                "$home_dir/.profile"
+                "$home_dir/.zshrc"
+            )
+            
+            for file in "${user_profiles[@]}"; do
+                if [[ -f "$file" ]] && grep -q "toyota-dashboard\|TOYOTA_DASHBOARD" "$file" 2>/dev/null; then
+                    # Создать резервную копию
+                    cp "$file" "$file.backup.$(date +%Y%m%d_%H%M%S)" 2>/dev/null || true
+                    
+                    # Удалить строки связанные с toyota-dashboard
+                    sed -i '/toyota-dashboard\|TOYOTA_DASHBOARD/d' "$file" 2>/dev/null || true
+                    print_success "Очищен профиль пользователя $user: $file"
+                fi
+            done
+        fi
+    done
+}
+
 # Очистка пакетов (опционально)
 cleanup_packages() {
     print_info "Очистка неиспользуемых пакетов..."
@@ -245,14 +356,19 @@ Toyota Dashboard - Отчет об удалении
 Удаленные компоненты:
 ✅ Systemd сервис toyota-dashboard
 ✅ Файлы проекта (/opt/toyota-dashboard)
-✅ База данных и резервные копии (/var/lib/toyota-dashboard)
-✅ Логи (/var/log/toyota-dashboard)
+✅ Системные данные (/var/lib/toyota-dashboard)
+✅ Системные логи (/var/log/toyota-dashboard)
+✅ Системная конфигурация (/etc/toyota-dashboard)
+✅ Пользовательские конфигурации (~/.config/toyota-dashboard)
+✅ Пользовательские данные (~/.local/share/toyota-dashboard)
+✅ Пользовательский кэш (~/.cache/toyota-dashboard)
 ✅ Пользователь toyota и его домашняя директория
 ✅ Конфигурация nginx (/etc/nginx/sites-available/toyota-dashboard)
 ✅ Конфигурация logrotate (/etc/logrotate.d/toyota-dashboard)
 ✅ Cron задачи пользователя toyota
 ✅ Правила файрвола (UFW/iptables)
-✅ Временные файлы
+✅ Временные файлы (/tmp/toyota-dashboard)
+✅ Переменные окружения и настройки профилей
 ✅ Автоочистка системных пакетов
 
 Сохраненные компоненты (для безопасности):
@@ -279,14 +395,19 @@ main() {
     print_warning "Это действие удалит:"
     echo "   • Systemd сервис toyota-dashboard"
     echo "   • Все файлы проекта (/opt/toyota-dashboard)"
-    echo "   • База данных и резервные копии (/var/lib/toyota-dashboard)"
-    echo "   • Логи (/var/log/toyota-dashboard)"
+    echo "   • Системные данные (/var/lib/toyota-dashboard)"
+    echo "   • Системные логи (/var/log/toyota-dashboard)"
+    echo "   • Системную конфигурацию (/etc/toyota-dashboard)"
+    echo "   • Пользовательские конфигурации (~/.config/toyota-dashboard)"
+    echo "   • Пользовательские данные (~/.local/share/toyota-dashboard)"
+    echo "   • Пользовательский кэш (~/.cache/toyota-dashboard)"
     echo "   • Пользователя toyota и его домашнюю директорию"
     echo "   • Конфигурацию nginx"
     echo "   • Конфигурацию logrotate"
     echo "   • Cron задачи пользователя toyota"
     echo "   • Правила файрвола (кроме SSH)"
-    echo "   • Временные файлы"
+    echo "   • Временные файлы (/tmp/toyota-dashboard)"
+    echo "   • Переменные окружения и настройки профилей"
     echo
     print_warning "Данные Toyota credentials и история поездок будут потеряны!"
     echo
@@ -325,8 +446,10 @@ main() {
     remove_nginx
     remove_logging_and_cron
     remove_files
+    remove_user_files
     remove_user
     remove_firewall
+    cleanup_environment
     cleanup_packages
     
     # Создание отчета
@@ -339,14 +462,19 @@ main() {
     print_info "Что было удалено:"
     echo "   • Systemd сервис и автозапуск"
     echo "   • Все файлы проекта (/opt/toyota-dashboard)"
-    echo "   • База данных и резервные копии (/var/lib/toyota-dashboard)"
-    echo "   • Логи (/var/log/toyota-dashboard)"
+    echo "   • Системные данные (/var/lib/toyota-dashboard)"
+    echo "   • Системные логи (/var/log/toyota-dashboard)"
+    echo "   • Системная конфигурация (/etc/toyota-dashboard)"
+    echo "   • Пользовательские конфигурации (~/.config/toyota-dashboard)"
+    echo "   • Пользовательские данные (~/.local/share/toyota-dashboard)"
+    echo "   • Пользовательский кэш (~/.cache/toyota-dashboard)"
     echo "   • Пользователь toyota и его домашняя директория"
     echo "   • Конфигурация nginx"
     echo "   • Конфигурация logrotate"
     echo "   • Cron задачи"
     echo "   • Правила файрвола (кроме SSH)"
-    echo "   • Временные файлы"
+    echo "   • Временные файлы (/tmp/toyota-dashboard)"
+    echo "   • Переменные окружения и настройки профилей"
     echo
     print_warning "Сохранено для безопасности:"
     echo "   • SSH правила файрвола"
@@ -354,7 +482,7 @@ main() {
     echo "   • Системные пакеты (nginx, sqlite3, git и др.)"
     echo
     print_warning "Если вы хотите переустановить Toyota Dashboard:"
-    echo "curl -sSL https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/install.sh | sudo bash"
+    echo "curl -sSL https://raw.githubusercontent.com/reginakrogerqjhykgnxqdcbk/toyota-dashboard/main/install.sh | sudo bash"
     echo
     print_info "Спасибо за использование Toyota Dashboard!"
 }
