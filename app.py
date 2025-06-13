@@ -707,6 +707,440 @@ async def save_config(request: ConfigRequest):
             }
         )
 
+# API для тестирования функций автомобиля
+@app.post("/api/test/command")
+async def test_command(request: dict):
+    """Тестировать команду управления автомобилем."""
+    try:
+        if not toyota_client or not vehicle_vin:
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "success": False,
+                    "error": "Toyota клиент не инициализирован или VIN не настроен"
+                }
+            )
+        
+        command = request.get('command')
+        beeps = request.get('beeps', 0)
+        
+        if not command:
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "success": False,
+                    "error": "Команда не указана"
+                }
+            )
+        
+        # Отправить команду
+        result = await toyota_client._api.send_command(
+            vin=vehicle_vin,
+            command=CommandType(command),
+            beeps=beeps
+        )
+        
+        logger.info(f"Команда {command} отправлена: {result}")
+        
+        return {
+            "success": True,
+            "command": command,
+            "result": result.model_dump() if hasattr(result, 'model_dump') else str(result)
+        }
+        
+    except Exception as e:
+        logger.error(f"Ошибка выполнения команды {request.get('command', 'unknown')}: {e}")
+        return JSONResponse(
+            status_code=500,
+            content={
+                "success": False,
+                "error": str(e)
+            }
+        )
+
+@app.post("/api/test/window")
+async def test_window_command(request: dict):
+    """Тестировать управление отдельными окнами."""
+    try:
+        if not toyota_client or not vehicle_vin:
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "success": False,
+                    "error": "Toyota клиент не инициализирован или VIN не настроен"
+                }
+            )
+        
+        window = request.get('window')
+        action = request.get('action')
+        
+        if not window or not action:
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "success": False,
+                    "error": "Окно или действие не указано"
+                }
+            )
+        
+        # Пока что используем общие команды окон, так как индивидуальное управление
+        # может не поддерживаться API
+        if action == 'open':
+            command = CommandType.WINDOW_ON
+        else:
+            command = CommandType.WINDOW_OFF
+        
+        result = await toyota_client._api.send_command(
+            vin=vehicle_vin,
+            command=command,
+            beeps=0
+        )
+        
+        logger.info(f"Команда окна {window} - {action} отправлена: {result}")
+        
+        return {
+            "success": True,
+            "window": window,
+            "action": action,
+            "note": "Использована общая команда окон (индивидуальное управление может не поддерживаться)",
+            "result": result.model_dump() if hasattr(result, 'model_dump') else str(result)
+        }
+        
+    except Exception as e:
+        logger.error(f"Ошибка управления окном {request.get('window', 'unknown')}: {e}")
+        return JSONResponse(
+            status_code=500,
+            content={
+                "success": False,
+                "error": str(e)
+            }
+        )
+
+@app.get("/api/test/climate/status")
+async def test_climate_status():
+    """Получить статус климат-контроля."""
+    try:
+        if not toyota_client or not vehicle_vin:
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "success": False,
+                    "error": "Toyota клиент не инициализирован или VIN не настроен"
+                }
+            )
+        
+        result = await toyota_client._api.get_climate_status(vin=vehicle_vin)
+        
+        return {
+            "success": True,
+            "data": result.model_dump() if hasattr(result, 'model_dump') else str(result)
+        }
+        
+    except Exception as e:
+        logger.error(f"Ошибка получения статуса климата: {e}")
+        return JSONResponse(
+            status_code=500,
+            content={
+                "success": False,
+                "error": str(e)
+            }
+        )
+
+@app.get("/api/test/climate/settings")
+async def test_climate_settings():
+    """Получить настройки климат-контроля."""
+    try:
+        if not toyota_client or not vehicle_vin:
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "success": False,
+                    "error": "Toyota клиент не инициализирован или VIN не настроен"
+                }
+            )
+        
+        result = await toyota_client._api.get_climate_settings(vin=vehicle_vin)
+        
+        return {
+            "success": True,
+            "data": result.model_dump() if hasattr(result, 'model_dump') else str(result)
+        }
+        
+    except Exception as e:
+        logger.error(f"Ошибка получения настроек климата: {e}")
+        return JSONResponse(
+            status_code=500,
+            content={
+                "success": False,
+                "error": str(e)
+            }
+        )
+
+@app.post("/api/test/climate/settings")
+async def test_update_climate_settings(request: dict):
+    """Обновить настройки климат-контроля."""
+    try:
+        if not toyota_client or not vehicle_vin:
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "success": False,
+                    "error": "Toyota клиент не инициализирован или VIN не настроен"
+                }
+            )
+        
+        from pytoyoda.models.endpoints.climate import ClimateSettingsModel
+        
+        # Создать модель настроек климата
+        settings = ClimateSettingsModel(
+            temperature=request.get('temperature', 22),
+            settings_on=request.get('settings_on', True),
+            temperature_unit=request.get('temperature_unit', 'C')
+        )
+        
+        result = await toyota_client._api.update_climate_settings(
+            vin=vehicle_vin,
+            settings=settings
+        )
+        
+        return {
+            "success": True,
+            "data": result.model_dump() if hasattr(result, 'model_dump') else str(result)
+        }
+        
+    except Exception as e:
+        logger.error(f"Ошибка обновления настроек климата: {e}")
+        return JSONResponse(
+            status_code=500,
+            content={
+                "success": False,
+                "error": str(e)
+            }
+        )
+
+@app.post("/api/test/climate/refresh")
+async def test_refresh_climate_status():
+    """Запросить обновление статуса климата с автомобиля."""
+    try:
+        if not toyota_client or not vehicle_vin:
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "success": False,
+                    "error": "Toyota клиент не инициализирован или VIN не настроен"
+                }
+            )
+        
+        result = await toyota_client._api.refresh_climate_status(vin=vehicle_vin)
+        
+        return {
+            "success": True,
+            "data": result.model_dump() if hasattr(result, 'model_dump') else str(result)
+        }
+        
+    except Exception as e:
+        logger.error(f"Ошибка запроса обновления статуса климата: {e}")
+        return JSONResponse(
+            status_code=500,
+            content={
+                "success": False,
+                "error": str(e)
+            }
+        )
+
+@app.get("/api/test/status")
+async def test_vehicle_status():
+    """Получить общий статус автомобиля."""
+    try:
+        if not toyota_client or not vehicle_vin:
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "success": False,
+                    "error": "Toyota клиент не инициализирован или VIN не настроен"
+                }
+            )
+        
+        result = await toyota_client._api.get_remote_status(vin=vehicle_vin)
+        
+        return {
+            "success": True,
+            "data": result.model_dump() if hasattr(result, 'model_dump') else str(result)
+        }
+        
+    except Exception as e:
+        logger.error(f"Ошибка получения статуса автомобиля: {e}")
+        return JSONResponse(
+            status_code=500,
+            content={
+                "success": False,
+                "error": str(e)
+            }
+        )
+
+@app.get("/api/test/location")
+async def test_location():
+    """Получить местоположение автомобиля."""
+    try:
+        if not toyota_client or not vehicle_vin:
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "success": False,
+                    "error": "Toyota клиент не инициализирован или VIN не настроен"
+                }
+            )
+        
+        result = await toyota_client._api.get_location(vin=vehicle_vin)
+        
+        return {
+            "success": True,
+            "data": result.model_dump() if hasattr(result, 'model_dump') else str(result)
+        }
+        
+    except Exception as e:
+        logger.error(f"Ошибка получения местоположения: {e}")
+        return JSONResponse(
+            status_code=500,
+            content={
+                "success": False,
+                "error": str(e)
+            }
+        )
+
+@app.get("/api/test/electric")
+async def test_electric_status():
+    """Получить электрический статус автомобиля."""
+    try:
+        if not toyota_client or not vehicle_vin:
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "success": False,
+                    "error": "Toyota клиент не инициализирован или VIN не настроен"
+                }
+            )
+        
+        result = await toyota_client._api.get_vehicle_electric_status(vin=vehicle_vin)
+        
+        return {
+            "success": True,
+            "data": result.model_dump() if hasattr(result, 'model_dump') else str(result)
+        }
+        
+    except Exception as e:
+        logger.error(f"Ошибка получения электрического статуса: {e}")
+        return JSONResponse(
+            status_code=500,
+            content={
+                "success": False,
+                "error": str(e)
+            }
+        )
+
+@app.get("/api/test/telemetry")
+async def test_telemetry():
+    """Получить телеметрию автомобиля."""
+    try:
+        if not toyota_client or not vehicle_vin:
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "success": False,
+                    "error": "Toyota клиент не инициализирован или VIN не настроен"
+                }
+            )
+        
+        result = await toyota_client._api.get_telemetry(vin=vehicle_vin)
+        
+        return {
+            "success": True,
+            "data": result.model_dump() if hasattr(result, 'model_dump') else str(result)
+        }
+        
+    except Exception as e:
+        logger.error(f"Ошибка получения телеметрии: {e}")
+        return JSONResponse(
+            status_code=500,
+            content={
+                "success": False,
+                "error": str(e)
+            }
+        )
+
+@app.get("/api/test/notifications")
+async def test_notifications():
+    """Получить уведомления автомобиля."""
+    try:
+        if not toyota_client or not vehicle_vin:
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "success": False,
+                    "error": "Toyota клиент не инициализирован или VIN не настроен"
+                }
+            )
+        
+        result = await toyota_client._api.get_notifications(vin=vehicle_vin)
+        
+        return {
+            "success": True,
+            "data": result.model_dump() if hasattr(result, 'model_dump') else str(result)
+        }
+        
+    except Exception as e:
+        logger.error(f"Ошибка получения уведомлений: {e}")
+        return JSONResponse(
+            status_code=500,
+            content={
+                "success": False,
+                "error": str(e)
+            }
+        )
+
+@app.get("/api/test/service-history")
+async def test_service_history():
+    """Получить историю обслуживания автомобиля."""
+    try:
+        if not toyota_client or not vehicle_vin:
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "success": False,
+                    "error": "Toyota клиент не инициализирован или VIN не настроен"
+                }
+            )
+        
+        result = await toyota_client._api.get_service_history(vin=vehicle_vin)
+        
+        return {
+            "success": True,
+            "data": result.model_dump() if hasattr(result, 'model_dump') else str(result)
+        }
+        
+    except Exception as e:
+        logger.error(f"Ошибка получения истории обслуживания: {e}")
+        return JSONResponse(
+            status_code=500,
+            content={
+                "success": False,
+                "error": str(e)
+            }
+        )
+
+# Маршрут для страницы тестирования
+@app.get("/test", response_class=HTMLResponse)
+async def test_page():
+    """Страница тестирования функций автомобиля."""
+    try:
+        with open(os.path.join(APP_DIR, 'static', 'test.html'), 'r', encoding='utf-8') as f:
+            return f.read()
+    except FileNotFoundError:
+        return HTMLResponse(
+            content="<h1>Страница тестирования не найдена</h1>",
+            status_code=404
+        )
+
 # События приложения
 @app.on_event("startup")
 async def startup_event():
