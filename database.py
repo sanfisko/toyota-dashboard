@@ -178,10 +178,25 @@ class DatabaseManager:
     async def get_phev_statistics(self, period: str) -> Dict:
         """Получить статистику автомобиля за период."""
         try:
+            # Попробовать получить данные из Toyota API
+            from toyota_client import toyota_client
+            
+            try:
+                if not toyota_client.client:
+                    await toyota_client.init_client()
+                
+                if toyota_client.client:
+                    return await toyota_client.get_statistics_by_period(period)
+            except Exception as api_error:
+                logger.warning(f"Ошибка получения данных из Toyota API: {api_error}")
+            
+            # Fallback: использовать локальные данные из базы
             # Определить временной диапазон
             now = datetime.now()
-            if period == "day":
+            if period == "day" or period == "today":
                 start_time = now - timedelta(days=1)
+            elif period == "yesterday":
+                start_time = now - timedelta(days=2)
             elif period == "week":
                 start_time = now - timedelta(weeks=1)
             elif period == "month":
@@ -252,6 +267,147 @@ class DatabaseManager:
                 
         except Exception as e:
             logger.error(f"Ошибка получения статистики автомобиля: {e}")
+            raise
+    
+    async def get_phev_statistics_by_dates(self, date_from: str, date_to: str) -> Dict:
+        """Получить статистику автомобиля за диапазон дат."""
+        try:
+            # Попробовать получить данные из Toyota API
+            from toyota_client import toyota_client
+            
+            try:
+                if not toyota_client.client:
+                    await toyota_client.init_client()
+                
+                if toyota_client.client:
+                    return await toyota_client.get_statistics_by_dates(date_from, date_to)
+            except Exception as api_error:
+                logger.warning(f"Ошибка получения данных из Toyota API: {api_error}")
+            
+            # Fallback: использовать локальные данные из базы
+            start_date = datetime.strptime(date_from, "%Y-%m-%d")
+            end_date = datetime.strptime(date_to, "%Y-%m-%d") + timedelta(days=1)  # Включить конечную дату
+            
+            # Получить данные поездок за период
+            cursor = await self.connection.execute("""
+                SELECT 
+                    SUM(distance_total) as total_distance,
+                    SUM(distance_electric) as electric_distance,
+                    SUM(distance_fuel) as fuel_distance,
+                    SUM(fuel_consumed) as fuel_consumed,
+                    SUM(electricity_consumed) as electricity_consumed,
+                    AVG(efficiency_score) as avg_efficiency,
+                    COUNT(*) as trip_count
+                FROM trips 
+                WHERE start_time >= ? AND start_time < ?
+            """, (start_date, end_date))
+            
+            row = await cursor.fetchone()
+            
+            if row and row[0]:  # Если есть данные
+                total_distance = row[0] or 0
+                electric_distance = row[1] or 0
+                fuel_distance = row[2] or 0
+                fuel_consumed = row[3] or 0
+                electricity_consumed = row[4] or 0
+                avg_efficiency = row[5] or 0
+                trip_count = row[6] or 0
+                
+                # Расчеты
+                electric_percentage = (electric_distance / total_distance * 100) if total_distance > 0 else 0
+                co2_saved = fuel_consumed * 2.3
+                fuel_cost = fuel_consumed * 50
+                electric_cost = electricity_consumed * 5
+                cost_savings = max(0, fuel_cost - electric_cost)
+                
+                return {
+                    "period": f"с {date_from} по {date_to}",
+                    "total_distance": total_distance,
+                    "electric_distance": electric_distance,
+                    "fuel_distance": fuel_distance,
+                    "electric_percentage": electric_percentage,
+                    "fuel_consumption": fuel_consumed,
+                    "electricity_consumption": electricity_consumed,
+                    "co2_saved": co2_saved,
+                    "cost_savings": cost_savings,
+                    "trip_count": trip_count
+                }
+            else:
+                # Нет данных
+                return {
+                    "period": f"с {date_from} по {date_to}",
+                    "total_distance": 0,
+                    "electric_distance": 0,
+                    "fuel_distance": 0,
+                    "electric_percentage": 0,
+                    "fuel_consumption": 0,
+                    "electricity_consumption": 0,
+                    "co2_saved": 0,
+                    "cost_savings": 0,
+                    "trip_count": 0
+                }
+                
+        except Exception as e:
+            logger.error(f"Ошибка получения статистики за период {date_from} - {date_to}: {e}")
+            raise
+    
+    async def get_total_statistics(self) -> Dict:
+        """Получить общую статистику за все время."""
+        try:
+            # Попробовать получить данные из Toyota API
+            from toyota_client import toyota_client
+            
+            try:
+                if not toyota_client.client:
+                    await toyota_client.init_client()
+                
+                if toyota_client.client:
+                    return await toyota_client.get_statistics_by_period("all")
+            except Exception as api_error:
+                logger.warning(f"Ошибка получения данных из Toyota API: {api_error}")
+            
+            # Fallback: использовать локальные данные из базы
+            cursor = await self.connection.execute("""
+                SELECT 
+                    SUM(distance_total) as total_distance,
+                    SUM(distance_electric) as electric_distance,
+                    SUM(fuel_consumed) as fuel_consumed,
+                    SUM(electricity_consumed) as electricity_consumed,
+                    COUNT(*) as trip_count
+                FROM trips
+            """)
+            
+            row = await cursor.fetchone()
+            
+            if row and row[0]:
+                total_distance = row[0] or 0
+                electric_distance = row[1] or 0
+                fuel_consumed = row[2] or 0
+                electricity_consumed = row[3] or 0
+                trip_count = row[4] or 0
+                
+                electric_percentage = (electric_distance / total_distance * 100) if total_distance > 0 else 0
+                co2_saved = fuel_consumed * 2.3
+                fuel_cost = fuel_consumed * 50
+                electric_cost = electricity_consumed * 5
+                cost_savings = max(0, fuel_cost - electric_cost)
+                
+                return {
+                    "total_distance": total_distance,
+                    "electric_percentage": electric_percentage,
+                    "fuel_consumed": fuel_consumed,
+                    "cost_savings": cost_savings
+                }
+            else:
+                return {
+                    "total_distance": 0,
+                    "electric_percentage": 0,
+                    "fuel_consumed": 0,
+                    "cost_savings": 0
+                }
+                
+        except Exception as e:
+            logger.error(f"Ошибка получения общей статистики: {e}")
             raise
     
     async def get_recent_trips(self, limit: int = 10) -> List[Dict]:
