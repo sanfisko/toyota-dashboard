@@ -473,6 +473,42 @@ async def control_climate(request: CommandRequest):
         logger.error(f"Ошибка управления климатом: {e}")
         raise HTTPException(status_code=500, detail=f"Внутренняя ошибка: {str(e)}")
 
+@app.post("/api/vehicle/windows/open")
+async def open_windows():
+    """Открыть окна автомобиля."""
+    try:
+        if not toyota_client:
+            raise HTTPException(status_code=503, detail="Toyota клиент не инициализирован")
+        
+        target_vehicle = await get_vehicle()
+        
+        # Отправить команду открытия окон
+        result = await target_vehicle.post_command(CommandType.WINDOW_ON)
+        # Команда открытия окон отправлена
+        
+        return {"status": "success", "message": "Окна открываются"}
+    except Exception as e:
+        logger.error(f"Ошибка открытия окон: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/vehicle/windows/close")
+async def close_windows():
+    """Закрыть окна автомобиля."""
+    try:
+        if not toyota_client:
+            raise HTTPException(status_code=503, detail="Toyota клиент не инициализирован")
+        
+        target_vehicle = await get_vehicle()
+        
+        # Отправить команду закрытия окон
+        result = await target_vehicle.post_command(CommandType.WINDOW_OFF)
+        # Команда закрытия окон отправлена
+        
+        return {"status": "success", "message": "Окна закрываются"}
+    except Exception as e:
+        logger.error(f"Ошибка закрытия окон: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.get("/api/stats/phev")
 async def get_phev_stats(period: str = "week"):
     """Получить статистику автомобиля за период."""

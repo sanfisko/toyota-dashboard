@@ -298,6 +298,14 @@
                     <span class="control-icon">📍</span>
                     <span>Найти</span>
                 </button>
+                <button class="control-btn" onclick="openWindows()">
+                    <span class="control-icon">🪟</span>
+                    <span>Открыть окна</span>
+                </button>
+                <button class="control-btn" onclick="closeWindows()">
+                    <span class="control-icon">🔒</span>
+                    <span>Закрыть окна</span>
+                </button>
             </div>
         </div>
         
@@ -524,6 +532,46 @@
                 
             } catch (error) {
                 showNotification('Ошибка поиска автомобиля', 'error');
+                console.error('Error:', error);
+            }
+        }
+        
+        // Открыть окна
+        async function openWindows() {
+            try {
+                const response = await fetch('/api/vehicle/windows/open', { method: 'POST' });
+                
+                const result = await response.json();
+                
+                if (!response.ok) {
+                    showNotification(result.detail || 'Ошибка открытия окон', 'error');
+                    return;
+                }
+                
+                showNotification(result.message, 'success');
+                
+            } catch (error) {
+                showNotification('Ошибка открытия окон', 'error');
+                console.error('Error:', error);
+            }
+        }
+        
+        // Закрыть окна
+        async function closeWindows() {
+            try {
+                const response = await fetch('/api/vehicle/windows/close', { method: 'POST' });
+                
+                const result = await response.json();
+                
+                if (!response.ok) {
+                    showNotification(result.detail || 'Ошибка закрытия окон', 'error');
+                    return;
+                }
+                
+                showNotification(result.message, 'success');
+                
+            } catch (error) {
+                showNotification('Ошибка закрытия окон', 'error');
                 console.error('Error:', error);
             }
         }
