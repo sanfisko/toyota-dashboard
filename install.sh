@@ -358,43 +358,22 @@ install_python_deps() {
             pip install \"uvicorn[standard]==0.24.0\"
             pip install pydantic==2.5.0
             pip install pydantic-settings==2.1.0
-            pip install aiosqlite==0.19.0
-            pip install sqlalchemy==2.0.23
             pip install httpx==0.25.2
+            pip install \"aiohttp>=3.9.0\"
+            pip install \"hishel>=0.0.24\"
             pip install pyyaml==6.0.1
             pip install python-dotenv==1.0.0
             pip install loguru==0.7.2
             pip install jinja2==3.1.2
             pip install aiofiles==23.2.1
-            pip install \"cryptography>=41.0.0\"
-            pip install \"python-jose[cryptography]==3.3.0\"
-            pip install \"passlib[bcrypt]==1.7.4\"
-            pip install pyjwt==2.8.0
-            pip install psutil==5.9.6
-            pip install prometheus-client==0.19.0
-            pip install python-telegram-bot==20.7
             pip install python-dateutil==2.8.2
             pip install pytz==2023.3
             pip install arrow==1.3.0
-            pip install validators==0.22.0
-            pip install python-multipart==0.0.6
-            pip install \"importlib-metadata>=4.0.0\"
-            pip install langcodes==3.4.0
-            pip install paho-mqtt==1.6.1
-            pip install geopy==2.4.1
-            pip install folium==0.15.0
-            pip install \"openpyxl>=3.1.0\"
-            pip install \"pandas>=2.0.0\"
             pip install \"pytoyoda>=1.0.0\"
         }
         
         # Проверка критически важных зависимостей
         echo 'Проверка критически важных зависимостей...'
-        
-        python3 -c 'import aiosqlite; print(\"✓ aiosqlite установлен:\", aiosqlite.__version__)' || {
-            echo 'Установка aiosqlite...'
-            pip install aiosqlite==0.19.0
-        }
         
         python3 -c 'import fastapi; print(\"✓ FastAPI установлен:\", fastapi.__version__)' || {
             echo 'Установка FastAPI...'
@@ -411,19 +390,14 @@ install_python_deps() {
             pip install pydantic==2.5.0
         }
         
-        python3 -c 'import jwt; print(\"✓ PyJWT установлен:\", jwt.__version__)' || {
-            echo 'Установка PyJWT...'
-            pip install pyjwt==2.8.0
+        python3 -c 'import httpx; print(\"✓ HTTPX установлен:\", httpx.__version__)' || {
+            echo 'Установка HTTPX...'
+            pip install httpx==0.25.2
         }
         
-        python3 -c 'import arrow; print(\"✓ Arrow установлен:\", arrow.__version__)' || {
-            echo 'Установка Arrow...'
-            pip install arrow==1.3.0
-        }
-        
-        python3 -c 'import langcodes; print(\"✓ Langcodes установлен\")' || {
-            echo 'Установка Langcodes...'
-            pip install langcodes==3.4.0
+        python3 -c 'import yaml; print(\"✓ PyYAML установлен\")' || {
+            echo 'Установка PyYAML...'
+            pip install pyyaml==6.0.1
         }
         
         python3 -c 'import pytoyoda; print(\"✓ PyToyoda установлен:\", pytoyoda.__version__)' || {
