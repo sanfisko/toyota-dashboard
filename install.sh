@@ -415,7 +415,7 @@ install_python_deps() {
             pip install \"aiosqlite>=0.19.0\"
         }
         
-        python3 -c 'import pytoyoda; print("✓ PyToyoda установлен:", getattr(pytoyoda, "__version__", "локальная версия"))' || {
+        python3 -c 'import pytoyoda; print(\"✓ PyToyoda установлен:\", getattr(pytoyoda, \"__version__\", \"локальная версия\"))' || {
             echo 'Установка PyToyoda...'
             pip install \"pytoyoda>=3.0.0,<4.0.0\"
         }
