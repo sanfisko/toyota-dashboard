@@ -25,6 +25,17 @@ from pytoyoda.models.endpoints.command import CommandType
 from database import DatabaseManager
 from models import VehicleStatus, TripData, StatsPeriod
 
+# Настройка кэш-директории для предотвращения ошибок read-only filesystem
+cache_dir = os.path.expanduser("~/.cache/toyota-dashboard")
+try:
+    os.makedirs(cache_dir, exist_ok=True)
+    os.environ.setdefault("XDG_CACHE_HOME", os.path.expanduser("~/.cache"))
+    os.environ.setdefault("HTTPX_CACHE_DIR", cache_dir)
+    # Устанавливаем рабочую директорию в домашнюю папку пользователя
+    os.chdir(os.path.expanduser("~"))
+except (OSError, PermissionError) as e:
+    print(f"Предупреждение: Не удалось настроить кэш-директорию: {e}")
+
 # Базовые директории
 import os
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -203,6 +214,11 @@ async def collect_vehicle_data():
                 else:
                     logger.warning(f"Автомобиль с VIN {vehicle_vin} не найден")
                 
+        except OSError as e:
+            if e.errno == 30:  # Read-only file system
+                logger.warning(f"Файловая система только для чтения, пропускаем сбор данных: {e}")
+            else:
+                logger.error(f"Ошибка файловой системы при сборе данных: {e}")
         except Exception as e:
             logger.error(f"Ошибка сбора данных: {e}")
         

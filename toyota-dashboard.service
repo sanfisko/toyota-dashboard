@@ -1,0 +1,33 @@
+[Unit]
+Description=Toyota Dashboard Server
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+User=sanfisko
+Group=sanfisko
+WorkingDirectory=/home/sanfisko
+Environment=HOME=/home/sanfisko
+Environment=XDG_CACHE_HOME=/home/sanfisko/.cache
+Environment=HTTPX_CACHE_DIR=/home/sanfisko/.cache/toyota-dashboard
+Environment=PYTHONPATH=/opt/toyota-dashboard
+ExecStartPre=/bin/mkdir -p /home/sanfisko/.cache/toyota-dashboard
+ExecStart=/usr/bin/python3 /opt/toyota-dashboard/app.py
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=toyota-dashboard
+
+# Безопасность
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=false
+ReadWritePaths=/home/sanfisko/.cache
+ReadWritePaths=/var/log/toyota-dashboard
+ReadWritePaths=/var/lib/toyota-dashboard
+
+[Install]
+WantedBy=multi-user.target
