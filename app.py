@@ -20,6 +20,35 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 import uvicorn
 
+# Дополнительная настройка для предотвращения создания кэша в текущей директории
+import tempfile
+import shutil
+
+# Создаем временную рабочую директорию для pytoyoda если нужно
+temp_work_dir = None
+original_cwd = None
+
+if not os.access('.', os.W_OK):
+    # Если текущая директория read-only, создаем временную рабочую директорию
+    temp_work_dir = tempfile.mkdtemp(prefix='toyota-dashboard-work-')
+    original_cwd = os.getcwd()
+    os.chdir(temp_work_dir)
+    print(f"Переключились на временную рабочую директорию: {temp_work_dir}")
+    
+    # Регистрируем функцию очистки при завершении
+    import atexit
+    def cleanup_temp_dir():
+        if temp_work_dir and os.path.exists(temp_work_dir):
+            try:
+                if original_cwd:
+                    os.chdir(original_cwd)
+                shutil.rmtree(temp_work_dir)
+                print(f"Временная рабочая директория удалена: {temp_work_dir}")
+            except Exception as e:
+                print(f"Ошибка при удалении временной директории: {e}")
+    
+    atexit.register(cleanup_temp_dir)
+
 from pytoyoda import MyT
 from pytoyoda.models.endpoints.command import CommandType
 from database import DatabaseManager
@@ -28,12 +57,28 @@ from paths import paths
 
 # Настройка кэш-директории для предотвращения ошибок read-only filesystem
 try:
-    os.environ.setdefault("XDG_CACHE_HOME", os.path.dirname(paths.cache_dir))
-    os.environ.setdefault("HTTPX_CACHE_DIR", paths.cache_dir)
-    # Устанавливаем рабочую директорию в домашнюю папку пользователя
-    os.chdir(os.path.expanduser("~"))
+    # Устанавливаем переменные окружения для кэша ПЕРЕД импортом pytoyoda
+    os.environ["XDG_CACHE_HOME"] = os.path.dirname(paths.cache_dir)
+    os.environ["HTTPX_CACHE_DIR"] = paths.cache_dir
+    
+    # Дополнительные переменные для различных библиотек
+    os.environ["REQUESTS_CA_BUNDLE"] = ""  # Отключаем кэш сертификатов requests
+    os.environ["CURL_CA_BUNDLE"] = ""      # Отключаем кэш сертификатов curl
+    os.environ["TMPDIR"] = paths.temp_dir  # Устанавливаем временную директорию
+    
+    # Создаем кэш-директорию если она не существует
+    os.makedirs(paths.cache_dir, exist_ok=True)
+    
+    print(f"Кэш-директория настроена: {paths.cache_dir}")
 except (OSError, PermissionError) as e:
     print(f"Предупреждение: Не удалось настроить кэш-директорию: {e}")
+    # Fallback - используем временную директорию
+    temp_cache = paths.get_temp_file('cache')
+    os.makedirs(temp_cache, exist_ok=True)
+    os.environ["XDG_CACHE_HOME"] = os.path.dirname(temp_cache)
+    os.environ["HTTPX_CACHE_DIR"] = temp_cache
+    os.environ["TMPDIR"] = paths.temp_dir
+    print(f"Используется временная кэш-директория: {temp_cache}")
 
 # Базовые директории
 APP_DIR = paths.app_dir
