@@ -406,6 +406,7 @@
                     <span id="electricity-price">-- €/кВт⋅ч</span>
                 </div>
                 <button class="apply-btn" onclick="refreshFuelPrices()" style="margin: 0;">🔄 Обновить</button>
+                <button class="apply-btn" onclick="updateFuelPricesFromSite()" style="margin: 0; background: linear-gradient(135deg, #28a745, #20c997);">🌐 Загрузить с сайта</button>
             </div>
         </div>
 
@@ -715,6 +716,39 @@
                 showNotification('Цены на топливо обновлены', 'success');
             } catch (error) {
                 showNotification('Ошибка обновления цен', 'error');
+            } finally {
+                button.textContent = originalText;
+                button.disabled = false;
+            }
+        }
+        
+        // Загрузить цены с сайта autotraveler.ru
+        async function updateFuelPricesFromSite() {
+            const button = event.target;
+            const originalText = button.textContent;
+            button.textContent = '🌐 Загрузка...';
+            button.disabled = true;
+            
+            try {
+                const response = await fetch('/api/update-fuel-prices', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification(`${data.message} с ${data.source}`, 'success');
+                    // Обновить отображение цен
+                    await loadFuelPrices();
+                } else {
+                    showNotification('Ошибка загрузки цен с сайта', 'error');
+                }
+            } catch (error) {
+                showNotification('Ошибка загрузки цен с сайта', 'error');
+                console.error('Error updating fuel prices from site:', error);
             } finally {
                 button.textContent = originalText;
                 button.disabled = false;

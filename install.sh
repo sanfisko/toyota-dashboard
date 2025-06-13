@@ -380,6 +380,7 @@ install_python_deps() {
             pip install arrow==1.3.0
             pip install \"aiosqlite>=0.19.0\"
             pip install \"pytoyoda>=3.0.0,<4.0.0\"
+            pip install \"beautifulsoup4>=4.12.0\"
         }
         
         # Проверка критически важных зависимостей
@@ -413,6 +414,11 @@ install_python_deps() {
         python3 -c 'import aiosqlite; print(\"✓ AIOSQLite установлен:\", aiosqlite.__version__)' || {
             echo 'Установка AIOSQLite...'
             pip install \"aiosqlite>=0.19.0\"
+        }
+
+        python3 -c 'import bs4; print(\"✓ BeautifulSoup4 установлен:\", bs4.__version__)' || {
+            echo 'Установка BeautifulSoup4...'
+            pip install \"beautifulsoup4>=4.12.0\"
         }
         
         echo 'Все критически важные зависимости проверены'
@@ -478,6 +484,7 @@ try:
     import yaml
     import aiosqlite
     import pytoyoda
+    import bs4
     print(\"✅ Все основные модули успешно импортированы\")
 except ImportError as e:
     print(f\"❌ Ошибка импорта: {e}\")
