@@ -10,14 +10,15 @@ from pytoyoda import MyT
 from pytoyoda.models.summary import SummaryType
 import yaml
 import os
+from paths import paths
 
 logger = logging.getLogger(__name__)
 
 class ToyotaClient:
     """Клиент для работы с Toyota Connected Services."""
     
-    def __init__(self, config_path: str = "config.yaml"):
-        self.config_path = config_path
+    def __init__(self, config_path: Optional[str] = None):
+        self.config_path = config_path or paths.config_file
         self.client: Optional[MyT] = None
         self.vehicle = None
         self._config = None
@@ -31,6 +32,7 @@ class ToyotaClient:
                     self._config = yaml.safe_load(f)
             else:
                 logger.error(f"Файл конфигурации {self.config_path} не найден")
+                logger.info(f"Ожидаемые пути конфигурации: {paths.get_info()}")
                 return False
             
             # Создать клиент
