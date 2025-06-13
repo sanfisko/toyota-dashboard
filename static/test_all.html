@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Toyota Test All">
+    <title>Toyota Test All Functions</title>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 16px;
+        }
+        
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 30px;
+            color: #856404;
+        }
+        
+        .warning h3 {
+            margin-bottom: 10px;
+            color: #d63031;
+        }
+        
+        .section {
+            margin-bottom: 40px;
+        }
+        
+        .section h2 {
+            font-size: 22px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e9ecef;
+        }
+        
+        .function-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+        
+        .function-card {
+            background: #fff;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e9ecef;
+        }
+        
+        .function-card h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .function-card p {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex: 1;
+            min-width: 100px;
+        }
+        
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #1e7e34;
+            transform: translateY(-2px);
+        }
+        
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+        
+        .btn-warning:hover {
+            background: #e0a800;
+            transform: translateY(-2px);
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #c82333;
+            transform: translateY(-2px);
+        }
+        
+        .btn-info {
+            background: #17a2b8;
+            color: white;
+        }
+        
+        .btn-info:hover {
+            background: #138496;
+            transform: translateY(-2px);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+        
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 14px;
+            display: none;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        
+        .status.info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+        
+        .window-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .window-control {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+        }
+        
+        .window-control h4 {
+            margin-bottom: 10px;
+            color: #333;
+            font-size: 16px;
+        }
+        
+        .experimental {
+            border: 2px dashed #ffc107;
+            background: #fff9e6;
+        }
+        
+        .experimental::before {
+            content: "🧪 ЭКСПЕРИМЕНТАЛЬНО";
+            display: block;
+            font-size: 12px;
+            color: #856404;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .likely-working {
+            border-left: 4px solid #28a745;
+        }
+        
+        .might-work {
+            border-left: 4px solid #ffc107;
+        }
+        
+        .unlikely-work {
+            border-left: 4px solid #dc3545;
+        }
+        
+        .legend {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 4px;
+            border-radius: 2px;
+        }
+        
+        .legend-green { background: #28a745; }
+        .legend-yellow { background: #ffc107; }
+        .legend-red { background: #dc3545; }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            .function-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .window-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .legend {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚗 Toyota Test All Functions</h1>
+            <p>Полное тестирование всех функций управления автомобилем</p>
+        </div>
+        
+        <div class="warning">
+            <h3>⚠️ Внимание!</h3>
+            <p>Эта страница предназначена для тестирования всех возможных команд управления автомобилем. Некоторые функции могут не работать или работать частично. Используйте с осторожностью!</p>
+            <p><strong>Результаты тестирования помогут определить, какие функции добавить на основную страницу.</strong></p>
+        </div>
+        
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color legend-green"></div>
+                <span>Скорее всего работает</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color legend-yellow"></div>
+                <span>Может работать</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color legend-red"></div>
+                <span>Вряд ли работает</span>
+            </div>
+        </div>
+        
+        <!-- Основные функции безопасности -->
+        <div class="section">
+            <h2>🔒 Функции безопасности</h2>
+            <div class="function-grid">
+                <div class="function-card likely-working">
+                    <h3>Замки дверей</h3>
+                    <p>Блокировка и разблокировка всех дверей автомобиля</p>
+                    <div class="button-group">
+                        <button class="btn btn-danger" onclick="executeCommand('door-lock')">🔒 Заблокировать</button>
+                        <button class="btn btn-success" onclick="executeCommand('door-unlock')">🔓 Разблокировать</button>
+                    </div>
+                </div>
+                
+                <div class="function-card likely-working">
+                    <h3>Аварийная сигнализация</h3>
+                    <p>Включение и выключение аварийных огней</p>
+                    <div class="button-group">
+                        <button class="btn btn-warning" onclick="executeCommand('hazard-on')">🚨 Включить</button>
+                        <button class="btn btn-primary" onclick="executeCommand('hazard-off')">⭕ Выключить</button>
+                    </div>
+                </div>
+                
+                <div class="function-card likely-working">
+                    <h3>Поиск автомобиля</h3>
+                    <p>Активация звуковых и световых сигналов для поиска</p>
+                    <div class="button-group">
+                        <button class="btn btn-info" onclick="executeCommand('find-vehicle')">🔍 Найти авто</button>
+                    </div>
+                </div>
+                
+                <div class="function-card might-work">
+                    <h3>Звуковой сигнал</h3>
+                    <p>Активация звукового сигнала (клаксон)</p>
+                    <div class="button-group">
+                        <button class="btn btn-warning" onclick="executeCommand('sound-horn')">📯 Сигнал</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Управление окнами -->
+        <div class="section">
+            <h2>🪟 Управление окнами</h2>
+            <div class="function-card experimental">
+                <h3>Все окна</h3>
+                <p>Управление всеми окнами одновременно</p>
+                <div class="button-group">
+                    <button class="btn btn-primary" onclick="executeCommand('power-window-on')">⬆️ Поднять все</button>
+                    <button class="btn btn-primary" onclick="executeCommand('power-window-off')">⬇️ Опустить все</button>
+                </div>
+            </div>
+            
+            <div class="window-grid">
+                <div class="window-control experimental">
+                    <h4>Переднее левое окно</h4>
+                    <div class="button-group">
+                        <button class="btn btn-primary" onclick="executeCommand('power-window-front-left-up')">⬆️</button>
+                        <button class="btn btn-primary" onclick="executeCommand('power-window-front-left-down')">⬇️</button>
+                    </div>
+                </div>
+                
+                <div class="window-control experimental">
+                    <h4>Переднее правое окно</h4>
+                    <div class="button-group">
+                        <button class="btn btn-primary" onclick="executeCommand('power-window-front-right-up')">⬆️</button>
+                        <button class="btn btn-primary" onclick="executeCommand('power-window-front-right-down')">⬇️</button>
+                    </div>
+                </div>
+                
+                <div class="window-control experimental">
+                    <h4>Заднее левое окно</h4>
+                    <div class="button-group">
+                        <button class="btn btn-primary" onclick="executeCommand('power-window-rear-left-up')">⬆️</button>
+                        <button class="btn btn-primary" onclick="executeCommand('power-window-rear-left-down')">⬇️</button>
+                    </div>
+                </div>
+                
+                <div class="window-control experimental">
+                    <h4>Заднее правое окно</h4>
+                    <div class="button-group">
+                        <button class="btn btn-primary" onclick="executeCommand('power-window-rear-right-up')">⬆️</button>
+                        <button class="btn btn-primary" onclick="executeCommand('power-window-rear-right-down')">⬇️</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Климат-контроль -->
+        <div class="section">
+            <h2>❄️ Климат-контроль</h2>
+            <div class="function-grid">
+                <div class="function-card unlikely-work">
+                    <h3>Кондиционер</h3>
+                    <p>Дистанционное управление кондиционером</p>
+                    <div class="button-group">
+                        <button class="btn btn-info" onclick="executeCommand('ac-on')">❄️ Включить</button>
+                        <button class="btn btn-primary" onclick="executeCommand('ac-off')">⭕ Выключить</button>
+                    </div>
+                </div>
+                
+                <div class="function-card unlikely-work">
+                    <h3>Обогрев</h3>
+                    <p>Дистанционный запуск обогрева</p>
+                    <div class="button-group">
+                        <button class="btn btn-danger" onclick="executeCommand('heater-on')">🔥 Включить</button>
+                        <button class="btn btn-primary" onclick="executeCommand('heater-off')">⭕ Выключить</button>
+                    </div>
+                </div>
+                
+                <div class="function-card unlikely-work">
+                    <h3>Предварительный прогрев</h3>
+                    <p>Предварительный прогрев салона</p>
+                    <div class="button-group">
+                        <button class="btn btn-warning" onclick="executeCommand('preconditioning-on')">🌡️ Запустить</button>
+                        <button class="btn btn-primary" onclick="executeCommand('preconditioning-off')">⭕ Остановить</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Освещение -->
+        <div class="section">
+            <h2>💡 Освещение</h2>
+            <div class="function-grid">
+                <div class="function-card might-work">
+                    <h3>Фары</h3>
+                    <p>Управление головными фарами</p>
+                    <div class="button-group">
+                        <button class="btn btn-warning" onclick="executeCommand('lights-on')">💡 Включить</button>
+                        <button class="btn btn-primary" onclick="executeCommand('lights-off')">⭕ Выключить</button>
+                    </div>
+                </div>
+                
+                <div class="function-card might-work">
+                    <h3>Габаритные огни</h3>
+                    <p>Управление габаритными огнями</p>
+                    <div class="button-group">
+                        <button class="btn btn-info" onclick="executeCommand('parking-lights-on')">🔆 Включить</button>
+                        <button class="btn btn-primary" onclick="executeCommand('parking-lights-off')">⭕ Выключить</button>
+                    </div>
+                </div>
+                
+                <div class="function-card unlikely-work">
+                    <h3>Внутреннее освещение</h3>
+                    <p>Управление освещением салона</p>
+                    <div class="button-group">
+                        <button class="btn btn-warning" onclick="executeCommand('interior-lights-on')">🏠 Включить</button>
+                        <button class="btn btn-primary" onclick="executeCommand('interior-lights-off')">⭕ Выключить</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Двигатель и зарядка -->
+        <div class="section">
+            <h2>🔋 Двигатель и зарядка</h2>
+            <div class="function-grid">
+                <div class="function-card unlikely-work">
+                    <h3>Дистанционный запуск</h3>
+                    <p>Дистанционный запуск двигателя</p>
+                    <div class="button-group">
+                        <button class="btn btn-success" onclick="executeCommand('engine-start')">🚀 Запустить</button>
+                        <button class="btn btn-danger" onclick="executeCommand('engine-stop')">⏹️ Остановить</button>
+                    </div>
+                </div>
+                
+                <div class="function-card might-work">
+                    <h3>Зарядка (PHEV)</h3>
+                    <p>Управление зарядкой гибридного автомобиля</p>
+                    <div class="button-group">
+                        <button class="btn btn-success" onclick="executeCommand('charging-start')">🔌 Начать</button>
+                        <button class="btn btn-danger" onclick="executeCommand('charging-stop')">⏹️ Остановить</button>
+                    </div>
+                </div>
+                
+                <div class="function-card unlikely-work">
+                    <h3>Режим EV</h3>
+                    <p>Переключение в электрический режим</p>
+                    <div class="button-group">
+                        <button class="btn btn-success" onclick="executeCommand('ev-mode-on')">⚡ Включить</button>
+                        <button class="btn btn-primary" onclick="executeCommand('ev-mode-off')">⭕ Выключить</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Экспериментальные функции -->
+        <div class="section">
+            <h2>🧪 Экспериментальные функции</h2>
+            <div class="function-grid">
+                <div class="function-card unlikely-work">
+                    <h3>Багажник</h3>
+                    <p>Открытие и закрытие багажника</p>
+                    <div class="button-group">
+                        <button class="btn btn-info" onclick="executeCommand('trunk-open')">📦 Открыть</button>
+                        <button class="btn btn-primary" onclick="executeCommand('trunk-close')">📦 Закрыть</button>
+                    </div>
+                </div>
+                
+                <div class="function-card unlikely-work">
+                    <h3>Люк</h3>
+                    <p>Управление люком в крыше</p>
+                    <div class="button-group">
+                        <button class="btn btn-info" onclick="executeCommand('sunroof-open')">☀️ Открыть</button>
+                        <button class="btn btn-primary" onclick="executeCommand('sunroof-close')">☀️ Закрыть</button>
+                    </div>
+                </div>
+                
+                <div class="function-card unlikely-work">
+                    <h3>Зеркала</h3>
+                    <p>Складывание боковых зеркал</p>
+                    <div class="button-group">
+                        <button class="btn btn-warning" onclick="executeCommand('mirrors-fold')">🪞 Сложить</button>
+                        <button class="btn btn-primary" onclick="executeCommand('mirrors-unfold')">🪞 Разложить</button>
+                    </div>
+                </div>
+                
+                <div class="function-card unlikely-work">
+                    <h3>Сиденья</h3>
+                    <p>Обогрев сидений</p>
+                    <div class="button-group">
+                        <button class="btn btn-danger" onclick="executeCommand('seat-heater-on')">🔥 Включить</button>
+                        <button class="btn btn-primary" onclick="executeCommand('seat-heater-off')">⭕ Выключить</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Статус выполнения -->
+        <div id="status" class="status"></div>
+    </div>
+    
+    <script>
+        async function executeCommand(command) {
+            const statusDiv = document.getElementById('status');
+            const button = event.target;
+            
+            // Отключить кнопку
+            button.disabled = true;
+            button.textContent = '⏳ Выполняется...';
+            
+            // Показать статус
+            statusDiv.className = 'status info';
+            statusDiv.style.display = 'block';
+            statusDiv.textContent = `Выполняется команда: ${command}`;
+            
+            try {
+                const response = await fetch('/api/command', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ command: command })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    statusDiv.className = 'status success';
+                    statusDiv.textContent = `✅ Команда "${command}" выполнена успешно: ${result.message}`;
+                } else {
+                    statusDiv.className = 'status error';
+                    statusDiv.textContent = `❌ Ошибка выполнения команды "${command}": ${result.error}`;
+                }
+            } catch (error) {
+                statusDiv.className = 'status error';
+                statusDiv.textContent = `❌ Ошибка сети при выполнении команды "${command}": ${error.message}`;
+            } finally {
+                // Восстановить кнопку
+                button.disabled = false;
+                button.textContent = button.getAttribute('data-original-text') || button.textContent.replace('⏳ Выполняется...', '');
+                
+                // Скрыть статус через 5 секунд
+                setTimeout(() => {
+                    statusDiv.style.display = 'none';
+                }, 5000);
+            }
+        }
+        
+        // Сохранить оригинальный текст кнопок
+        document.addEventListener('DOMContentLoaded', function() {
+            const buttons = document.querySelectorAll('.btn');
+            buttons.forEach(button => {
+                button.setAttribute('data-original-text', button.textContent);
+            });
+        });
+        
+        // Обновить статус подключения
+        async function updateConnectionStatus() {
+            try {
+                const response = await fetch('/api/status');
+                const status = await response.json();
+                
+                if (!status.toyota_connected) {
+                    const statusDiv = document.getElementById('status');
+                    statusDiv.className = 'status error';
+                    statusDiv.style.display = 'block';
+                    statusDiv.textContent = '❌ Нет подключения к Toyota Connected Services. Проверьте конфигурацию.';
+                }
+            } catch (error) {
+                console.error('Ошибка проверки статуса:', error);
+            }
+        }
+        
+        // Проверить статус при загрузке
+        updateConnectionStatus();
+    </script>
+</body>
+</html>
