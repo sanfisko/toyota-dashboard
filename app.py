@@ -556,21 +556,46 @@ async def get_vehicle_capabilities():
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/stats/phev")
-async def get_phev_stats(period: str = "week"):
-    """Получить статистику автомобиля за период."""
+async def get_phev_stats(
+    period: str = None,
+    date_from: str = None,
+    date_to: str = None
+):
+    """Получить статистику автомобиля за период или диапазон дат."""
     try:
-        stats = await db.get_phev_statistics(period)
+        # Если указаны конкретные даты, используем их
+        if date_from and date_to:
+            stats = await db.get_phev_statistics_by_dates(date_from, date_to)
+            period_label = f"с {date_from} по {date_to}"
+        else:
+            # Иначе используем предустановленный период
+            if not period:
+                period = "today"
+            stats = await db.get_phev_statistics(period)
+            period_label = period
+        
+        # Рассчитать дополнительные метрики
+        total_distance = stats.get("total_distance", 0)
+        fuel_consumption = stats.get("fuel_consumption", 0)
+        electricity_consumption = stats.get("electricity_consumption", 0)
+        
+        # Количество поездок (заглушка, нужно будет получать из реальных данных)
+        trip_count = stats.get("trip_count", 0)
+        if trip_count == 0 and total_distance > 0:
+            # Примерная оценка: одна поездка на каждые 20 км
+            trip_count = max(1, int(total_distance / 20))
         
         return {
-            "period": period,
-            "total_distance": stats.get("total_distance", 0),
+            "period": period_label,
+            "total_distance": total_distance,
             "electric_distance": stats.get("electric_distance", 0),
             "fuel_distance": stats.get("fuel_distance", 0),
             "electric_percentage": stats.get("electric_percentage", 0),
-            "fuel_consumption": stats.get("fuel_consumption", 0),
-            "electricity_consumption": stats.get("electricity_consumption", 0),
+            "fuel_consumption": fuel_consumption,
+            "electricity_consumption": electricity_consumption,
             "co2_saved": stats.get("co2_saved", 0),
-            "cost_savings": stats.get("cost_savings", 0)
+            "cost_savings": stats.get("cost_savings", 0),
+            "trip_count": trip_count
         }
     except Exception as e:
         logger.error(f"Ошибка получения статистики автомобиля: {e}")

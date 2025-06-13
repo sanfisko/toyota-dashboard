@@ -560,15 +560,15 @@
         // Загрузка статистики за сегодня
         async function loadTodayStats() {
             try {
-                const response = await fetch('/api/stats/phev?period=day');
+                const response = await fetch('/api/stats/phev?period=today');
                 if (!response.ok) throw new Error('Ошибка загрузки статистики');
                 
                 const stats = await response.json();
                 
                 // Обновить UI статистики за сегодня
-                document.getElementById('today-distance').textContent = stats.total_distance + ' км';
-                document.getElementById('today-fuel').textContent = (stats.fuel_consumed || 0).toFixed(1) + ' л';
-                document.getElementById('today-electric-consumed').textContent = (stats.electric_consumed || 0).toFixed(1) + ' кВт⋅ч';
+                document.getElementById('today-distance').textContent = (stats.total_distance || 0) + ' км';
+                document.getElementById('today-fuel').textContent = (stats.fuel_consumption || 0).toFixed(1) + ' л';
+                document.getElementById('today-electric-consumed').textContent = (stats.electricity_consumption || 0).toFixed(1) + ' кВт⋅ч';
                 
             } catch (error) {
                 console.error('Error loading today statistics:', error);
