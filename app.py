@@ -710,7 +710,7 @@ async def test_connection(request: TestConnectionRequest):
         
         return {
             "success": True,
-            "vehicle_info": f"{target_vehicle.model} ({target_vehicle.year})",
+            "vehicle_info": f"{target_vehicle._vehicle_info.car_model_name} ({target_vehicle._vehicle_info.car_model_year})",
             "message": "Подключение успешно!"
         }
         
