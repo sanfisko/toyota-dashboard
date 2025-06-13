@@ -298,11 +298,11 @@
                     <span class="control-icon">📍</span>
                     <span>Найти</span>
                 </button>
-                <button class="control-btn" onclick="openWindows()">
+                <button class="control-btn window-control-btn" onclick="openWindows()" style="display: none;">
                     <span class="control-icon">🪟</span>
                     <span>Открыть окна</span>
                 </button>
-                <button class="control-btn" onclick="closeWindows()">
+                <button class="control-btn window-control-btn" onclick="closeWindows()" style="display: none;">
                     <span class="control-icon">🔒</span>
                     <span>Закрыть окна</span>
                 </button>
@@ -372,10 +372,12 @@
         // Глобальные переменные
         let vehicleData = null;
         let isLocked = true;
+        let vehicleCapabilities = null;
         
         // Инициализация
         document.addEventListener('DOMContentLoaded', function() {
             loadVehicleStatus();
+            loadVehicleCapabilities();
             loadStatistics('day');
             
             // Автообновление каждые 30 секунд
@@ -395,6 +397,45 @@
                 showNotification('Ошибка подключения к автомобилю', 'error');
                 console.error('Error:', error);
             }
+        }
+        
+        // Загрузка возможностей автомобиля
+        async function loadVehicleCapabilities() {
+            try {
+                const response = await fetch('/api/vehicle/capabilities');
+                if (!response.ok) throw new Error('Ошибка загрузки возможностей');
+                
+                vehicleCapabilities = await response.json();
+                updateCapabilitiesUI();
+                
+            } catch (error) {
+                console.error('Error loading capabilities:', error);
+                // Скрыть кнопки управления окнами по умолчанию
+                hideWindowControls();
+            }
+        }
+        
+        // Обновление UI в зависимости от возможностей
+        function updateCapabilitiesUI() {
+            if (!vehicleCapabilities) return;
+            
+            // Показать/скрыть кнопки управления окнами
+            const windowButtons = document.querySelectorAll('.window-control-btn');
+            windowButtons.forEach(button => {
+                if (vehicleCapabilities.power_windows) {
+                    button.style.display = 'flex';
+                } else {
+                    button.style.display = 'none';
+                }
+            });
+        }
+        
+        // Скрыть кнопки управления окнами
+        function hideWindowControls() {
+            const windowButtons = document.querySelectorAll('.window-control-btn');
+            windowButtons.forEach(button => {
+                button.style.display = 'none';
+            });
         }
         
         // Обновление интерфейса
