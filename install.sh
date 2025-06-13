@@ -555,7 +555,7 @@ server {
     
     # API и приложение
     location / {
-        proxy_pass http://127.0.0.1:2025;
+        proxy_pass http://127.0.0.1:12000;
         proxy_set_header Host \$host;
         proxy_set_header X-Real-IP \$remote_addr;
         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
@@ -696,7 +696,7 @@ show_final_info() {
     echo -e "${YELLOW}4. Доступ к дашборду:${NC}"
     IP=$(hostname -I | awk '{print $1}')
     echo "   Локальная сеть: http://$IP (через nginx)"
-    echo "   Прямой доступ: http://$IP:2025"
+    echo "   Прямой доступ: http://$IP:12000"
     echo "   Локально: http://localhost"
     echo "   Настройка: http://$IP/setup"
     echo
