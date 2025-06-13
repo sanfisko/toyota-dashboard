@@ -423,10 +423,13 @@ install_python_deps() {
     
     # Отдельная проверка PyToyoda
     print_info "Проверка PyToyoda..."
-    sudo -u toyota bash -c "source /opt/toyota-dashboard/venv/bin/activate && python3 -c 'import pytoyoda; print(\"✓ PyToyoda установлен:\", getattr(pytoyoda, \"__version__\", \"локальная версия\"))'" || {
+    if sudo -u toyota bash -c "source /opt/toyota-dashboard/venv/bin/activate && python3 -c 'import pytoyoda' >/dev/null 2>&1"; then
+        sudo -u toyota bash -c "source /opt/toyota-dashboard/venv/bin/activate && python3 -c 'import pytoyoda; print(\"✓ PyToyoda установлен:\", getattr(pytoyoda, \"__version__\", \"локальная версия\"))'"
+    else
         print_info "Установка PyToyoda..."
         sudo -u toyota bash -c "source /opt/toyota-dashboard/venv/bin/activate && pip install 'pytoyoda>=3.0.0,<4.0.0'"
-    }
+        sudo -u toyota bash -c "source /opt/toyota-dashboard/venv/bin/activate && python3 -c 'import pytoyoda; print(\"✓ PyToyoda установлен:\", getattr(pytoyoda, \"__version__\", \"локальная версия\"))'"
+    fi
     
     print_success "Python зависимости установлены"
 }
