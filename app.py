@@ -306,13 +306,20 @@ async def start_engine(request: CommandRequest):
             raise HTTPException(status_code=503, detail="Toyota клиент не инициализирован")
         
         target_vehicle = await get_vehicle()
-        result = await target_vehicle.post_command(CommandType.ENGINE_START)
-        logger.info(f"Команда запуска двигателя отправлена на {request.duration} минут")
         
-        return {"status": "success", "message": f"Двигатель запущен на {request.duration} минут"}
+        result = await target_vehicle.post_command(CommandType.ENGINE_START)
+        duration = request.duration if request.duration else 10
+        logger.info(f"Команда запуска двигателя отправлена на {duration} минут")
+        
+        return {"status": "success", "message": f"Двигатель запущен на {duration} минут"}
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Ошибка запуска двигателя: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        # Проверяем, если это ошибка API Toyota
+        if "Remote command interrupted" in str(e) or "40009" in str(e):
+            raise HTTPException(status_code=400, detail="Команда запуска недоступна. Возможно, автомобиль уже заведен или команда не поддерживается.")
+        raise HTTPException(status_code=500, detail=f"Внутренняя ошибка: {str(e)}")
 
 @app.post("/api/vehicle/stop")
 async def stop_engine():
@@ -361,18 +368,42 @@ async def control_climate(request: CommandRequest):
         if not toyota_client:
             raise HTTPException(status_code=503, detail="Toyota клиент не инициализирован")
         
-        # Включить климат-контроль
         target_vehicle = await get_vehicle()
-        result = await target_vehicle.post_command(CommandType.AC_SETTINGS_ON)
-        logger.info(f"Климат-контроль включен, температура: {request.temperature}°C")
         
-        return {
-            "status": "success", 
-            "message": f"Климат-контроль включен на {request.temperature}°C"
-        }
+        # Пробуем разные команды климат-контроля
+        try:
+            # Сначала пробуем AC_SETTINGS_ON
+            result = await target_vehicle.post_command(CommandType.AC_SETTINGS_ON)
+            logger.info(f"Климат-контроль включен через AC_SETTINGS_ON")
+            return {
+                "status": "success", 
+                "message": "Климат-контроль включен"
+            }
+        except Exception as ac_error:
+            logger.warning(f"AC_SETTINGS_ON не сработал: {ac_error}")
+            
+            # Пробуем VENTILATION_ON
+            try:
+                result = await target_vehicle.post_command(CommandType.VENTILATION_ON)
+                logger.info(f"Вентиляция включена через VENTILATION_ON")
+                return {
+                    "status": "success", 
+                    "message": "Вентиляция включена"
+                }
+            except Exception as vent_error:
+                logger.warning(f"VENTILATION_ON не сработал: {vent_error}")
+                
+                # Если ничего не работает, возвращаем информативную ошибку
+                raise HTTPException(
+                    status_code=400, 
+                    detail=f"Климат-контроль недоступен. Возможные причины: автомобиль заведен, команда не поддерживается или временная ошибка API. Попробуйте позже."
+                )
+        
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Ошибка управления климатом: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=f"Внутренняя ошибка: {str(e)}")
 
 @app.get("/api/stats/phev")
 async def get_phev_stats(period: str = "week"):

@@ -513,9 +513,13 @@
             try {
                 const response = await fetch('/api/vehicle/find', { method: 'POST' });
                 
-                if (!response.ok) throw new Error('Ошибка поиска автомобиля');
-                
                 const result = await response.json();
+                
+                if (!response.ok) {
+                    showNotification(result.detail || 'Ошибка поиска автомобиля', 'error');
+                    return;
+                }
+                
                 showNotification(result.message, 'success');
                 
             } catch (error) {
