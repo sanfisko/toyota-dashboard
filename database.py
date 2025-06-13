@@ -235,10 +235,30 @@ class DatabaseManager:
                 # Экономия CO2 (примерно 2.3 кг CO2 на литр бензина)
                 co2_saved = fuel_consumed * 2.3
                 
-                # Экономия денег (примерно 50₽ за литр бензина vs 5₽ за кВт⋅ч)
-                fuel_cost = fuel_consumed * 50
-                electric_cost = electricity_consumed * 5
-                cost_savings = fuel_cost - electric_cost
+                # Получить актуальные цены на топливо
+                from fuel_prices import fuel_price_service
+                
+                # Попробовать определить местоположение из последних данных
+                location_cursor = await self.connection.execute("""
+                    SELECT latitude, longitude FROM vehicle_status 
+                    WHERE latitude != 0 AND longitude != 0 
+                    ORDER BY timestamp DESC LIMIT 1
+                """)
+                location_row = await location_cursor.fetchone()
+                
+                if location_row:
+                    prices = await fuel_price_service.get_fuel_prices(
+                        latitude=location_row[0], 
+                        longitude=location_row[1]
+                    )
+                else:
+                    # Использовать дефолтные цены для Германии
+                    prices = await fuel_price_service.get_fuel_prices("DE")
+                
+                # Расчет экономии в евро
+                fuel_cost_eur = fuel_consumed * prices["gasoline"]
+                electric_cost_eur = electricity_consumed * prices["electricity"]
+                cost_savings = max(0, fuel_cost_eur - electric_cost_eur)
                 
                 return {
                     "total_distance": round(total_distance, 1),
@@ -316,9 +336,15 @@ class DatabaseManager:
                 # Расчеты
                 electric_percentage = (electric_distance / total_distance * 100) if total_distance > 0 else 0
                 co2_saved = fuel_consumed * 2.3
-                fuel_cost = fuel_consumed * 50
-                electric_cost = electricity_consumed * 5
-                cost_savings = max(0, fuel_cost - electric_cost)
+                
+                # Получить актуальные цены на топливо
+                from fuel_prices import fuel_price_service
+                prices = await fuel_price_service.get_fuel_prices("DE")  # Дефолт для диапазона дат
+                
+                # Расчет экономии в евро
+                fuel_cost_eur = fuel_consumed * prices["gasoline"]
+                electric_cost_eur = electricity_consumed * prices["electricity"]
+                cost_savings = max(0, fuel_cost_eur - electric_cost_eur)
                 
                 return {
                     "period": f"с {date_from} по {date_to}",
@@ -379,6 +405,8 @@ class DatabaseManager:
             
             row = await cursor.fetchone()
             
+            logger.info(f"Общая статистика из БД: {row}")
+            
             if row and row[0]:
                 total_distance = row[0] or 0
                 electric_distance = row[1] or 0
@@ -386,19 +414,31 @@ class DatabaseManager:
                 electricity_consumed = row[3] or 0
                 trip_count = row[4] or 0
                 
+                logger.info(f"Обработанные данные: distance={total_distance}, fuel={fuel_consumed}")
+                
                 electric_percentage = (electric_distance / total_distance * 100) if total_distance > 0 else 0
                 co2_saved = fuel_consumed * 2.3
-                fuel_cost = fuel_consumed * 50
-                electric_cost = electricity_consumed * 5
-                cost_savings = max(0, fuel_cost - electric_cost)
                 
-                return {
+                # Получить актуальные цены на топливо
+                from fuel_prices import fuel_price_service
+                prices = await fuel_price_service.get_fuel_prices("DE")  # Дефолт для общей статистики
+                
+                # Расчет экономии в евро
+                fuel_cost_eur = fuel_consumed * prices["gasoline"]
+                electric_cost_eur = electricity_consumed * prices["electricity"]
+                cost_savings = max(0, fuel_cost_eur - electric_cost_eur)
+                
+                result = {
                     "total_distance": total_distance,
                     "electric_percentage": electric_percentage,
                     "fuel_consumed": fuel_consumed,
                     "cost_savings": cost_savings
                 }
+                
+                logger.info(f"Возвращаемая статистика: {result}")
+                return result
             else:
+                logger.warning("Нет данных в таблице trips для общей статистики")
                 return {
                     "total_distance": 0,
                     "electric_percentage": 0,
