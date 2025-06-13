@@ -350,12 +350,8 @@ remove_python_packages() {
         "pytoyoda"
         "fastapi"
         "uvicorn"
-        "aiosqlite"
         "pydantic"
         "pydantic-settings"
-        "python-jose"
-        "passlib"
-        "python-multipart"
         "jinja2"
         "aiofiles"
         "httpx"
@@ -366,19 +362,6 @@ remove_python_packages() {
         "python-dateutil"
         "pyyaml"
         "python-dotenv"
-        "cryptography"
-        "pyjwt"
-        "psutil"
-        "prometheus-client"
-        "python-telegram-bot"
-        "validators"
-        "importlib-metadata"
-        "langcodes"
-        "paho-mqtt"
-        "geopy"
-        "folium"
-        "openpyxl"
-        "pandas"
     )
     
     # Попытаться удалить пакеты из виртуального окружения toyota
@@ -399,7 +382,7 @@ remove_python_packages() {
     # Предложить удалить глобальные пакеты (только если они были установлены для Toyota Dashboard)
     print_warning "Глобальные Python пакеты не удаляются автоматически для безопасности"
     print_info "Если вы хотите удалить их вручную:"
-    echo "   sudo pip3 uninstall pytoyoda fastapi uvicorn aiosqlite"
+    echo "   sudo pip3 uninstall pytoyoda fastapi uvicorn pydantic httpx"
     echo "   (и другие пакеты, если они не используются другими приложениями)"
 }
 

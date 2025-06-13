@@ -1,76 +1,29 @@
 # Toyota Dashboard Server Dependencies
 
-# Основные зависимости
+# Основные зависимости веб-сервера
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
 pydantic==2.5.0
 pydantic-settings==2.1.0
 
-# База данных
-aiosqlite==0.19.0
-sqlalchemy==2.0.23
-
-# HTTP клиент и Toyota API
+# HTTP клиент для Toyota API
 httpx==0.25.2
 aiohttp>=3.9.0
 hishel>=0.0.24
 
-# Конфигурация
+# Конфигурация и файлы
 pyyaml==6.0.1
 python-dotenv==1.0.0
-
-# Логирование
-loguru==0.7.2
-
-# Шаблоны и статические файлы
 jinja2==3.1.2
 aiofiles==23.2.1
 
-# Безопасность
-cryptography>=41.0.0
-python-jose[cryptography]==3.3.0
-passlib[bcrypt]==1.7.4
-pyjwt==2.8.0
-
-# Мониторинг и метрики
-psutil==5.9.6
-prometheus-client==0.19.0
-
-# Уведомления
-python-telegram-bot==20.7
+# Логирование
+loguru==0.7.2
 
 # Работа с датами и временем
 python-dateutil==2.8.2
 pytz==2023.3
 arrow==1.3.0
 
-# Валидация и утилиты
-validators==0.22.0
-python-multipart==0.0.6
-importlib-metadata>=4.0.0
-langcodes==3.4.0
-
-# Интеграции
-paho-mqtt==1.6.1
-# homeassistant-api>=4.1.0  # Временно отключено из-за конфликта с pydantic
-
-# Карты и геолокация
-geopy==2.4.1
-folium==0.15.0
-
-# Экспорт данных
-openpyxl>=3.1.0
-pandas>=2.0.0
-
-# Веб-интерфейс (статические файлы)
-# bootstrap - будет подключен через CDN
-
-# Разработка и тестирование (опционально - установить отдельно при необходимости)
-# pytest==7.4.3
-# pytest-asyncio==0.21.1
-# black==23.11.0
-# flake8==6.1.0
-# mypy==1.7.1
-
-# PyToyoda (основная библиотека)
+# PyToyoda (основная библиотека для Toyota API)
 pytoyoda>=1.0.0

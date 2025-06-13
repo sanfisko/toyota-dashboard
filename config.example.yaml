@@ -2,23 +2,22 @@
 
 # Настройки подключения к Toyota Connected Services
 toyota:
-  username: "your-email@example.com"  # Ваш email от Toyota Connected
-  password: "your-password"           # Ваш пароль
-  vin: "YOUR_VIN_NUMBER"             # VIN номер вашего Toyota автомобиля (17 символов)
+  username: "your-email@example.com" # Ваш email от Toyota Connected
+  password: "your-password"          # Ваш пароль
+  vin: "YOUR_VIN_NUMBER_HERE"        # VIN номер вашего Toyota автомобиля (17 символов)
   region: "europe"                   # Регион: europe, north_america, asia
 
 # Настройки веб-сервера
 server:
   host: "0.0.0.0"                   # IP адрес (0.0.0.0 для доступа извне)
-  port: 2025                        # Порт сервера (можно изменить на любой свободный)
+  port: 12000                       # Порт сервера (можно изменить на любой свободный)
   debug: false                      # Режим отладки (true только для разработки)
   secret_key: "your-secret-key-here" # Секретный ключ (сгенерируйте случайный)
 
-# Настройки базы данных
-database:
-  path: "/var/lib/toyota-dashboard/data/toyota.db"  # Путь к файлу базы данных SQLite
-  backup_interval: 3600             # Интервал резервного копирования (секунды)
-  cleanup_days: 365                 # Через сколько дней удалять старые данные
+# Настройки данных
+data:
+  cache_enabled: true               # Включить кэширование данных
+  cache_ttl: 300                    # Время жизни кэша (секунды)
 
 # Настройки мониторинга
 monitoring:
@@ -44,11 +43,7 @@ notifications:
   daily_reports: true               # Ежедневные отчеты
   weekly_reports: true              # Еженедельные отчеты
   
-  # Telegram уведомления (опционально)
-  telegram:
-    enabled: false
-    bot_token: "YOUR_BOT_TOKEN"
-    chat_id: "YOUR_CHAT_ID"
+
 
 # Настройки дашборда
 dashboard:
@@ -77,28 +72,13 @@ security:
 
 # Настройки логирования
 logging:
-  level: "INFO"                     # Уровень: DEBUG, INFO, WARNING, ERROR
-  file_path: "/var/log/toyota-dashboard/toyota-dashboard.log"
+  level: "ERROR"                    # Уровень: DEBUG, INFO, WARNING, ERROR
+  file_path: "logs/toyota-dashboard.log"
   max_file_size: "10MB"             # Максимальный размер лог-файла
   backup_count: 5                   # Количество архивных лог-файлов
   format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 
-# Интеграции с умным домом
-integrations:
-  # Home Assistant
-  home_assistant:
-    enabled: false
-    url: "http://homeassistant.local:8123"
-    token: "YOUR_HA_TOKEN"
-  
-  # MQTT
-  mqtt:
-    enabled: false
-    broker: "localhost"
-    port: 1883
-    username: ""
-    password: ""
-    topic_prefix: "toyota/chr_phev"
+
 
 # Экспериментальные функции
 experimental:
@@ -114,16 +94,3 @@ performance:
   max_concurrent_requests: 10       # Максимум одновременных запросов к API
   request_timeout: 30               # Таймаут запросов (секунды)
 
-# Настройки резервного копирования
-backup:
-  enabled: true                     # Включить автоматическое резервное копирование
-  interval: 86400                   # Интервал (секунды, 86400 = 24 часа)
-  keep_backups: 7                   # Количество резервных копий
-  backup_path: "/var/lib/toyota-dashboard/backups/"           # Папка для резервных копий
-  
-  # Облачное резервное копирование
-  cloud:
-    enabled: false
-    provider: "dropbox"             # dropbox, google_drive, yandex_disk
-    api_key: ""
-    folder: "/toyota_dashboard_backups"
