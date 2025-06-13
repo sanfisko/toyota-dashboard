@@ -349,8 +349,14 @@ install_python_deps() {
         source venv/bin/activate
         pip install --upgrade pip
         
-        # Попытка установки всех зависимостей
-        pip install -r requirements.txt || {
+        # Попытка установки всех зависимостей (с оптимизацией)
+        echo 'Установка зависимостей из requirements.txt...'
+        if [[ -f requirements-optimized.txt ]]; then
+            echo 'Используем оптимизированный порядок установки...'
+            pip install -r requirements-optimized.txt || pip install -r requirements.txt
+        else
+            pip install -r requirements.txt
+        fi || {
             echo 'Ошибка установки всех зависимостей. Устанавливаем критически важные пакеты по отдельности...'
             
             # Устанавливаем основные зависимости по отдельности
@@ -360,17 +366,17 @@ install_python_deps() {
             pip install pydantic-settings==2.1.0
             pip install \"httpx>=0.28.0\"
             pip install \"aiohttp>=3.9.0\"
-            pip install \"hishel>=0.0.24\"
+            pip install \"hishel>=0.1.0,<0.2.0\"
             pip install pyyaml==6.0.1
             pip install python-dotenv==1.0.0
-            pip install loguru==0.7.2
+            pip install \"loguru>=0.7.2,<0.8.0\"
             pip install jinja2==3.1.2
             pip install aiofiles==23.2.1
             pip install python-dateutil==2.8.2
             pip install pytz==2023.3
             pip install arrow==1.3.0
             pip install \"aiosqlite>=0.19.0\"
-            pip install \"pytoyoda>=1.0.0\"
+            pip install \"pytoyoda>=3.0.0,<4.0.0\"
         }
         
         # Проверка критически важных зависимостей
@@ -406,9 +412,9 @@ install_python_deps() {
             pip install \"aiosqlite>=0.19.0\"
         }
         
-        python3 -c 'import pytoyoda; print(\"✓ PyToyoda установлен:\", pytoyoda.__version__)' || {
+        python3 -c 'import pytoyoda; print(\"✓ PyToyoda установлен:\", getattr(pytoyoda, "__version__", "локальная версия"))' || {
             echo 'Установка PyToyoda...'
-            pip install \"pytoyoda>=1.0.0\"
+            pip install \"pytoyoda>=3.0.0,<4.0.0\"
         }
         
         echo 'Все критически важные зависимости проверены'
@@ -427,9 +433,10 @@ setup_config() {
     cd /opt/toyota-dashboard
     
     # Используем утилиту настройки конфигурации
+    print_info "Настройка конфигурации..."
     sudo -u toyota bash -c "
         source venv/bin/activate
-        python3 setup_config.py
+        python3 setup_config.py 2>/dev/null || python3 setup_config.py
     "
     
     # Создание секретного ключа, если конфигурация была создана

@@ -41,8 +41,11 @@ def setup_config():
         os.makedirs(config_dir, exist_ok=True)
         print(f"📁 Создана директория конфигурации: {config_dir}")
     except (OSError, PermissionError) as e:
-        print(f"❌ Не удалось создать директорию конфигурации: {e}")
-        return None
+        print(f"⚠️  Предупреждение: Не удалось создать директорию {config_dir}: {e}")
+        # Попробуем использовать директорию приложения
+        fallback_config = os.path.join(paths.app_dir, 'config.yaml')
+        print(f"🔄 Используем альтернативный путь: {fallback_config}")
+        paths.config_file = fallback_config
     
     # Скопировать файл-пример
     try:
