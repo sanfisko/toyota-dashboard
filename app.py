@@ -156,7 +156,7 @@ async def lifespan(app: FastAPI):
         await init_toyota_client()
         
         # Запустить фоновый сбор данных
-        if config['monitoring']['auto_refresh']:
+        if config['monitoring']['auto_refresh'] and toyota_client:
             asyncio.create_task(collect_vehicle_data())
     except Exception as e:
         logger.error(f"Ошибка при запуске Toyota Dashboard Server: {e}")
@@ -174,7 +174,7 @@ async def lifespan(app: FastAPI):
 db_path = paths.database_path
 db = DatabaseManager(db_path)
 toyota_client: Optional[MyT] = None
-vehicle_vin = config['toyota']['vin']
+vehicle_vin = config.get('toyota', {}).get('vin', '')
 
 app = FastAPI(title="Toyota Dashboard", version="1.0.0", lifespan=lifespan)
 
@@ -224,15 +224,21 @@ async def init_toyota_client():
     """Инициализировать подключение к Toyota API."""
     global toyota_client
     try:
+        # Проверить, что учетные данные настроены
+        if not config.get('toyota', {}).get('username') or not config.get('toyota', {}).get('password'):
+            logger.info("Toyota клиент не инициализирован - учетные данные не настроены")
+            toyota_client = None
+            return
+            
         toyota_client = MyT(
             username=config['toyota']['username'],
             password=config['toyota']['password'],
             use_metric=config['dashboard'].get('units', 'metric') == 'metric'
         )
-        # Toyota клиент успешно инициализирован
+        logger.info("Toyota клиент успешно инициализирован")
     except Exception as e:
         logger.error(f"Ошибка инициализации Toyota клиента: {e}")
-        raise
+        toyota_client = None
 
 # Вспомогательная функция для получения автомобиля
 async def get_vehicle():
@@ -256,7 +262,7 @@ async def collect_vehicle_data():
     """Фоновая задача для сбора данных автомобиля."""
     while True:
         try:
-            if toyota_client:
+            if toyota_client and vehicle_vin:
                 # Получить автомобили
                 await toyota_client.login()
                 vehicles = await toyota_client.get_vehicles()
@@ -289,9 +295,11 @@ async def collect_vehicle_data():
                     )
                     
                     await db.save_vehicle_status(vehicle_data)
-                    # Данные автомобиля обновлены
+                    logger.debug("Данные автомобиля обновлены")
                 else:
                     logger.warning(f"Автомобиль с VIN {vehicle_vin} не найден")
+            else:
+                logger.debug("Toyota клиент или VIN не настроены, пропускаем сбор данных")
                 
         except OSError as e:
             if e.errno == 30:  # Read-only file system
@@ -310,7 +318,7 @@ async def collect_vehicle_data():
 async def dashboard():
     """Главная страница дашборда."""
     # Проверить, настроен ли Toyota клиент
-    if not toyota_client or not config.get('toyota', {}).get('username'):
+    if not config.get('toyota', {}).get('username') or not config.get('toyota', {}).get('password') or not config.get('toyota', {}).get('vin'):
         # Перенаправить на страницу настройки
         return HTMLResponse(content="""
         <!DOCTYPE html>
@@ -1293,96 +1301,7 @@ async def force_update_fuel_prices():
             }
         )
 
-@app.post("/api/add-test-data")
-async def add_test_data():
-    """Добавить тестовые данные для проверки статистики."""
-    try:
-        # Очистить существующие тестовые данные
-        await db.connection.execute("DELETE FROM trips")
-        await db.connection.commit()
-        
-        # Добавить несколько тестовых поездок
-        test_trips = [
-            {
-                "start_time": "2024-01-01 08:00:00",
-                "end_time": "2024-01-01 08:30:00",
-                "distance_total": 25.5,
-                "distance_electric": 15.0,
-                "distance_fuel": 10.5,
-                "fuel_consumed": 1.2,
-                "electricity_consumed": 3.5,
-                "efficiency_score": 85
-            },
-            {
-                "start_time": "2024-01-01 18:00:00", 
-                "end_time": "2024-01-01 18:45:00",
-                "distance_total": 35.2,
-                "distance_electric": 20.0,
-                "distance_fuel": 15.2,
-                "fuel_consumed": 1.8,
-                "electricity_consumed": 4.2,
-                "efficiency_score": 78
-            },
-            {
-                "start_time": "2024-01-02 09:15:00",
-                "end_time": "2024-01-02 10:00:00", 
-                "distance_total": 42.8,
-                "distance_electric": 25.0,
-                "distance_fuel": 17.8,
-                "fuel_consumed": 2.1,
-                "electricity_consumed": 5.1,
-                "efficiency_score": 82
-            },
-            {
-                "start_time": "2024-01-03 07:30:00",
-                "end_time": "2024-01-03 08:15:00", 
-                "distance_total": 55.3,
-                "distance_electric": 30.0,
-                "distance_fuel": 25.3,
-                "fuel_consumed": 2.8,
-                "electricity_consumed": 6.2,
-                "efficiency_score": 79
-            },
-            {
-                "start_time": "2024-01-04 16:20:00",
-                "end_time": "2024-01-04 17:10:00", 
-                "distance_total": 38.7,
-                "distance_electric": 22.0,
-                "distance_fuel": 16.7,
-                "fuel_consumed": 1.9,
-                "electricity_consumed": 4.8,
-                "efficiency_score": 88
-            }
-        ]
-        
-        for trip in test_trips:
-            await db.connection.execute("""
-                INSERT INTO trips (
-                    start_time, end_time, distance_total, distance_electric, 
-                    distance_fuel, fuel_consumed, electricity_consumed, efficiency_score
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
-                trip["start_time"], trip["end_time"], trip["distance_total"],
-                trip["distance_electric"], trip["distance_fuel"], 
-                trip["fuel_consumed"], trip["electricity_consumed"], trip["efficiency_score"]
-            ))
-        
-        await db.connection.commit()
-        
-        return {
-            "success": True,
-            "message": f"Добавлено {len(test_trips)} тестовых поездок"
-        }
-        
-    except Exception as e:
-        logger.error(f"Ошибка добавления тестовых данных: {e}")
-        return JSONResponse(
-            status_code=500,
-            content={
-                "success": False,
-                "error": str(e)
-            }
-        )
+
 
 # Маршрут для страницы тестирования
 @app.get("/test", response_class=HTMLResponse)
