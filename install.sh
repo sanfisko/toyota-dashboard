@@ -351,7 +351,10 @@ install_python_deps() {
         
         # Попытка установки всех зависимостей (с оптимизацией)
         echo 'Установка зависимостей из requirements.txt...'
-        if [[ -f requirements-optimized.txt ]]; then
+        if [[ -f requirements-simple.txt ]]; then
+            echo 'Используем упрощенный файл зависимостей без конфликтов...'
+            pip install -r requirements-simple.txt
+        elif [[ -f requirements-optimized.txt ]]; then
             echo 'Используем оптимизированный порядок установки...'
             pip install -r requirements-optimized.txt || pip install -r requirements.txt
         else
@@ -369,7 +372,7 @@ install_python_deps() {
             pip install \"hishel>=0.1.0,<0.2.0\"
             pip install pyyaml==6.0.1
             pip install python-dotenv==1.0.0
-            pip install \"loguru>=0.7.2,<0.8.0\"
+            pip install \"loguru>=0.7.3,<0.8.0\"
             pip install jinja2==3.1.2
             pip install aiofiles==23.2.1
             pip install python-dateutil==2.8.2
@@ -412,7 +415,7 @@ install_python_deps() {
             pip install \"aiosqlite>=0.19.0\"
         }
         
-        python3 -c 'import pytoyoda; print(\"✓ PyToyoda установлен:\", getattr(pytoyoda, "__version__", "локальная версия"))' || {
+        python3 -c 'import pytoyoda; print("✓ PyToyoda установлен:", getattr(pytoyoda, "__version__", "локальная версия"))' || {
             echo 'Установка PyToyoda...'
             pip install \"pytoyoda>=3.0.0,<4.0.0\"
         }

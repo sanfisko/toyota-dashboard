@@ -1,12 +1,11 @@
-# Toyota Dashboard Server Dependencies
+# Toyota Dashboard Server Dependencies - Simple Version
+# Минимальные зависимости без конфликтов
 
-# Основные зависимости веб-сервера
+# Веб-сервер
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
-pydantic==2.5.0
-pydantic-settings==2.1.0
 
-# HTTP клиент для Toyota API
+# HTTP клиент
 httpx>=0.28.0
 aiohttp>=3.9.0
 hishel>=0.1.0,<0.2.0
@@ -17,7 +16,7 @@ python-dotenv==1.0.0
 jinja2==3.1.2
 aiofiles==23.2.1
 
-# Логирование
+# Логирование (совместимая версия)
 loguru>=0.7.3,<0.8.0
 
 # Работа с датами и временем
