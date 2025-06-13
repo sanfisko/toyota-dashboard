@@ -556,21 +556,46 @@ async def get_vehicle_capabilities():
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/stats/phev")
-async def get_phev_stats(period: str = "week"):
-    """Получить статистику автомобиля за период."""
+async def get_phev_stats(
+    period: str = None,
+    date_from: str = None,
+    date_to: str = None
+):
+    """Получить статистику автомобиля за период или диапазон дат."""
     try:
-        stats = await db.get_phev_statistics(period)
+        # Если указаны конкретные даты, используем их
+        if date_from and date_to:
+            stats = await db.get_phev_statistics_by_dates(date_from, date_to)
+            period_label = f"с {date_from} по {date_to}"
+        else:
+            # Иначе используем предустановленный период
+            if not period:
+                period = "today"
+            stats = await db.get_phev_statistics(period)
+            period_label = period
+        
+        # Рассчитать дополнительные метрики
+        total_distance = stats.get("total_distance", 0)
+        fuel_consumption = stats.get("fuel_consumption", 0)
+        electricity_consumption = stats.get("electricity_consumption", 0)
+        
+        # Количество поездок (заглушка, нужно будет получать из реальных данных)
+        trip_count = stats.get("trip_count", 0)
+        if trip_count == 0 and total_distance > 0:
+            # Примерная оценка: одна поездка на каждые 20 км
+            trip_count = max(1, int(total_distance / 20))
         
         return {
-            "period": period,
-            "total_distance": stats.get("total_distance", 0),
+            "period": period_label,
+            "total_distance": total_distance,
             "electric_distance": stats.get("electric_distance", 0),
             "fuel_distance": stats.get("fuel_distance", 0),
             "electric_percentage": stats.get("electric_percentage", 0),
-            "fuel_consumption": stats.get("fuel_consumption", 0),
-            "electricity_consumption": stats.get("electricity_consumption", 0),
+            "fuel_consumption": fuel_consumption,
+            "electricity_consumption": electricity_consumption,
             "co2_saved": stats.get("co2_saved", 0),
-            "cost_savings": stats.get("cost_savings", 0)
+            "cost_savings": stats.get("cost_savings", 0),
+            "trip_count": trip_count
         }
     except Exception as e:
         logger.error(f"Ошибка получения статистики автомобиля: {e}")
@@ -1128,6 +1153,31 @@ async def test_service_history():
             }
         )
 
+@app.get("/api/stats/total")
+async def get_total_stats():
+    """Получить общую статистику за все время."""
+    try:
+        # Получить общую статистику из базы данных
+        total_stats = await db.get_total_statistics()
+        
+        return {
+            "success": True,
+            "total_distance": total_stats.get("total_distance", 0),
+            "electric_percentage": total_stats.get("electric_percentage", 0),
+            "fuel_consumed": total_stats.get("fuel_consumed", 0),
+            "cost_savings": total_stats.get("cost_savings", 0)
+        }
+        
+    except Exception as e:
+        logger.error(f"Ошибка получения общей статистики: {e}")
+        return JSONResponse(
+            status_code=500,
+            content={
+                "success": False,
+                "error": str(e)
+            }
+        )
+
 # Маршрут для страницы тестирования
 @app.get("/test", response_class=HTMLResponse)
 async def test_page():
@@ -1138,6 +1188,19 @@ async def test_page():
     except FileNotFoundError:
         return HTMLResponse(
             content="<h1>Страница тестирования не найдена</h1>",
+            status_code=404
+        )
+
+# Маршрут для страницы статистики
+@app.get("/stats", response_class=HTMLResponse)
+async def stats_page():
+    """Страница детальной статистики."""
+    try:
+        with open(os.path.join(APP_DIR, 'static', 'stats.html'), 'r', encoding='utf-8') as f:
+            return f.read()
+    except FileNotFoundError:
+        return HTMLResponse(
+            content="<h1>Страница статистики не найдена</h1>",
             status_code=404
         )
 
