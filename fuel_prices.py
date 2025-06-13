@@ -246,7 +246,7 @@ class FuelPriceService:
             if not country_code and latitude and longitude:
                 country_code = await self.get_country_by_coordinates(latitude, longitude)
             elif not country_code:
-                country_code = "DE"  # По умолчанию Германия
+                country_code = "SI"  # По умолчанию Словения
             
             # Убедиться, что кэш актуален
             await self.ensure_fresh_cache()
@@ -264,15 +264,15 @@ class FuelPriceService:
                 logger.warning(f"Используем дефолтные цены для {country_code}: бензин {prices['gasoline']}€/л")
                 return prices
             else:
-                # Если страна не найдена, использовать цены Германии
-                prices = self.default_prices["DE"]
-                logger.warning(f"Страна {country_code} не найдена, используем цены Германии: {prices}")
+                # Если страна не найдена, использовать цены Словении
+                prices = self.default_prices["SI"]
+                logger.warning(f"Страна {country_code} не найдена, используем цены Словении: {prices}")
                 return prices
                 
         except Exception as e:
             logger.error(f"Ошибка получения цен на топливо: {e}")
-            # Возвращаем дефолтные цены Германии
-            return self.default_prices["DE"]
+            # Возвращаем дефолтные цены Словении
+            return self.default_prices["SI"]
     
     async def ensure_fresh_cache(self):
         """Убедиться, что кэш актуален (обновить при необходимости)"""
