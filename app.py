@@ -87,17 +87,6 @@ APP_DIR = paths.app_dir
 LOG_DIR = paths.log_dir
 DATA_DIR = paths.data_dir
 
-# Настройка логирования
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler(paths.log_file),
-        logging.StreamHandler()
-    ]
-)
-logger = logging.getLogger(__name__)
-
 # Загрузка конфигурации
 def load_config() -> Dict:
     """Загрузить конфигурацию из файла."""
@@ -105,14 +94,31 @@ def load_config() -> Dict:
         with open(paths.config_file, 'r', encoding='utf-8') as f:
             return yaml.safe_load(f)
     except FileNotFoundError:
-        logger.error(f"Файл конфигурации не найден: {paths.config_file}")
+        print(f"Файл конфигурации не найден: {paths.config_file}")
         raise
     except yaml.YAMLError as e:
-        logger.error(f"Ошибка в файле конфигурации: {e}")
+        print(f"Ошибка в файле конфигурации: {e}")
         raise
 
 # Глобальные переменные
 config = load_config()
+
+# Настройка логирования на основе конфигурации
+log_level = getattr(logging, config.get('logging', {}).get('level', 'INFO').upper())
+logging.basicConfig(
+    level=log_level,
+    format=config.get('logging', {}).get('format', '%(asctime)s - %(name)s - %(levelname)s - %(message)s'),
+    handlers=[
+        logging.FileHandler(paths.log_file),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger(__name__)
+
+# Настройка уровня логирования для pytoyoda (убираем DEBUG сообщения)
+logging.getLogger('pytoyoda').setLevel(logging.WARNING)
+logging.getLogger('httpx').setLevel(logging.WARNING)
+logging.getLogger('hishel').setLevel(logging.WARNING)
 app = FastAPI(title="Toyota Dashboard", version="1.0.0")
 
 # Используем путь к базе данных из менеджера путей
@@ -172,7 +178,7 @@ async def init_toyota_client():
             password=config['toyota']['password'],
             use_metric=config['dashboard'].get('units', 'metric') == 'metric'
         )
-        logger.info("Toyota клиент успешно инициализирован")
+        # Toyota клиент успешно инициализирован
     except Exception as e:
         logger.error(f"Ошибка инициализации Toyota клиента: {e}")
         raise
@@ -232,7 +238,7 @@ async def collect_vehicle_data():
                     )
                     
                     await db.save_vehicle_status(vehicle_data)
-                    logger.info("Данные автомобиля обновлены")
+                    # Данные автомобиля обновлены
                 else:
                     logger.warning(f"Автомобиль с VIN {vehicle_vin} не найден")
                 
@@ -321,7 +327,7 @@ async def lock_vehicle():
     try:
         target_vehicle = await get_vehicle()
         result = await target_vehicle.post_command(CommandType.DOOR_LOCK)
-        logger.info("Команда блокировки отправлена")
+        # Команда блокировки отправлена
         
         return {"status": "success", "message": "Автомобиль заблокирован"}
     except Exception as e:
@@ -334,7 +340,7 @@ async def unlock_vehicle():
     try:
         target_vehicle = await get_vehicle()
         result = await target_vehicle.post_command(CommandType.DOOR_UNLOCK)
-        logger.info("Команда разблокировки отправлена")
+        # Команда разблокировки отправлена
         
         return {"status": "success", "message": "Автомобиль разблокирован"}
     except Exception as e:
@@ -352,7 +358,7 @@ async def start_engine(request: CommandRequest):
         
         result = await target_vehicle.post_command(CommandType.ENGINE_START)
         duration = request.duration if request.duration else 10
-        logger.info(f"Команда запуска двигателя отправлена на {duration} минут")
+        # Команда запуска двигателя отправлена
         
         return {"status": "success", "message": f"Двигатель запущен на {duration} минут"}
     except HTTPException:
@@ -373,7 +379,7 @@ async def stop_engine():
         
         target_vehicle = await get_vehicle()
         result = await target_vehicle.post_command(CommandType.ENGINE_STOP)
-        logger.info("Команда остановки двигателя отправлена")
+        # Команда остановки двигателя отправлена
         
         return {"status": "success", "message": "Двигатель остановлен"}
     except Exception as e:
@@ -397,7 +403,7 @@ async def find_vehicle():
         
         # Отправить команду поиска
         result = await vehicle.post_command(CommandType.FIND_VEHICLE, beeps=3)
-        logger.info("Команда поиска автомобиля отправлена")
+        # Команда поиска автомобиля отправлена
         
         return {"status": "success", "message": "Автомобиль подает сигналы"}
     except Exception as e:
@@ -417,7 +423,7 @@ async def control_climate(request: CommandRequest):
         try:
             # Сначала пробуем AC_SETTINGS_ON
             result = await target_vehicle.post_command(CommandType.AC_SETTINGS_ON)
-            logger.info(f"Климат-контроль включен через AC_SETTINGS_ON")
+            # Климат-контроль включен
             return {
                 "status": "success", 
                 "message": "Климат-контроль включен"
@@ -428,7 +434,7 @@ async def control_climate(request: CommandRequest):
             # Пробуем VENTILATION_ON
             try:
                 result = await target_vehicle.post_command(CommandType.VENTILATION_ON)
-                logger.info(f"Вентиляция включена через VENTILATION_ON")
+                # Вентиляция включена
                 return {
                     "status": "success", 
                     "message": "Вентиляция включена"
@@ -575,12 +581,12 @@ async def save_config(request: ConfigRequest):
         # Переинициализировать Toyota клиент
         await init_toyota_client()
         
-        logger.info("Конфигурация сохранена и клиент переинициализирован")
+        # Конфигурация сохранена и клиент переинициализирован
         
         # Если порт изменился, нужно перезапустить сервер
         current_port = config.get('server', {}).get('port', 2025)
         if request.port != current_port:
-            logger.info(f"Порт изменен с {current_port} на {request.port}")
+            # Порт изменен
             # В продакшене здесь должен быть перезапуск через systemd
             
         return {
@@ -603,35 +609,38 @@ async def save_config(request: ConfigRequest):
 @app.on_event("startup")
 async def startup_event():
     """Инициализация при запуске."""
-    logger.info("Запуск Toyota Dashboard Server...")
-    
-    # Создать директории
-    os.makedirs(f'{DATA_DIR}/data', exist_ok=True)
-    
-    # Инициализировать базу данных
-    await db.init_database()
-    
-    # Инициализировать Toyota клиент
-    await init_toyota_client()
-    
-    # Запустить фоновый сбор данных
-    if config['monitoring']['auto_refresh']:
-        asyncio.create_task(collect_vehicle_data())
-    
-    logger.info("Toyota Dashboard Server запущен успешно!")
+    try:
+        # Создать директории
+        os.makedirs(f'{DATA_DIR}/data', exist_ok=True)
+        
+        # Инициализировать базу данных
+        await db.init_database()
+        
+        # Инициализировать Toyota клиент
+        await init_toyota_client()
+        
+        # Запустить фоновый сбор данных
+        if config['monitoring']['auto_refresh']:
+            asyncio.create_task(collect_vehicle_data())
+    except Exception as e:
+        logger.error(f"Ошибка при запуске Toyota Dashboard Server: {e}")
+        raise
 
 @app.on_event("shutdown")
 async def shutdown_event():
     """Очистка при остановке."""
-    logger.info("Остановка Toyota Dashboard Server...")
-    await db.close()
+    try:
+        await db.close()
+    except Exception as e:
+        logger.error(f"Ошибка при остановке Toyota Dashboard Server: {e}")
 
 if __name__ == "__main__":
     # Запуск сервера
+    uvicorn_log_level = config.get('logging', {}).get('level', 'INFO').lower()
     uvicorn.run(
         "app:app",
         host=config['server']['host'],
         port=config['server']['port'],
         reload=config['server']['debug'],
-        log_level="info"
+        log_level=uvicorn_log_level
     )

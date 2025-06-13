@@ -77,7 +77,7 @@ security:
 
 # Настройки логирования
 logging:
-  level: "INFO"                     # Уровень: DEBUG, INFO, WARNING, ERROR
+  level: "ERROR"                    # Уровень: DEBUG, INFO, WARNING, ERROR
   file_path: "logs/toyota-dashboard.log"
   max_file_size: "10MB"             # Максимальный размер лог-файла
   backup_count: 5                   # Количество архивных лог-файлов
