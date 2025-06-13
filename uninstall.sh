@@ -362,6 +362,7 @@ remove_python_packages() {
         "python-dateutil"
         "pyyaml"
         "python-dotenv"
+        "aiosqlite"
     )
     
     # Попытаться удалить пакеты из виртуального окружения toyota

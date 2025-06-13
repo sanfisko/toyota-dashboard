@@ -358,7 +358,7 @@ install_python_deps() {
             pip install \"uvicorn[standard]==0.24.0\"
             pip install pydantic==2.5.0
             pip install pydantic-settings==2.1.0
-            pip install httpx==0.25.2
+            pip install \"httpx>=0.28.0\"
             pip install \"aiohttp>=3.9.0\"
             pip install \"hishel>=0.0.24\"
             pip install pyyaml==6.0.1
@@ -369,6 +369,7 @@ install_python_deps() {
             pip install python-dateutil==2.8.2
             pip install pytz==2023.3
             pip install arrow==1.3.0
+            pip install \"aiosqlite>=0.19.0\"
             pip install \"pytoyoda>=1.0.0\"
         }
         
@@ -392,7 +393,7 @@ install_python_deps() {
         
         python3 -c 'import httpx; print(\"✓ HTTPX установлен:\", httpx.__version__)' || {
             echo 'Установка HTTPX...'
-            pip install httpx==0.25.2
+            pip install \"httpx>=0.28.0\"
         }
         
         python3 -c 'import yaml; print(\"✓ PyYAML установлен\")' || {
@@ -400,9 +401,14 @@ install_python_deps() {
             pip install pyyaml==6.0.1
         }
         
+        python3 -c 'import aiosqlite; print(\"✓ AIOSQLite установлен:\", aiosqlite.__version__)' || {
+            echo 'Установка AIOSQLite...'
+            pip install \"aiosqlite>=0.19.0\"
+        }
+        
         python3 -c 'import pytoyoda; print(\"✓ PyToyoda установлен:\", pytoyoda.__version__)' || {
             echo 'Установка PyToyoda...'
-            pip install pytoyoda>=1.0.0
+            pip install \"pytoyoda>=1.0.0\"
         }
         
         echo 'Все критически важные зависимости проверены'
@@ -438,29 +444,33 @@ setup_config() {
     print_success "Конфигурация настроена"
 }
 
-# Инициализация базы данных
-init_database() {
-    print_step "Инициализация базы данных..."
+# Проверка установки
+check_installation() {
+    print_step "Проверка установки..."
     
     cd /opt/toyota-dashboard
     
+    # Проверка импорта основных модулей
     sudo -u toyota bash -c "
         source venv/bin/activate
         python3 -c '
-import asyncio
-from database import DatabaseManager
-
-async def init_db():
-    db = DatabaseManager(\"/var/lib/toyota-dashboard/data/toyota.db\")
-    await db.init_database()
-    await db.close()
-    print(\"База данных инициализирована\")
-
-asyncio.run(init_db())
+import sys
+try:
+    import fastapi
+    import uvicorn
+    import pydantic
+    import httpx
+    import yaml
+    import aiosqlite
+    import pytoyoda
+    print(\"✅ Все основные модули успешно импортированы\")
+except ImportError as e:
+    print(f\"❌ Ошибка импорта: {e}\")
+    sys.exit(1)
         '
     "
     
-    print_success "База данных инициализирована"
+    print_success "Установка проверена"
 }
 
 # Настройка systemd сервиса
@@ -848,7 +858,7 @@ main() {
     download_project
     install_python_deps
     setup_config
-    init_database
+    check_installation
     setup_systemd
     setup_nginx
     setup_logging
