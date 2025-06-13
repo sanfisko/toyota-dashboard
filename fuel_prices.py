@@ -1,9 +1,8 @@
 """
 Модуль для получения актуальных цен на топливо по странам.
 
-Источник данных: autotraveler.ru (май 2025)
-Средняя цена бензина 95 в Европе: 1.46€/л
-Поддерживается 38 европейских стран + Россия
+Автоматически обновляет цены с сайта autotraveler.ru раз в день.
+Определяет местоположение автомобиля и использует цены соответствующей страны.
 """
 
 import httpx
@@ -12,6 +11,8 @@ from typing import Dict, Optional
 from loguru import logger
 from datetime import datetime, timedelta
 import json
+import re
+from bs4 import BeautifulSoup
 import os
 
 class FuelPriceService:
@@ -19,7 +20,8 @@ class FuelPriceService:
     
     def __init__(self):
         self.cache_file = "fuel_prices_cache.json"
-        self.cache_duration = timedelta(hours=6)  # Кэш на 6 часов
+        self.cache_duration = timedelta(days=1)  # Кэш на 1 день
+        self.autotraveler_url = "https://autotraveler.ru/spravka/benzine-in-europe.html"
         # Актуальные цены на май 2025 (источник: autotraveler.ru)
         self.default_prices = {
             "DE": {"gasoline": 1.75, "electricity": 0.30},  # Германия
@@ -62,6 +64,113 @@ class FuelPriceService:
             "AL": {"gasoline": 1.76, "electricity": 0.13},  # Албания
             "MD": {"gasoline": 1.17, "electricity": 0.12},  # Молдавия
         }
+        
+        # Маппинг названий стран с сайта на коды ISO
+        self.country_mapping = {
+            "Германия": "DE", "Франция": "FR", "Италия": "IT", "Испания": "ES",
+            "Нидерланды": "NL", "Бельгия": "BE", "Австрия": "AT", "Швейцария": "CH",
+            "Польша": "PL", "Чехия": "CZ", "Венгрия": "HU", "Словакия": "SK",
+            "Словения": "SI", "Хорватия": "HR", "Румыния": "RO", "Болгария": "BG",
+            "Греция": "GR", "Португалия": "PT", "Финляндия": "FI", "Швеция": "SE",
+            "Норвегия": "NO", "Дания": "DK", "Люксембург": "LU", "Ирландия": "IE",
+            "Великобритания": "GB", "Россия": "RU", "Латвия": "LV", "Литва": "LT",
+            "Эстония": "EE", "Исландия": "IS", "Мальта": "MT", "Кипр": "CY",
+            "Северная Македония": "MK", "Сербия": "RS", "Черногория": "ME",
+            "Босния и Герцеговина": "BA", "Албания": "AL", "Молдавия": "MD"
+        }
+    
+    async def fetch_prices_from_autotraveler(self) -> Dict[str, Dict[str, float]]:
+        """Получить актуальные цены с сайта autotraveler.ru"""
+        try:
+            logger.info("Загружаем актуальные цены с autotraveler.ru...")
+            
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                response = await client.get(self.autotraveler_url)
+                
+                if response.status_code != 200:
+                    logger.error(f"Ошибка загрузки сайта: {response.status_code}")
+                    return {}
+                
+                # Парсим HTML
+                soup = BeautifulSoup(response.text, 'html.parser')
+                
+                # Ищем таблицу с ценами
+                table = soup.find('table')
+                if not table:
+                    logger.error("Таблица с ценами не найдена")
+                    return {}
+                
+                prices = {}
+                
+                # Парсим строки таблицы
+                rows = table.find_all('tr')[1:]  # Пропускаем заголовок
+                
+                for row in rows:
+                    cells = row.find_all('td')
+                    if len(cells) >= 3:
+                        # Извлекаем название страны
+                        country_cell = cells[1]
+                        country_link = country_cell.find('a')
+                        if country_link:
+                            country_name = country_link.text.strip()
+                        else:
+                            country_name = country_cell.text.strip()
+                        
+                        # Извлекаем цену на бензин 95
+                        gasoline_cell = cells[2]
+                        gasoline_text = gasoline_cell.text.strip()
+                        
+                        # Парсим цену (формат: "€ 1.75" или "€ 1.75 (+ 0.01)")
+                        gasoline_match = re.search(r'€\s*([\d,\.]+)', gasoline_text)
+                        if gasoline_match:
+                            gasoline_price = float(gasoline_match.group(1).replace(',', '.'))
+                            
+                            # Получаем код страны
+                            country_code = self.country_mapping.get(country_name)
+                            if country_code:
+                                # Используем цену на электричество из дефолтных значений
+                                electricity_price = self.default_prices.get(country_code, {}).get("electricity", 0.25)
+                                
+                                prices[country_code] = {
+                                    "gasoline": gasoline_price,
+                                    "electricity": electricity_price
+                                }
+                                
+                                logger.debug(f"Загружена цена для {country_name} ({country_code}): {gasoline_price}€/л")
+                
+                logger.info(f"Загружено цен для {len(prices)} стран")
+                return prices
+                
+        except Exception as e:
+            logger.error(f"Ошибка при загрузке цен с autotraveler.ru: {e}")
+            return {}
+    
+    async def update_prices_cache(self) -> bool:
+        """Обновить кэш цен с сайта"""
+        try:
+            # Загружаем новые цены
+            new_prices = await self.fetch_prices_from_autotraveler()
+            
+            if not new_prices:
+                logger.warning("Не удалось загрузить новые цены, используем дефолтные")
+                new_prices = self.default_prices
+            
+            # Сохраняем в кэш
+            cache_data = {
+                "timestamp": datetime.now().isoformat(),
+                "prices": new_prices,
+                "source": "autotraveler.ru" if new_prices != self.default_prices else "default"
+            }
+            
+            with open(self.cache_file, 'w', encoding='utf-8') as f:
+                json.dump(cache_data, f, ensure_ascii=False, indent=2)
+            
+            logger.info(f"Кэш цен обновлен: {len(new_prices)} стран")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Ошибка обновления кэша цен: {e}")
+            return False
     
     async def get_country_by_coordinates(self, latitude: float, longitude: float) -> str:
         """Определить страну по координатам"""
@@ -133,42 +242,80 @@ class FuelPriceService:
     async def get_fuel_prices(self, country_code: str = None, latitude: float = None, longitude: float = None) -> Dict:
         """Получить актуальные цены на топливо"""
         try:
-            # Сначала проверить кэш
-            cached_prices = self.load_cache()
-            if cached_prices:
-                logger.info("Используются кэшированные цены на топливо")
-                
             # Определить страну
             if not country_code and latitude and longitude:
                 country_code = await self.get_country_by_coordinates(latitude, longitude)
             elif not country_code:
                 country_code = "DE"  # По умолчанию Германия
             
-            # Попробовать получить актуальные цены через API
-            api_prices = await self.get_fuel_prices_api(country_code)
-            if api_prices:
-                self.save_cache({country_code: api_prices})
-                return api_prices
+            # Убедиться, что кэш актуален
+            await self.ensure_fresh_cache()
             
-            # Использовать кэшированные цены, если есть
+            # Загрузить цены из кэша
+            cached_prices = await self.load_cached_prices()
             if cached_prices and country_code in cached_prices:
-                return cached_prices[country_code]
+                prices = cached_prices[country_code]
+                logger.info(f"Используем актуальные цены для {country_code}: бензин {prices['gasoline']}€/л, электричество {prices['electricity']}€/кВт⋅ч")
+                return prices
             
             # Использовать дефолтные цены
             if country_code in self.default_prices:
                 prices = self.default_prices[country_code]
-                logger.info(f"Используются дефолтные цены для {country_code}: {prices}")
+                logger.warning(f"Используем дефолтные цены для {country_code}: бензин {prices['gasoline']}€/л")
                 return prices
             else:
-                # Если страна не найдена, использовать средние европейские цены
+                # Если страна не найдена, использовать цены Германии
                 prices = self.default_prices["DE"]
-                logger.info(f"Страна {country_code} не найдена, используются цены Германии: {prices}")
+                logger.warning(f"Страна {country_code} не найдена, используем цены Германии: {prices}")
                 return prices
                 
         except Exception as e:
             logger.error(f"Ошибка получения цен на топливо: {e}")
             # Возвращаем дефолтные цены Германии
             return self.default_prices["DE"]
+    
+    async def ensure_fresh_cache(self):
+        """Убедиться, что кэш актуален (обновить при необходимости)"""
+        try:
+            # Проверить существование файла кэша
+            if not os.path.exists(self.cache_file):
+                logger.info("Кэш не найден, создаем новый")
+                await self.update_prices_cache()
+                return
+            
+            # Проверить возраст кэша
+            try:
+                with open(self.cache_file, 'r', encoding='utf-8') as f:
+                    cache_data = json.load(f)
+                
+                cache_time = datetime.fromisoformat(cache_data.get("timestamp", "2000-01-01"))
+                if datetime.now() - cache_time > self.cache_duration:
+                    logger.info(f"Кэш устарел (возраст: {datetime.now() - cache_time}), обновляем")
+                    await self.update_prices_cache()
+                else:
+                    logger.debug(f"Кэш актуален (возраст: {datetime.now() - cache_time})")
+                    
+            except (json.JSONDecodeError, KeyError, ValueError) as e:
+                logger.warning(f"Поврежденный кэш, пересоздаем: {e}")
+                await self.update_prices_cache()
+                
+        except Exception as e:
+            logger.error(f"Ошибка проверки кэша: {e}")
+    
+    async def load_cached_prices(self) -> Optional[Dict]:
+        """Загрузить цены из кэша"""
+        try:
+            if not os.path.exists(self.cache_file):
+                return None
+                
+            with open(self.cache_file, 'r', encoding='utf-8') as f:
+                cache_data = json.load(f)
+                
+            return cache_data.get("prices", {})
+            
+        except Exception as e:
+            logger.error(f"Ошибка загрузки кэша: {e}")
+            return None
     
     def get_country_name(self, country_code: str) -> str:
         """Получить название страны по коду"""

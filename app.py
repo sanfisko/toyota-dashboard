@@ -10,6 +10,8 @@ import logging
 import os
 import shutil
 import sys
+import threading
+import time
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional
 
@@ -1222,6 +1224,45 @@ async def get_current_fuel_prices():
             }
         )
 
+@app.post("/api/update-fuel-prices")
+async def force_update_fuel_prices():
+    """Принудительно обновить цены на топливо с сайта autotraveler.ru"""
+    try:
+        from fuel_prices import fuel_price_service
+        
+        # Принудительно обновить кэш
+        success = await fuel_price_service.update_prices_cache()
+        
+        if success:
+            # Загрузить обновленные цены
+            cached_prices = await fuel_price_service.load_cached_prices()
+            count = len(cached_prices) if cached_prices else 0
+            
+            return {
+                "success": True,
+                "message": f"Цены обновлены для {count} стран",
+                "source": "autotraveler.ru",
+                "timestamp": datetime.now().isoformat()
+            }
+        else:
+            return JSONResponse(
+                status_code=500,
+                content={
+                    "success": False,
+                    "error": "Не удалось обновить цены с сайта"
+                }
+            )
+        
+    except Exception as e:
+        logger.error(f"Ошибка принудительного обновления цен: {e}")
+        return JSONResponse(
+            status_code=500,
+            content={
+                "success": False,
+                "error": str(e)
+            }
+        )
+
 @app.post("/api/add-test-data")
 async def add_test_data():
     """Добавить тестовые данные для проверки статистики."""
@@ -1502,7 +1543,87 @@ async def shutdown_event():
     except Exception as e:
         logger.error(f"Ошибка при остановке Toyota Dashboard Server: {e}")
 
+def daily_fuel_price_updater():
+    """Фоновая задача для ежедневного обновления цен на топливо"""
+    def update_prices():
+        try:
+            from fuel_prices import fuel_price_service
+            
+            # Создаем новый event loop для этого потока
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            
+            # Обновляем цены
+            success = loop.run_until_complete(fuel_price_service.update_prices_cache())
+            
+            if success:
+                logger.info("✅ Автоматическое обновление цен на топливо выполнено успешно")
+            else:
+                logger.warning("⚠️ Не удалось автоматически обновить цены на топливо")
+                
+            loop.close()
+            
+        except Exception as e:
+            logger.error(f"❌ Ошибка автоматического обновления цен: {e}")
+    
+    def scheduler():
+        """Планировщик для ежедневного обновления"""
+        while True:
+            try:
+                # Получаем текущее время
+                now = datetime.now()
+                
+                # Планируем обновление на 6:00 утра следующего дня
+                next_update = now.replace(hour=6, minute=0, second=0, microsecond=0)
+                if next_update <= now:
+                    next_update += timedelta(days=1)
+                
+                # Вычисляем время до следующего обновления
+                sleep_seconds = (next_update - now).total_seconds()
+                
+                logger.info(f"📅 Следующее обновление цен на топливо: {next_update.strftime('%Y-%m-%d %H:%M:%S')} (через {sleep_seconds/3600:.1f} часов)")
+                
+                # Ждем до времени обновления
+                time.sleep(sleep_seconds)
+                
+                # Выполняем обновление
+                update_prices()
+                
+            except Exception as e:
+                logger.error(f"Ошибка планировщика обновления цен: {e}")
+                # Ждем час перед повторной попыткой
+                time.sleep(3600)
+    
+    # Запускаем планировщик в отдельном потоке
+    scheduler_thread = threading.Thread(target=scheduler, daemon=True)
+    scheduler_thread.start()
+    
+    # Выполняем первое обновление при запуске (если кэш пустой)
+    try:
+        from fuel_prices import fuel_price_service
+        if not os.path.exists(fuel_price_service.cache_file):
+            logger.info("🔄 Выполняем первоначальное обновление цен на топливо...")
+            
+            # Создаем event loop для первого обновления
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            
+            success = loop.run_until_complete(fuel_price_service.update_prices_cache())
+            
+            if success:
+                logger.info("✅ Первоначальное обновление цен выполнено")
+            else:
+                logger.warning("⚠️ Не удалось выполнить первоначальное обновление цен")
+                
+            loop.close()
+            
+    except Exception as e:
+        logger.error(f"Ошибка первоначального обновления цен: {e}")
+
 if __name__ == "__main__":
+    # Запускаем планировщик обновления цен
+    daily_fuel_price_updater()
+    
     # Запуск сервера
     uvicorn_log_level = config.get('logging', {}).get('level', 'INFO').lower()
     uvicorn.run(

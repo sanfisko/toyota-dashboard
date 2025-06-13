@@ -30,3 +30,4 @@ aiosqlite>=0.19.0
 
 # PyToyoda (основная библиотека для Toyota API)
 pytoyoda>=3.0.0,<4.0.0
+beautifulsoup4>=4.12.0
