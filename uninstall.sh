@@ -192,7 +192,20 @@ remove_user_files() {
         users_to_check+=("ubuntu")
     fi
     
-    for user in "${users_to_check[@]}"; do
+    # Добавить всех пользователей из /home
+    for home_user in /home/*; do
+        if [[ -d "$home_user" ]]; then
+            local username=$(basename "$home_user")
+            if id "$username" &>/dev/null; then
+                users_to_check+=("$username")
+            fi
+        fi
+    done
+    
+    # Удалить дубликаты
+    local unique_users=($(printf "%s\n" "${users_to_check[@]}" | sort -u))
+    
+    for user in "${unique_users[@]}"; do
         if id "$user" &>/dev/null; then
             local home_dir=$(eval echo "~$user")
             
@@ -212,6 +225,13 @@ remove_user_files() {
             if [[ -d "$home_dir/.cache/toyota-dashboard" ]]; then
                 rm -rf "$home_dir/.cache/toyota-dashboard"
                 print_success "Кэш пользователя $user удален"
+            fi
+            
+            # Удалить pip кэш для pytoyoda и связанных пакетов
+            if [[ -d "$home_dir/.cache/pip" ]]; then
+                find "$home_dir/.cache/pip" -name "*toyota*" -type d -exec rm -rf {} + 2>/dev/null || true
+                find "$home_dir/.cache/pip" -name "*pytoyoda*" -type d -exec rm -rf {} + 2>/dev/null || true
+                print_success "Pip кэш Toyota пакетов пользователя $user очищен"
             fi
         fi
     done
@@ -321,6 +341,68 @@ cleanup_environment() {
     done
 }
 
+# Удаление Python пакетов Toyota Dashboard
+remove_python_packages() {
+    print_info "Удаление Python пакетов Toyota Dashboard..."
+    
+    # Список пакетов для удаления
+    local packages_to_remove=(
+        "pytoyoda"
+        "fastapi"
+        "uvicorn"
+        "aiosqlite"
+        "pydantic"
+        "pydantic-settings"
+        "python-jose"
+        "passlib"
+        "python-multipart"
+        "jinja2"
+        "aiofiles"
+        "httpx"
+        "aiohttp"
+        "hishel"
+        "loguru"
+        "arrow"
+        "python-dateutil"
+        "pyyaml"
+        "python-dotenv"
+        "cryptography"
+        "pyjwt"
+        "psutil"
+        "prometheus-client"
+        "python-telegram-bot"
+        "validators"
+        "importlib-metadata"
+        "langcodes"
+        "paho-mqtt"
+        "geopy"
+        "folium"
+        "openpyxl"
+        "pandas"
+    )
+    
+    # Попытаться удалить пакеты из виртуального окружения toyota
+    if [[ -d "/opt/toyota-dashboard/venv" ]]; then
+        print_info "Удаление пакетов из виртуального окружения..."
+        sudo -u toyota bash -c "
+            cd /opt/toyota-dashboard
+            if [[ -f venv/bin/activate ]]; then
+                source venv/bin/activate
+                for package in ${packages_to_remove[@]}; do
+                    pip uninstall -y \$package 2>/dev/null || true
+                done
+            fi
+        " 2>/dev/null || true
+        print_success "Пакеты из виртуального окружения удалены"
+    fi
+    
+    # Предложить удалить глобальные пакеты (только если они были установлены для Toyota Dashboard)
+    print_warning "Глобальные Python пакеты не удаляются автоматически для безопасности"
+    print_info "Если вы хотите удалить их вручную:"
+    echo "   sudo pip3 uninstall pytoyoda fastapi uvicorn aiosqlite"
+    echo "   (и другие пакеты, если они не используются другими приложениями)"
+}
+
 # Очистка пакетов (опционально)
 cleanup_packages() {
     print_info "Очистка неиспользуемых пакетов..."
@@ -337,9 +419,6 @@ cleanup_packages() {
         dnf autoremove -y >/dev/null 2>&1 || true
         print_success "Системные пакеты очищены"
     fi
-    
-    print_info "Примечание: Python пакеты не удаляются автоматически для безопасности"
-    print_info "При необходимости удалите их вручную: pip3 uninstall <package_name>"
 }
 
 # Создание отчета об удалении
@@ -356,12 +435,14 @@ Toyota Dashboard - Отчет об удалении
 Удаленные компоненты:
 ✅ Systemd сервис toyota-dashboard
 ✅ Файлы проекта (/opt/toyota-dashboard)
+✅ Виртуальное окружение Python и все пакеты
 ✅ Системные данные (/var/lib/toyota-dashboard)
 ✅ Системные логи (/var/log/toyota-dashboard)
 ✅ Системная конфигурация (/etc/toyota-dashboard)
 ✅ Пользовательские конфигурации (~/.config/toyota-dashboard)
 ✅ Пользовательские данные (~/.local/share/toyota-dashboard)
 ✅ Пользовательский кэш (~/.cache/toyota-dashboard)
+✅ Pip кэш Toyota пакетов для всех пользователей
 ✅ Пользователь toyota и его домашняя директория
 ✅ Конфигурация nginx (/etc/nginx/sites-available/toyota-dashboard)
 ✅ Конфигурация logrotate (/etc/logrotate.d/toyota-dashboard)
@@ -373,7 +454,7 @@ Toyota Dashboard - Отчет об удалении
 
 Сохраненные компоненты (для безопасности):
 ⚠️  SSH правила файрвола
-⚠️  Python пакеты (удалите вручную при необходимости)
+⚠️  Глобальные Python пакеты (удалите вручную при необходимости)
 ⚠️  Системные пакеты (nginx, sqlite3, git и др.)
 
 Статус: Удаление завершено успешно
@@ -395,12 +476,14 @@ main() {
     print_warning "Это действие удалит:"
     echo "   • Systemd сервис toyota-dashboard"
     echo "   • Все файлы проекта (/opt/toyota-dashboard)"
+    echo "   • Виртуальное окружение Python и все пакеты"
     echo "   • Системные данные (/var/lib/toyota-dashboard)"
     echo "   • Системные логи (/var/log/toyota-dashboard)"
     echo "   • Системную конфигурацию (/etc/toyota-dashboard)"
     echo "   • Пользовательские конфигурации (~/.config/toyota-dashboard)"
     echo "   • Пользовательские данные (~/.local/share/toyota-dashboard)"
     echo "   • Пользовательский кэш (~/.cache/toyota-dashboard)"
+    echo "   • Pip кэш Toyota пакетов для всех пользователей"
     echo "   • Пользователя toyota и его домашнюю директорию"
     echo "   • Конфигурацию nginx"
     echo "   • Конфигурацию logrotate"
@@ -445,6 +528,7 @@ main() {
     remove_service
     remove_nginx
     remove_logging_and_cron
+    remove_python_packages
     remove_files
     remove_user_files
     remove_user
@@ -462,12 +546,14 @@ main() {
     print_info "Что было удалено:"
     echo "   • Systemd сервис и автозапуск"
     echo "   • Все файлы проекта (/opt/toyota-dashboard)"
+    echo "   • Виртуальное окружение Python и все пакеты"
     echo "   • Системные данные (/var/lib/toyota-dashboard)"
     echo "   • Системные логи (/var/log/toyota-dashboard)"
     echo "   • Системная конфигурация (/etc/toyota-dashboard)"
     echo "   • Пользовательские конфигурации (~/.config/toyota-dashboard)"
     echo "   • Пользовательские данные (~/.local/share/toyota-dashboard)"
     echo "   • Пользовательский кэш (~/.cache/toyota-dashboard)"
+    echo "   • Pip кэш Toyota пакетов для всех пользователей"
     echo "   • Пользователь toyota и его домашняя директория"
     echo "   • Конфигурация nginx"
     echo "   • Конфигурация logrotate"
@@ -478,11 +564,11 @@ main() {
     echo
     print_warning "Сохранено для безопасности:"
     echo "   • SSH правила файрвола"
-    echo "   • Python пакеты (удалите вручную при необходимости)"
+    echo "   • Глобальные Python пакеты (удалите вручную при необходимости)"
     echo "   • Системные пакеты (nginx, sqlite3, git и др.)"
     echo
     print_warning "Если вы хотите переустановить Toyota Dashboard:"
-    echo "curl -sSL https://raw.githubusercontent.com/reginakrogerqjhykgnxqdcbk/toyota-dashboard/main/install.sh | sudo bash"
+    echo "curl -sSL https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/install.sh | sudo bash"
     echo
     print_info "Спасибо за использование Toyota Dashboard!"
 }

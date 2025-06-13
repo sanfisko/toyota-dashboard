@@ -1204,6 +1204,164 @@ async def stats_page():
             status_code=404
         )
 
+@app.post("/api/command")
+async def execute_command(request: dict):
+    """Универсальный endpoint для выполнения команд управления автомобилем."""
+    try:
+        command = request.get('command')
+        
+        if not command:
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "success": False,
+                    "error": "Команда не указана"
+                }
+            )
+        
+        if not toyota_client or not vehicle_vin:
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "success": False,
+                    "error": "Toyota клиент не инициализирован или VIN не настроен"
+                }
+            )
+        
+        # Получить автомобиль
+        vehicles = await toyota_client.get_vehicles()
+        target_vehicle = None
+        for vehicle in vehicles:
+            if vehicle.vin == vehicle_vin:
+                target_vehicle = vehicle
+                break
+        
+        if not target_vehicle:
+            return JSONResponse(
+                status_code=404,
+                content={
+                    "success": False,
+                    "error": f"Автомобиль с VIN {vehicle_vin} не найден"
+                }
+            )
+        
+        # Маппинг команд на CommandType
+        command_mapping = {
+            # Основные команды (скорее всего работают)
+            'door-lock': CommandType.DOOR_LOCK,
+            'door-unlock': CommandType.DOOR_UNLOCK,
+            'hazard-on': CommandType.HAZARD_ON,
+            'hazard-off': CommandType.HAZARD_OFF,
+            'find-vehicle': CommandType.FIND_VEHICLE,
+            'sound-horn': CommandType.SOUND_HORN,
+            
+            # Управление окнами
+            'power-window-on': CommandType.WINDOW_ON,
+            'power-window-off': CommandType.WINDOW_OFF,
+            
+            # Индивидуальное управление окнами (экспериментально)
+            'power-window-front-left-up': CommandType.WINDOW_ON,
+            'power-window-front-left-down': CommandType.WINDOW_OFF,
+            'power-window-front-right-up': CommandType.WINDOW_ON,
+            'power-window-front-right-down': CommandType.WINDOW_OFF,
+            'power-window-rear-left-up': CommandType.WINDOW_ON,
+            'power-window-rear-left-down': CommandType.WINDOW_OFF,
+            'power-window-rear-right-up': CommandType.WINDOW_ON,
+            'power-window-rear-right-down': CommandType.WINDOW_OFF,
+            
+            # Двигатель
+            'engine-start': CommandType.ENGINE_START,
+            'engine-stop': CommandType.ENGINE_STOP,
+            
+            # Климат-контроль
+            'ac-on': CommandType.AC_SETTINGS_ON,
+            'ac-off': CommandType.AC_SETTINGS_ON,  # Может потребоваться другая команда
+            'ventilation-on': CommandType.VENTILATION_ON,
+            
+            # Освещение
+            'lights-on': CommandType.HEADLIGHT_ON,
+            'lights-off': CommandType.HEADLIGHT_OFF,
+            
+            # Багажник
+            'trunk-open': CommandType.TRUNK_UNLOCK,
+            'trunk-close': CommandType.TRUNK_LOCK,
+        }
+        
+        # Проверить, поддерживается ли команда
+        if command not in command_mapping:
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "success": False,
+                    "error": f"Команда '{command}' не поддерживается или не реализована",
+                    "note": "Эта команда может не поддерживаться Toyota API или требует дополнительной реализации"
+                }
+            )
+        
+        command_type = command_mapping[command]
+        
+        # Определить количество сигналов для некоторых команд
+        beeps = 0
+        if command in ['find-vehicle']:
+            beeps = 3
+        elif command in ['sound-horn']:
+            beeps = 1
+        
+        # Выполнить команду
+        logger.info(f"Выполнение команды: {command} -> {command_type}")
+        
+        if beeps > 0:
+            result = await target_vehicle.post_command(command_type, beeps=beeps)
+        else:
+            result = await target_vehicle.post_command(command_type)
+        
+        logger.info(f"Команда {command} выполнена: {result}")
+        
+        # Специальные сообщения для некоторых команд
+        special_messages = {
+            'power-window-front-left-up': 'Команда отправлена для переднего левого окна (может использоваться общая команда окон)',
+            'power-window-front-left-down': 'Команда отправлена для переднего левого окна (может использоваться общая команда окон)',
+            'power-window-front-right-up': 'Команда отправлена для переднего правого окна (может использоваться общая команда окон)',
+            'power-window-front-right-down': 'Команда отправлена для переднего правого окна (может использоваться общая команда окон)',
+            'power-window-rear-left-up': 'Команда отправлена для заднего левого окна (может использоваться общая команда окон)',
+            'power-window-rear-left-down': 'Команда отправлена для заднего левого окна (может использоваться общая команда окон)',
+            'power-window-rear-right-up': 'Команда отправлена для заднего правого окна (может использоваться общая команда окон)',
+            'power-window-rear-right-down': 'Команда отправлена для заднего правого окна (может использоваться общая команда окон)',
+            'ac-off': 'Команда кондиционера отправлена (выключение может требовать отдельной команды)',
+        }
+        
+        message = special_messages.get(command, f"Команда {command} выполнена успешно")
+        
+        return {
+            "success": True,
+            "command": command,
+            "message": message,
+            "result": result.model_dump() if hasattr(result, 'model_dump') else str(result)
+        }
+        
+    except Exception as e:
+        logger.error(f"Ошибка выполнения команды {request.get('command', 'unknown')}: {e}")
+        return JSONResponse(
+            status_code=500,
+            content={
+                "success": False,
+                "error": str(e),
+                "command": request.get('command', 'unknown')
+            }
+        )
+
+@app.get("/test-all")
+async def test_all_page():
+    """Страница тестирования всех функций."""
+    try:
+        with open(paths.get_static_file('test_all.html'), 'r', encoding='utf-8') as f:
+            return HTMLResponse(content=f.read())
+    except FileNotFoundError:
+        return HTMLResponse(
+            content="<h1>Страница тестирования не найдена</h1>",
+            status_code=404
+        )
+
 # События приложения
 @app.on_event("startup")
 async def startup_event():
