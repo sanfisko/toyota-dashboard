@@ -279,10 +279,12 @@ create_directories() {
     sudo mkdir -p /var/log/toyota-dashboard
     sudo mkdir -p /var/lib/toyota-dashboard/data
     sudo mkdir -p /var/lib/toyota-dashboard/backups
+    sudo mkdir -p /home/toyota/.cache/toyota-dashboard
     
     sudo chown -R toyota:toyota /opt/toyota-dashboard
     sudo chown -R toyota:toyota /var/log/toyota-dashboard
     sudo chown -R toyota:toyota /var/lib/toyota-dashboard
+    sudo chown -R toyota:toyota /home/toyota/.cache
     
     print_success "Директории созданы"
 }
@@ -433,6 +435,9 @@ User=toyota
 Group=toyota
 WorkingDirectory=/opt/toyota-dashboard
 Environment=PATH=/opt/toyota-dashboard/venv/bin
+Environment=HOME=/home/toyota
+Environment=XDG_CACHE_HOME=/home/toyota/.cache
+Environment=HTTPX_CACHE_DIR=/home/toyota/.cache/toyota-dashboard
 ExecStart=/opt/toyota-dashboard/venv/bin/python app.py
 Restart=always
 RestartSec=10
