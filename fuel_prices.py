@@ -1,5 +1,9 @@
 """
-Модуль для получения актуальных цен на топливо по странам
+Модуль для получения актуальных цен на топливо по странам.
+
+Источник данных: autotraveler.ru (май 2025)
+Средняя цена бензина 95 в Европе: 1.46€/л
+Поддерживается 38 европейских стран + Россия
 """
 
 import httpx
@@ -16,33 +20,47 @@ class FuelPriceService:
     def __init__(self):
         self.cache_file = "fuel_prices_cache.json"
         self.cache_duration = timedelta(hours=6)  # Кэш на 6 часов
+        # Актуальные цены на май 2025 (источник: autotraveler.ru)
         self.default_prices = {
-            "DE": {"gasoline": 1.65, "electricity": 0.30},  # Германия
-            "FR": {"gasoline": 1.70, "electricity": 0.25},  # Франция
-            "IT": {"gasoline": 1.75, "electricity": 0.28},  # Италия
-            "ES": {"gasoline": 1.55, "electricity": 0.26},  # Испания
-            "NL": {"gasoline": 1.80, "electricity": 0.32},  # Нидерланды
-            "BE": {"gasoline": 1.68, "electricity": 0.29},  # Бельгия
-            "AT": {"gasoline": 1.45, "electricity": 0.27},  # Австрия
-            "CH": {"gasoline": 1.55, "electricity": 0.35},  # Швейцария
-            "PL": {"gasoline": 1.35, "electricity": 0.22},  # Польша
-            "CZ": {"gasoline": 1.40, "electricity": 0.24},  # Чехия
-            "HU": {"gasoline": 1.38, "electricity": 0.20},  # Венгрия
-            "SK": {"gasoline": 1.42, "electricity": 0.23},  # Словакия
-            "SI": {"gasoline": 1.48, "electricity": 0.25},  # Словения
-            "HR": {"gasoline": 1.45, "electricity": 0.22},  # Хорватия
-            "RO": {"gasoline": 1.30, "electricity": 0.18},  # Румыния
-            "BG": {"gasoline": 1.25, "electricity": 0.16},  # Болгария
-            "GR": {"gasoline": 1.60, "electricity": 0.24},  # Греция
-            "PT": {"gasoline": 1.65, "electricity": 0.27},  # Португалия
-            "FI": {"gasoline": 1.70, "electricity": 0.20},  # Финляндия
-            "SE": {"gasoline": 1.75, "electricity": 0.35},  # Швеция
-            "NO": {"gasoline": 1.85, "electricity": 0.15},  # Норвегия
-            "DK": {"gasoline": 1.80, "electricity": 0.40},  # Дания
-            "LU": {"gasoline": 1.50, "electricity": 0.28},  # Люксембург
-            "IE": {"gasoline": 1.55, "electricity": 0.30},  # Ирландия
-            "GB": {"gasoline": 1.60, "electricity": 0.35},  # Великобритания
-            "RU": {"gasoline": 0.65, "electricity": 0.05},  # Россия
+            "DE": {"gasoline": 1.75, "electricity": 0.30},  # Германия
+            "FR": {"gasoline": 1.64, "electricity": 0.25},  # Франция
+            "IT": {"gasoline": 1.70, "electricity": 0.28},  # Италия
+            "ES": {"gasoline": 1.45, "electricity": 0.26},  # Испания
+            "NL": {"gasoline": 2.10, "electricity": 0.32},  # Нидерланды
+            "BE": {"gasoline": 1.63, "electricity": 0.29},  # Бельгия
+            "AT": {"gasoline": 1.58, "electricity": 0.27},  # Австрия
+            "CH": {"gasoline": 1.79, "electricity": 0.35},  # Швейцария
+            "PL": {"gasoline": 1.34, "electricity": 0.22},  # Польша
+            "CZ": {"gasoline": 1.34, "electricity": 0.24},  # Чехия
+            "HU": {"gasoline": 1.45, "electricity": 0.20},  # Венгрия
+            "SK": {"gasoline": 1.47, "electricity": 0.23},  # Словакия
+            "SI": {"gasoline": 1.41, "electricity": 0.25},  # Словения
+            "HR": {"gasoline": 1.42, "electricity": 0.22},  # Хорватия
+            "RO": {"gasoline": 1.36, "electricity": 0.18},  # Румыния
+            "BG": {"gasoline": 1.21, "electricity": 0.16},  # Болгария
+            "GR": {"gasoline": 1.73, "electricity": 0.24},  # Греция
+            "PT": {"gasoline": 1.73, "electricity": 0.27},  # Португалия
+            "FI": {"gasoline": 1.67, "electricity": 0.20},  # Финляндия
+            "SE": {"gasoline": 1.42, "electricity": 0.35},  # Швеция
+            "NO": {"gasoline": 1.76, "electricity": 0.15},  # Норвегия
+            "DK": {"gasoline": 1.82, "electricity": 0.40},  # Дания
+            "LU": {"gasoline": 1.46, "electricity": 0.28},  # Люксембург
+            "IE": {"gasoline": 1.71, "electricity": 0.30},  # Ирландия
+            "GB": {"gasoline": 1.92, "electricity": 0.35},  # Великобритания
+            "RU": {"gasoline": 0.66, "electricity": 0.05},  # Россия
+            # Дополнительные страны из таблицы
+            "LV": {"gasoline": 1.51, "electricity": 0.22},  # Латвия
+            "LT": {"gasoline": 1.38, "electricity": 0.21},  # Литва
+            "EE": {"gasoline": 1.53, "electricity": 0.20},  # Эстония
+            "IS": {"gasoline": 1.99, "electricity": 0.18},  # Исландия
+            "MT": {"gasoline": 1.34, "electricity": 0.26},  # Мальта
+            "CY": {"gasoline": 1.33, "electricity": 0.24},  # Кипр
+            "MK": {"gasoline": 1.22, "electricity": 0.15},  # Северная Македония
+            "RS": {"gasoline": 1.49, "electricity": 0.16},  # Сербия
+            "ME": {"gasoline": 1.39, "electricity": 0.17},  # Черногория
+            "BA": {"gasoline": 1.19, "electricity": 0.14},  # Босния и Герцеговина
+            "AL": {"gasoline": 1.76, "electricity": 0.13},  # Албания
+            "MD": {"gasoline": 1.17, "electricity": 0.12},  # Молдавия
         }
     
     async def get_country_by_coordinates(self, latitude: float, longitude: float) -> str:
@@ -161,7 +179,10 @@ class FuelPriceService:
             "SI": "Словения", "HR": "Хорватия", "RO": "Румыния", "BG": "Болгария",
             "GR": "Греция", "PT": "Португалия", "FI": "Финляндия", "SE": "Швеция",
             "NO": "Норвегия", "DK": "Дания", "LU": "Люксембург", "IE": "Ирландия",
-            "GB": "Великобритания", "RU": "Россия"
+            "GB": "Великобритания", "RU": "Россия", "LV": "Латвия", "LT": "Литва",
+            "EE": "Эстония", "IS": "Исландия", "MT": "Мальта", "CY": "Кипр",
+            "MK": "Северная Македония", "RS": "Сербия", "ME": "Черногория",
+            "BA": "Босния и Герцеговина", "AL": "Албания", "MD": "Молдавия"
         }
         return country_names.get(country_code, country_code)
 
