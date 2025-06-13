@@ -278,7 +278,7 @@ async def collect_vehicle_data():
                     # Обновить данные автомобиля
                     await target_vehicle.update()
                     
-                    # Сохранить в базу данных
+                    # Сохранить статус автомобиля в базу данных
                     vehicle_data = VehicleStatus(
                         timestamp=datetime.now(),
                         battery_level=target_vehicle.electric_status.battery_level if target_vehicle.electric_status else 0,
@@ -295,7 +295,46 @@ async def collect_vehicle_data():
                     )
                     
                     await db.save_vehicle_status(vehicle_data)
-                    logger.debug("Данные автомобиля обновлены")
+                    
+                    # Собрать данные о поездках за последние 7 дней
+                    try:
+                        from datetime import date, timedelta
+                        end_date = date.today()
+                        start_date = end_date - timedelta(days=7)
+                        
+                        # Получить поездки из Toyota API
+                        trips = await target_vehicle.get_trips(start_date, end_date)
+                        
+                        if trips:
+                            logger.info(f"Получено {len(trips)} поездок из Toyota API")
+                            
+                            # Сохранить поездки в базу данных
+                            for trip in trips:
+                                if trip.start_time and trip.end_time and trip.distance:
+                                    # Проверить, есть ли уже эта поездка в базе
+                                    existing_trip = await db.get_trip_by_time(trip.start_time)
+                                    if not existing_trip:
+                                        trip_data = {
+                                            'start_time': trip.start_time,
+                                            'end_time': trip.end_time,
+                                            'distance_total': trip.distance or 0,
+                                            'distance_electric': trip.ev_distance or 0,
+                                            'fuel_consumed': trip.fuel_consumed or 0,
+                                            'electricity_consumed': 0,  # Пока не доступно в API
+                                            'start_latitude': trip.locations.start.lat if trip.locations and trip.locations.start else 0.0,
+                                            'start_longitude': trip.locations.start.lon if trip.locations and trip.locations.start else 0.0,
+                                            'end_latitude': trip.locations.end.lat if trip.locations and trip.locations.end else 0.0,
+                                            'end_longitude': trip.locations.end.lon if trip.locations and trip.locations.end else 0.0
+                                        }
+                                        await db.save_trip(trip_data)
+                                        logger.debug(f"Сохранена поездка: {trip.start_time} - {trip.distance} км")
+                        else:
+                            logger.debug("Новых поездок не найдено")
+                            
+                    except Exception as e:
+                        logger.error(f"Ошибка сбора данных о поездках: {e}")
+                    
+                    logger.debug("Данные автомобиля и поездок обновлены")
                 else:
                     logger.warning(f"Автомобиль с VIN {vehicle_vin} не найден")
             else:
@@ -764,6 +803,90 @@ async def save_config(request: ConfigRequest):
         
     except Exception as e:
         logger.error(f"Ошибка сохранения конфигурации: {e}")
+        return JSONResponse(
+            status_code=500,
+            content={
+                "success": False,
+                "error": str(e)
+            }
+        )
+
+@app.post("/api/collect-trips")
+async def collect_trips():
+    """Принудительно собрать данные о поездках из Toyota API."""
+    try:
+        if not toyota_client or not vehicle_vin:
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "success": False,
+                    "error": "Toyota клиент не инициализирован или VIN не настроен"
+                }
+            )
+        
+        # Получить автомобили
+        await toyota_client.login()
+        vehicles = await toyota_client.get_vehicles()
+        
+        # Найти нужный автомобиль по VIN
+        target_vehicle = None
+        for vehicle in vehicles:
+            if vehicle.vin == vehicle_vin:
+                target_vehicle = vehicle
+                break
+        
+        if not target_vehicle:
+            return JSONResponse(
+                status_code=404,
+                content={
+                    "success": False,
+                    "error": f"Автомобиль с VIN {vehicle_vin} не найден"
+                }
+            )
+        
+        # Собрать данные о поездках за последние 30 дней
+        from datetime import date, timedelta
+        end_date = date.today()
+        start_date = end_date - timedelta(days=30)
+        
+        # Получить поездки из Toyota API
+        trips = await target_vehicle.get_trips(start_date, end_date)
+        
+        trips_saved = 0
+        if trips:
+            logger.info(f"Получено {len(trips)} поездок из Toyota API")
+            
+            # Сохранить поездки в базу данных
+            for trip in trips:
+                if trip.start_time and trip.end_time and trip.distance:
+                    # Проверить, есть ли уже эта поездка в базе
+                    existing_trip = await db.get_trip_by_time(trip.start_time)
+                    if not existing_trip:
+                        trip_data = {
+                            'start_time': trip.start_time,
+                            'end_time': trip.end_time,
+                            'distance_total': trip.distance or 0,
+                            'distance_electric': trip.ev_distance or 0,
+                            'fuel_consumed': trip.fuel_consumed or 0,
+                            'electricity_consumed': 0,  # Пока не доступно в API
+                            'start_latitude': trip.locations.start.lat if trip.locations and trip.locations.start else 0.0,
+                            'start_longitude': trip.locations.start.lon if trip.locations and trip.locations.start else 0.0,
+                            'end_latitude': trip.locations.end.lat if trip.locations and trip.locations.end else 0.0,
+                            'end_longitude': trip.locations.end.lon if trip.locations and trip.locations.end else 0.0
+                        }
+                        await db.save_trip(trip_data)
+                        trips_saved += 1
+                        logger.debug(f"Сохранена поездка: {trip.start_time} - {trip.distance} км")
+        
+        return {
+            "success": True,
+            "message": f"Собрано {len(trips) if trips else 0} поездок, сохранено {trips_saved} новых",
+            "total_trips": len(trips) if trips else 0,
+            "new_trips": trips_saved
+        }
+        
+    except Exception as e:
+        logger.error(f"Ошибка сбора данных о поездках: {e}")
         return JSONResponse(
             status_code=500,
             content={

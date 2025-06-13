@@ -256,9 +256,19 @@ class DatabaseManager:
                     prices = await fuel_price_service.get_fuel_prices("DE")
                 
                 # Расчет экономии в евро
-                fuel_cost_eur = fuel_consumed * prices["gasoline"]
-                electric_cost_eur = electricity_consumed * prices["electricity"]
-                cost_savings = max(0, fuel_cost_eur - electric_cost_eur)
+                # Предполагаем средний расход топлива 6 л/100км для гибрида в режиме только бензин
+                average_fuel_consumption_per_100km = 6.0
+                
+                # Стоимость, если бы весь путь проехали только на бензине
+                fuel_cost_if_only_gasoline = (total_distance / 100) * average_fuel_consumption_per_100km * prices["gasoline"]
+                
+                # Фактическая стоимость (топливо + электричество)
+                actual_fuel_cost = fuel_consumed * prices["gasoline"]
+                actual_electric_cost = electricity_consumed * prices["electricity"]
+                actual_total_cost = actual_fuel_cost + actual_electric_cost
+                
+                # Экономия = что потратили бы только на бензине - что потратили фактически
+                cost_savings = max(0, fuel_cost_if_only_gasoline - actual_total_cost)
                 
                 return {
                     "total_distance": round(total_distance, 1),
@@ -342,9 +352,19 @@ class DatabaseManager:
                 prices = await fuel_price_service.get_fuel_prices("DE")  # Дефолт для диапазона дат
                 
                 # Расчет экономии в евро
-                fuel_cost_eur = fuel_consumed * prices["gasoline"]
-                electric_cost_eur = electricity_consumed * prices["electricity"]
-                cost_savings = max(0, fuel_cost_eur - electric_cost_eur)
+                # Предполагаем средний расход топлива 6 л/100км для гибрида в режиме только бензин
+                average_fuel_consumption_per_100km = 6.0
+                
+                # Стоимость, если бы весь путь проехали только на бензине
+                fuel_cost_if_only_gasoline = (total_distance / 100) * average_fuel_consumption_per_100km * prices["gasoline"]
+                
+                # Фактическая стоимость (топливо + электричество)
+                actual_fuel_cost = fuel_consumed * prices["gasoline"]
+                actual_electric_cost = electricity_consumed * prices["electricity"]
+                actual_total_cost = actual_fuel_cost + actual_electric_cost
+                
+                # Экономия = что потратили бы только на бензине - что потратили фактически
+                cost_savings = max(0, fuel_cost_if_only_gasoline - actual_total_cost)
                 
                 return {
                     "period": f"с {date_from} по {date_to}",
@@ -413,9 +433,19 @@ class DatabaseManager:
                 prices = await fuel_price_service.get_fuel_prices("DE")  # Дефолт для общей статистики
                 
                 # Расчет экономии в евро
-                fuel_cost_eur = fuel_consumed * prices["gasoline"]
-                electric_cost_eur = electricity_consumed * prices["electricity"]
-                cost_savings = max(0, fuel_cost_eur - electric_cost_eur)
+                # Предполагаем средний расход топлива 6 л/100км для гибрида в режиме только бензин
+                average_fuel_consumption_per_100km = 6.0
+                
+                # Стоимость, если бы весь путь проехали только на бензине
+                fuel_cost_if_only_gasoline = (total_distance / 100) * average_fuel_consumption_per_100km * prices["gasoline"]
+                
+                # Фактическая стоимость (топливо + электричество)
+                actual_fuel_cost = fuel_consumed * prices["gasoline"]
+                actual_electric_cost = electricity_consumed * prices["electricity"]
+                actual_total_cost = actual_fuel_cost + actual_electric_cost
+                
+                # Экономия = что потратили бы только на бензине - что потратили фактически
+                cost_savings = max(0, fuel_cost_if_only_gasoline - actual_total_cost)
                 
                 result = {
                     "total_distance": total_distance,
@@ -464,7 +494,39 @@ class DatabaseManager:
             logger.error(f"Ошибка получения поездок: {e}")
             return []
     
-    async def save_trip(self, trip: TripData):
+    async def get_trip_by_time(self, start_time: datetime) -> Dict:
+        """Получить поездку по времени начала."""
+        try:
+            cursor = await self.connection.execute("""
+                SELECT * FROM trips WHERE start_time = ?
+            """, (start_time,))
+            
+            row = await cursor.fetchone()
+            if row:
+                return {
+                    'id': row[0],
+                    'start_time': row[1],
+                    'end_time': row[2],
+                    'start_latitude': row[3],
+                    'start_longitude': row[4],
+                    'end_latitude': row[5],
+                    'end_longitude': row[6],
+                    'distance_total': row[7],
+                    'distance_electric': row[8],
+                    'distance_fuel': row[9],
+                    'fuel_consumed': row[10],
+                    'electricity_consumed': row[11],
+                    'avg_speed': row[12],
+                    'max_speed': row[13],
+                    'efficiency_score': row[14],
+                    'route_data': json.loads(row[15]) if row[15] else None
+                }
+            return None
+        except Exception as e:
+            logger.error(f"Ошибка получения поездки: {e}")
+            return None
+
+    async def save_trip(self, trip_data: Dict):
         """Сохранить данные поездки."""
         try:
             await self.connection.execute("""
@@ -475,21 +537,21 @@ class DatabaseManager:
                     avg_speed, max_speed, efficiency_score, route_data
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
-                trip.start_time,
-                trip.end_time,
-                trip.start_latitude,
-                trip.start_longitude,
-                trip.end_latitude,
-                trip.end_longitude,
-                trip.distance_total,
-                trip.distance_electric,
-                trip.distance_fuel,
-                trip.fuel_consumed,
-                trip.electricity_consumed,
-                trip.avg_speed,
-                trip.max_speed,
-                trip.efficiency_score,
-                json.dumps(trip.route_data) if trip.route_data else None
+                trip_data.get('start_time'),
+                trip_data.get('end_time'),
+                trip_data.get('start_latitude', 0.0),
+                trip_data.get('start_longitude', 0.0),
+                trip_data.get('end_latitude', 0.0),
+                trip_data.get('end_longitude', 0.0),
+                trip_data.get('distance_total', 0.0),
+                trip_data.get('distance_electric', 0.0),
+                trip_data.get('distance_total', 0.0) - trip_data.get('distance_electric', 0.0),  # distance_fuel
+                trip_data.get('fuel_consumed', 0.0),
+                trip_data.get('electricity_consumed', 0.0),
+                trip_data.get('avg_speed', 0.0),
+                trip_data.get('max_speed', 0.0),
+                trip_data.get('efficiency_score', 0.0),
+                json.dumps(trip_data.get('route_data')) if trip_data.get('route_data') else None
             ))
             await self.connection.commit()
         except Exception as e:
