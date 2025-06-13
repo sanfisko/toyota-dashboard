@@ -9,6 +9,7 @@ import json
 import logging
 import os
 import shutil
+import sys
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional
 
@@ -116,9 +117,27 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Настройка уровня логирования для pytoyoda (убираем DEBUG сообщения)
-logging.getLogger('pytoyoda').setLevel(logging.WARNING)
-logging.getLogger('httpx').setLevel(logging.WARNING)
-logging.getLogger('hishel').setLevel(logging.WARNING)
+logging.getLogger('pytoyoda').setLevel(logging.ERROR)
+logging.getLogger('httpx').setLevel(logging.ERROR)
+logging.getLogger('hishel').setLevel(logging.ERROR)
+logging.getLogger('uvicorn').setLevel(logging.ERROR)
+logging.getLogger('uvicorn.access').setLevel(logging.ERROR)
+logging.getLogger('uvicorn.error').setLevel(logging.ERROR)
+
+# Отключаем все логи кроме ошибок для всех библиотек
+for logger_name in ['asyncio', 'aiohttp', 'urllib3', 'requests']:
+    logging.getLogger(logger_name).setLevel(logging.ERROR)
+
+# Настройка loguru для pytoyoda (отключаем DEBUG логи)
+try:
+    from loguru import logger as loguru_logger
+    # Удаляем все существующие обработчики loguru
+    loguru_logger.remove()
+    # Добавляем только обработчик для ошибок
+    if log_level <= logging.ERROR:
+        loguru_logger.add(sys.stderr, level="ERROR", format="{time} | {level} | {name}:{function}:{line} - {message}")
+except ImportError:
+    pass
 app = FastAPI(title="Toyota Dashboard", version="1.0.0")
 
 # Используем путь к базе данных из менеджера путей
@@ -588,6 +607,7 @@ async def save_config(request: ConfigRequest):
         if request.port != current_port:
             # Порт изменен
             # В продакшене здесь должен быть перезапуск через systemd
+            pass
             
         return {
             "success": True,
