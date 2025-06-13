@@ -52,7 +52,7 @@ langcodes==3.4.0
 
 # Интеграции
 paho-mqtt==1.6.1
-homeassistant-api>=4.1.0
+# homeassistant-api>=4.1.0  # Временно отключено из-за конфликта с pydantic
 
 # Карты и геолокация
 geopy==2.4.1
