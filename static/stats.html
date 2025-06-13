@@ -362,7 +362,6 @@
 
         <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
             <button class="refresh-btn" onclick="refreshAllStats()">🔄 Обновить данные</button>
-            <button class="refresh-btn" onclick="addTestData()" style="background: linear-gradient(135deg, #ffc107, #ff8c00);">🧪 Добавить тестовые данные</button>
         </div>
 
         <!-- Сводные карточки -->
@@ -755,41 +754,7 @@
             }
         }
         
-        // Добавить тестовые данные
-        async function addTestData() {
-            const button = event.target;
-            const originalText = button.textContent;
-            button.textContent = '🧪 Добавление...';
-            button.disabled = true;
-            
-            try {
-                const response = await fetch('/api/add-test-data', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    showNotification(data.message, 'success');
-                    // Обновить статистику после добавления данных
-                    await Promise.all([
-                        loadTotalStats(),
-                        loadStatistics(currentPeriod)
-                    ]);
-                } else {
-                    showNotification('Ошибка добавления тестовых данных', 'error');
-                }
-            } catch (error) {
-                showNotification('Ошибка добавления тестовых данных', 'error');
-                console.error('Error adding test data:', error);
-            } finally {
-                button.textContent = originalText;
-                button.disabled = false;
-            }
-        }
+
 
         // Обновить все данные
         async function refreshAllStats() {

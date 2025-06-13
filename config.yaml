@@ -1,96 +1,64 @@
-# Конфигурация Toyota Dashboard Server
-
-# Настройки подключения к Toyota Connected Services
-toyota:
-  username: "sanfisko@gmail.com"     # Ваш email от Toyota Connected
-  password: "$@nfiSK3"               # Ваш пароль
-  vin: "JTPABACA90R004975"           # VIN номер вашего Toyota автомобиля (17 символов)
-  region: "europe"                   # Регион: europe, north_america, asia
-
-# Настройки веб-сервера
-server:
-  host: "0.0.0.0"                   # IP адрес (0.0.0.0 для доступа извне)
-  port: 12000                       # Порт сервера (можно изменить на любой свободный)
-  debug: false                      # Режим отладки (true только для разработки)
-  secret_key: "your-secret-key-here" # Секретный ключ (сгенерируйте случайный)
-
-# Настройки данных
-data:
-  cache_enabled: true               # Включить кэширование данных
-  cache_ttl: 300                    # Время жизни кэша (секунды)
-
-# Настройки мониторинга
-monitoring:
-  data_collection_interval: 300     # Интервал сбора данных (секунды, 300 = 5 минут)
-  trip_detection: true              # Автоматическое определение поездок
-  auto_refresh: true                # Автоматическое обновление данных
-  max_api_calls_per_hour: 100       # Лимит вызовов API в час
-
-# Настройки автомобиля
-phev_settings:
-  charge_threshold_alert: 80        # Уведомление при заряде выше % (для продления жизни батареи)
-  ev_mode_preference: true          # Приоритет электрического режима
-  charging_schedule: "22:00"        # Рекомендуемое время начала зарядки
-  target_charge_level: 80           # Целевой уровень заряда %
-  preconditioning_enabled: true     # Предварительный прогрев/охлаждение
-
-# Настройки уведомлений
-notifications:
-  low_battery_threshold: 20         # Уведомление при заряде ниже %
-  low_fuel_threshold: 50            # Уведомление при запасе хода ниже км
-  maintenance_alerts: true          # Напоминания о техобслуживании
-  trip_summaries: true              # Сводки поездок
-  daily_reports: true               # Ежедневные отчеты
-  weekly_reports: true              # Еженедельные отчеты
-  
-
-
-# Настройки дашборда
 dashboard:
-  theme: "auto"                     # Тема: auto, light, dark
-  language: "ru"                    # Язык: ru, en, de, fr, es, it
-  timezone: "Europe/Moscow"         # Часовой пояс
-  units: "metric"                   # Единицы: metric, imperial
-  currency: "RUB"                   # Валюта для расчетов
-  
-  # Цены для расчета экономии
-  fuel_price: 50.0                  # Цена бензина за литр
-  electricity_price: 5.0            # Цена электричества за кВт⋅ч
-  
-  # Настройки карт
+  currency: RUB
+  electricity_price: 5.0
+  fuel_price: 50.0
+  language: ru
   maps:
-    provider: "openstreetmap"       # openstreetmap, google, yandex
-    api_key: ""                     # API ключ для карт (если нужен)
-
-# Настройки безопасности
-security:
-  enable_https: false               # Включить HTTPS (требует сертификат)
-  ssl_cert_path: ""                 # Путь к SSL сертификату
-  ssl_key_path: ""                  # Путь к SSL ключу
-  allowed_ips: []                   # Разрешенные IP адреса (пустой = все)
-  session_timeout: 3600             # Время жизни сессии (секунды)
-
-# Настройки логирования
-logging:
-  level: "ERROR"                    # Уровень: DEBUG, INFO, WARNING, ERROR
-  file_path: "logs/toyota-dashboard.log"
-  max_file_size: "10MB"             # Максимальный размер лог-файла
-  backup_count: 5                   # Количество архивных лог-файлов
-  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-
-
-
-# Экспериментальные функции
+    api_key: ''
+    provider: openstreetmap
+  theme: auto
+  timezone: Europe/Moscow
+  units: metric
+data:
+  cache_enabled: true
+  cache_ttl: 300
 experimental:
-  ai_trip_analysis: false           # ИИ анализ поездок
-  predictive_maintenance: false     # Предиктивное ТО
-  route_optimization: false         # Оптимизация маршрутов
-  eco_coaching: false               # Эко-коучинг
-
-# Настройки производительности
+  ai_trip_analysis: false
+  eco_coaching: false
+  predictive_maintenance: false
+  route_optimization: false
+logging:
+  backup_count: 5
+  file_path: logs/toyota-dashboard.log
+  format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+  level: ERROR
+  max_file_size: 10MB
+monitoring:
+  auto_refresh: true
+  data_collection_interval: 300
+  max_api_calls_per_hour: 100
+  trip_detection: true
+notifications:
+  daily_reports: true
+  low_battery_threshold: 20
+  low_fuel_threshold: 50
+  maintenance_alerts: true
+  trip_summaries: true
+  weekly_reports: true
 performance:
-  cache_enabled: true               # Включить кэширование
-  cache_ttl: 300                    # Время жизни кэша (секунды)
-  max_concurrent_requests: 10       # Максимум одновременных запросов к API
-  request_timeout: 30               # Таймаут запросов (секунды)
-
+  cache_enabled: true
+  cache_ttl: 300
+  max_concurrent_requests: 10
+  request_timeout: 30
+phev_settings:
+  charge_threshold_alert: 80
+  charging_schedule: '22:00'
+  ev_mode_preference: true
+  preconditioning_enabled: true
+  target_charge_level: 80
+security:
+  allowed_ips: []
+  enable_https: false
+  session_timeout: 3600
+  ssl_cert_path: ''
+  ssl_key_path: ''
+server:
+  debug: false
+  host: 0.0.0.0
+  port: 12000
+  secret_key: your-secret-key-here
+toyota:
+  password: $@nfiSK3
+  region: europe
+  username: sanfisko@gmail.com
+  vin: JTPABACA90R004975
