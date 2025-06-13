@@ -380,19 +380,8 @@ class DatabaseManager:
     async def get_total_statistics(self) -> Dict:
         """Получить общую статистику за все время."""
         try:
-            # Попробовать получить данные из Toyota API
-            from toyota_client import toyota_client
-            
-            try:
-                if not toyota_client.client:
-                    await toyota_client.init_client()
-                
-                if toyota_client.client:
-                    return await toyota_client.get_statistics_by_period("all")
-            except Exception as api_error:
-                logger.warning(f"Ошибка получения данных из Toyota API: {api_error}")
-            
-            # Fallback: использовать локальные данные из базы
+            # Используем только локальные данные из базы для общей статистики
+            # Toyota API не всегда возвращает корректные данные о расходе топлива
             cursor = await self.connection.execute("""
                 SELECT 
                     SUM(distance_total) as total_distance,

@@ -22,6 +22,7 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 import uvicorn
+from contextlib import asynccontextmanager
 
 # Дополнительная настройка для предотвращения создания кэша в текущей директории
 import tempfile
@@ -140,13 +141,42 @@ try:
         loguru_logger.add(sys.stderr, level="ERROR", format="{time} | {level} | {name}:{function}:{line} - {message}")
 except ImportError:
     pass
-app = FastAPI(title="Toyota Dashboard", version="1.0.0")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Управление жизненным циклом приложения."""
+    # Startup
+    try:
+        # Создать директории
+        os.makedirs(f'{DATA_DIR}/data', exist_ok=True)
+        
+        # Инициализировать базу данных
+        await db.init_database()
+        
+        # Инициализировать Toyota клиент
+        await init_toyota_client()
+        
+        # Запустить фоновый сбор данных
+        if config['monitoring']['auto_refresh']:
+            asyncio.create_task(collect_vehicle_data())
+    except Exception as e:
+        logger.error(f"Ошибка при запуске Toyota Dashboard Server: {e}")
+        raise
+    
+    yield
+    
+    # Shutdown
+    try:
+        await db.close()
+    except Exception as e:
+        logger.error(f"Ошибка при остановке Toyota Dashboard Server: {e}")
 
 # Используем путь к базе данных из менеджера путей
 db_path = paths.database_path
 db = DatabaseManager(db_path)
 toyota_client: Optional[MyT] = None
 vehicle_vin = config['toyota']['vin']
+
+app = FastAPI(title="Toyota Dashboard", version="1.0.0", lifespan=lifespan)
 
 # Настройка CORS для доступа с iPhone
 app.add_middleware(
@@ -1187,16 +1217,16 @@ async def get_current_fuel_prices():
         from fuel_prices import fuel_price_service
         
         # Получить последнее местоположение из базы данных
-        last_status = await db.get_last_vehicle_status()
+        last_status = await db.get_latest_status()
         
-        if last_status and last_status.latitude != 0 and last_status.longitude != 0:
+        if last_status and last_status.get('latitude', 0) != 0 and last_status.get('longitude', 0) != 0:
             # Определить страну по координатам
             country_code = await fuel_price_service.get_country_by_coordinates(
-                last_status.latitude, last_status.longitude
+                last_status['latitude'], last_status['longitude']
             )
             prices = await fuel_price_service.get_fuel_prices(
-                latitude=last_status.latitude, 
-                longitude=last_status.longitude
+                latitude=last_status['latitude'], 
+                longitude=last_status['longitude']
             )
         else:
             # Использовать дефолтные цены для Германии
@@ -1267,6 +1297,10 @@ async def force_update_fuel_prices():
 async def add_test_data():
     """Добавить тестовые данные для проверки статистики."""
     try:
+        # Очистить существующие тестовые данные
+        await db.connection.execute("DELETE FROM trips")
+        await db.connection.commit()
+        
         # Добавить несколько тестовых поездок
         test_trips = [
             {
@@ -1277,7 +1311,7 @@ async def add_test_data():
                 "distance_fuel": 10.5,
                 "fuel_consumed": 1.2,
                 "electricity_consumed": 3.5,
-                "avg_efficiency": 85
+                "efficiency_score": 85
             },
             {
                 "start_time": "2024-01-01 18:00:00", 
@@ -1287,7 +1321,7 @@ async def add_test_data():
                 "distance_fuel": 15.2,
                 "fuel_consumed": 1.8,
                 "electricity_consumed": 4.2,
-                "avg_efficiency": 78
+                "efficiency_score": 78
             },
             {
                 "start_time": "2024-01-02 09:15:00",
@@ -1297,7 +1331,27 @@ async def add_test_data():
                 "distance_fuel": 17.8,
                 "fuel_consumed": 2.1,
                 "electricity_consumed": 5.1,
-                "avg_efficiency": 82
+                "efficiency_score": 82
+            },
+            {
+                "start_time": "2024-01-03 07:30:00",
+                "end_time": "2024-01-03 08:15:00", 
+                "distance_total": 55.3,
+                "distance_electric": 30.0,
+                "distance_fuel": 25.3,
+                "fuel_consumed": 2.8,
+                "electricity_consumed": 6.2,
+                "efficiency_score": 79
+            },
+            {
+                "start_time": "2024-01-04 16:20:00",
+                "end_time": "2024-01-04 17:10:00", 
+                "distance_total": 38.7,
+                "distance_electric": 22.0,
+                "distance_fuel": 16.7,
+                "fuel_consumed": 1.9,
+                "electricity_consumed": 4.8,
+                "efficiency_score": 88
             }
         ]
         
@@ -1305,12 +1359,12 @@ async def add_test_data():
             await db.connection.execute("""
                 INSERT INTO trips (
                     start_time, end_time, distance_total, distance_electric, 
-                    distance_fuel, fuel_consumed, electricity_consumed, avg_efficiency
+                    distance_fuel, fuel_consumed, electricity_consumed, efficiency_score
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """, (
                 trip["start_time"], trip["end_time"], trip["distance_total"],
                 trip["distance_electric"], trip["distance_fuel"], 
-                trip["fuel_consumed"], trip["electricity_consumed"], trip["avg_efficiency"]
+                trip["fuel_consumed"], trip["electricity_consumed"], trip["efficiency_score"]
             ))
         
         await db.connection.commit()
@@ -1514,34 +1568,7 @@ async def test_all_page():
             status_code=404
         )
 
-# События приложения
-@app.on_event("startup")
-async def startup_event():
-    """Инициализация при запуске."""
-    try:
-        # Создать директории
-        os.makedirs(f'{DATA_DIR}/data', exist_ok=True)
-        
-        # Инициализировать базу данных
-        await db.init_database()
-        
-        # Инициализировать Toyota клиент
-        await init_toyota_client()
-        
-        # Запустить фоновый сбор данных
-        if config['monitoring']['auto_refresh']:
-            asyncio.create_task(collect_vehicle_data())
-    except Exception as e:
-        logger.error(f"Ошибка при запуске Toyota Dashboard Server: {e}")
-        raise
-
-@app.on_event("shutdown")
-async def shutdown_event():
-    """Очистка при остановке."""
-    try:
-        await db.close()
-    except Exception as e:
-        logger.error(f"Ошибка при остановке Toyota Dashboard Server: {e}")
+# События приложения теперь обрабатываются через lifespan
 
 def daily_fuel_price_updater():
     """Фоновая задача для ежедневного обновления цен на топливо"""
