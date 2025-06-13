@@ -415,15 +415,17 @@ install_python_deps() {
             pip install \"aiosqlite>=0.19.0\"
         }
         
-        python3 -c 'import pytoyoda; print(\"✓ PyToyoda установлен:\", getattr(pytoyoda, \"__version__\", \"локальная версия\"))' || {
-            echo 'Установка PyToyoda...'
-            pip install \"pytoyoda>=3.0.0,<4.0.0\"
-        }
-        
         echo 'Все критически важные зависимости проверены'
     " || {
         print_error "Ошибка установки Python зависимостей"
         exit 1
+    }
+    
+    # Отдельная проверка PyToyoda
+    print_info "Проверка PyToyoda..."
+    sudo -u toyota bash -c "source /opt/toyota-dashboard/venv/bin/activate && python3 -c 'import pytoyoda; print(\"✓ PyToyoda установлен:\", getattr(pytoyoda, \"__version__\", \"локальная версия\"))'" || {
+        print_info "Установка PyToyoda..."
+        sudo -u toyota bash -c "source /opt/toyota-dashboard/venv/bin/activate && pip install 'pytoyoda>=3.0.0,<4.0.0'"
     }
     
     print_success "Python зависимости установлены"
