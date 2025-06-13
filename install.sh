@@ -453,11 +453,11 @@ setup_config() {
     "
     
     # Создание секретного ключа, если конфигурация была создана
-    CONFIG_FILE=\$(sudo -u toyota bash -c "source venv/bin/activate && python3 -c 'from paths import paths; print(paths.config_file)'")
-    if [[ -f \"\$CONFIG_FILE\" ]]; then
-        SECRET_KEY=\$(python3 -c "import secrets; print(secrets.token_urlsafe(32))")
-        sudo -u toyota sed -i "s/your-secret-key-here/\$SECRET_KEY/" "\$CONFIG_FILE"
-        print_info "Файл конфигурации: \$CONFIG_FILE"
+    CONFIG_FILE=$(sudo -u toyota bash -c "source venv/bin/activate && python3 -c 'from paths import paths; print(paths.config_file)'")
+    if [[ -f "$CONFIG_FILE" ]]; then
+        SECRET_KEY=$(python3 -c "import secrets; print(secrets.token_urlsafe(32))")
+        sudo -u toyota sed -i "s/your-secret-key-here/$SECRET_KEY/" "$CONFIG_FILE"
+        print_info "Файл конфигурации: $CONFIG_FILE"
         print_warning "ВАЖНО: Отредактируйте файл конфигурации и добавьте ваши Toyota credentials!"
     fi
     
