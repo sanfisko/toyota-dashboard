@@ -473,6 +473,88 @@ async def control_climate(request: CommandRequest):
         logger.error(f"Ошибка управления климатом: {e}")
         raise HTTPException(status_code=500, detail=f"Внутренняя ошибка: {str(e)}")
 
+@app.post("/api/vehicle/windows/open")
+async def open_windows():
+    """Открыть окна автомобиля."""
+    try:
+        if not toyota_client:
+            raise HTTPException(status_code=503, detail="Toyota клиент не инициализирован")
+        
+        target_vehicle = await get_vehicle()
+        
+        # Проверить возможности автомобиля
+        extended_caps = target_vehicle._vehicle_info.extended_capabilities
+        if not extended_caps or not extended_caps.power_windows_capable:
+            raise HTTPException(
+                status_code=400, 
+                detail="Данный автомобиль не поддерживает дистанционное управление окнами"
+            )
+        
+        # Отправить команду открытия окон
+        result = await target_vehicle.post_command(CommandType.WINDOW_ON)
+        # Команда открытия окон отправлена
+        
+        return {"status": "success", "message": "Окна открываются"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Ошибка открытия окон: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/vehicle/windows/close")
+async def close_windows():
+    """Закрыть окна автомобиля."""
+    try:
+        if not toyota_client:
+            raise HTTPException(status_code=503, detail="Toyota клиент не инициализирован")
+        
+        target_vehicle = await get_vehicle()
+        
+        # Проверить возможности автомобиля
+        extended_caps = target_vehicle._vehicle_info.extended_capabilities
+        if not extended_caps or not extended_caps.power_windows_capable:
+            raise HTTPException(
+                status_code=400, 
+                detail="Данный автомобиль не поддерживает дистанционное управление окнами"
+            )
+        
+        # Отправить команду закрытия окон
+        result = await target_vehicle.post_command(CommandType.WINDOW_OFF)
+        # Команда закрытия окон отправлена
+        
+        return {"status": "success", "message": "Окна закрываются"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Ошибка закрытия окон: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/vehicle/capabilities")
+async def get_vehicle_capabilities():
+    """Получить возможности автомобиля."""
+    try:
+        if not toyota_client:
+            raise HTTPException(status_code=503, detail="Toyota клиент не инициализирован")
+        
+        target_vehicle = await get_vehicle()
+        extended_caps = target_vehicle._vehicle_info.extended_capabilities
+        remote_caps = target_vehicle._vehicle_info.remote_service_capabilities
+        
+        return {
+            "power_windows": extended_caps.power_windows_capable if extended_caps else False,
+            "door_lock_unlock": extended_caps.door_lock_unlock_capable if extended_caps else False,
+            "climate_control": extended_caps.climate_capable if extended_caps else False,
+            "engine_start_stop": remote_caps.estart_enabled if remote_caps else False,
+            "hazard_lights": remote_caps.hazard_capable if remote_caps else False,
+            "vehicle_finder": remote_caps.vehicle_finder_capable if remote_caps else False,
+            "trunk_control": remote_caps.trunk_capable if remote_caps else False,
+            "horn": False,  # Horn capability not found in current API
+            "headlights": remote_caps.head_light_capable if remote_caps else False
+        }
+    except Exception as e:
+        logger.error(f"Ошибка получения возможностей автомобиля: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.get("/api/stats/phev")
 async def get_phev_stats(period: str = "week"):
     """Получить статистику автомобиля за период."""
