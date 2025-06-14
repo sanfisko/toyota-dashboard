@@ -383,6 +383,24 @@ async def setup_page():
     with open(paths.get_static_file('setup.html'), 'r', encoding='utf-8') as f:
         return HTMLResponse(content=f.read())
 
+@app.get("/notifications", response_class=HTMLResponse)
+async def notifications_page():
+    """Страница уведомлений."""
+    with open(paths.get_static_file('notifications.html'), 'r', encoding='utf-8') as f:
+        return HTMLResponse(content=f.read())
+
+@app.get("/stats", response_class=HTMLResponse)
+async def stats_page():
+    """Страница статистики."""
+    with open(paths.get_static_file('stats.html'), 'r', encoding='utf-8') as f:
+        return HTMLResponse(content=f.read())
+
+@app.get("/climate", response_class=HTMLResponse)
+async def climate_page():
+    """Страница климат-контроля."""
+    with open(paths.get_static_file('climate.html'), 'r', encoding='utf-8') as f:
+        return HTMLResponse(content=f.read())
+
 @app.get("/api/system/paths")
 async def get_system_paths():
     """Получить информацию о путях системы."""
@@ -632,6 +650,103 @@ async def get_vehicle_capabilities():
         }
     except Exception as e:
         logger.error(f"Ошибка получения возможностей автомобиля: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/vehicle/notifications")
+async def get_vehicle_notifications():
+    """Получить уведомления автомобиля."""
+    try:
+        target_vehicle = await get_vehicle()
+        await target_vehicle.update()
+        
+        notifications = []
+        if target_vehicle.notifications:
+            for notification in target_vehicle.notifications:
+                notifications.append({
+                    "category": notification.category,
+                    "message": notification.message,
+                    "date": notification.date.isoformat() if notification.date else None,
+                    "type": notification.type,
+                    "read": notification.read is not None
+                })
+        
+        return notifications
+    except Exception as e:
+        logger.error(f"Ошибка получения уведомлений: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/vehicle/location")
+async def get_vehicle_location():
+    """Получить информацию о местоположении и ценах на топливо."""
+    try:
+        target_vehicle = await get_vehicle()
+        await target_vehicle.update()
+        
+        location_data = {
+            "latitude": target_vehicle.location.latitude if target_vehicle.location else 45.542026,
+            "longitude": target_vehicle.location.longitude if target_vehicle.location else 13.713837,
+            "address": "Копер, Словения",  # Заглушка, можно добавить геокодирование
+            "country": "Slovenia",
+            "fuel_price": "1.43 €/л"  # Заглушка, можно добавить API для получения цен
+        }
+        
+        return location_data
+    except Exception as e:
+        logger.error(f"Ошибка получения местоположения: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/vehicle/climate/status")
+async def get_climate_status():
+    """Получить статус климат-контроля."""
+    try:
+        target_vehicle = await get_vehicle()
+        
+        # Попробуем получить статус климата
+        climate_status = getattr(target_vehicle, 'climate_status', None)
+        climate_settings = getattr(target_vehicle, 'climate_settings', None)
+        
+        return {
+            "isOn": False,  # Заглушка, нужно найти правильное поле
+            "temperature": 21,  # Заглушка
+            "acOn": False,
+            "heatOn": False,
+            "frontDefrost": False,
+            "rearDefrost": False
+        }
+    except Exception as e:
+        logger.error(f"Ошибка получения статуса климата: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/vehicle/climate/start")
+async def start_climate(request: CommandRequest):
+    """Запустить климат-контроль."""
+    try:
+        target_vehicle = await get_vehicle()
+        
+        # Отправить команду запуска климата
+        result = await target_vehicle.post_command(
+            command=CommandType.CLIMATE_START,
+            duration=request.duration or 10,
+            temperature=request.temperature or 21
+        )
+        
+        return {"status": "success", "message": "Климат-контроль запущен"}
+    except Exception as e:
+        logger.error(f"Ошибка запуска климата: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/vehicle/climate/stop")
+async def stop_climate():
+    """Остановить климат-контроль."""
+    try:
+        target_vehicle = await get_vehicle()
+        
+        # Отправить команду остановки климата
+        result = await target_vehicle.post_command(CommandType.CLIMATE_STOP)
+        
+        return {"status": "success", "message": "Климат-контроль остановлен"}
+    except Exception as e:
+        logger.error(f"Ошибка остановки климата: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/stats/phev")

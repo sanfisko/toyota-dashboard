@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="light-content">
+    <meta name="apple-mobile-web-app-title" content="Toyota Dashboard">
+    <title>Уведомления - Toyota Dashboard</title>
+    
+    <!-- PWA манифест -->
+    <link rel="manifest" href="/static/manifest.json">
+    
+    <!-- Стили -->
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+            background: #f8f9fa;
+            color: #1d1d1f;
+            min-height: 100vh;
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+        }
+        
+        .container {
+            max-width: 414px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 20px 0;
+        }
+        
+        .back-btn {
+            background: #ffffff;
+            border: 1px solid #e5e5e7;
+            border-radius: 12px;
+            padding: 12px;
+            margin-right: 16px;
+            cursor: pointer;
+            font-size: 18px;
+            color: #eb0a1e;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 44px;
+            height: 44px;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1d1d1f;
+            letter-spacing: -0.5px;
+        }
+        
+        .notification-card {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(0, 0, 0, 0.04);
+            position: relative;
+        }
+        
+        .notification-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+        
+        .notification-category {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .notification-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+        
+        .notification-icon.alert {
+            background: #ff3b30;
+            color: white;
+        }
+        
+        .notification-icon.charging {
+            background: #30d158;
+            color: white;
+        }
+        
+        .notification-icon.command {
+            background: #007aff;
+            color: white;
+        }
+        
+        .notification-icon.climate {
+            background: #5ac8fa;
+            color: white;
+        }
+        
+        .notification-icon.update {
+            background: #ff9500;
+            color: white;
+        }
+        
+        .notification-type {
+            font-size: 15px;
+            font-weight: 600;
+            color: #1d1d1f;
+        }
+        
+        .notification-time {
+            font-size: 13px;
+            color: #86868b;
+            font-weight: 500;
+        }
+        
+        .notification-message {
+            font-size: 15px;
+            color: #1d1d1f;
+            line-height: 1.4;
+        }
+        
+        .unread-indicator {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 8px;
+            height: 8px;
+            background: #eb0a1e;
+            border-radius: 50%;
+        }
+        
+        .filter-bar {
+            display: flex;
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(0, 0, 0, 0.04);
+            overflow-x: auto;
+        }
+        
+        .filter-btn {
+            background: transparent;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #86868b;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        
+        .filter-btn.active {
+            background: #eb0a1e;
+            color: #ffffff;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #86868b;
+        }
+        
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+        
+        .empty-state-text {
+            font-size: 17px;
+            font-weight: 500;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #86868b;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Заголовок -->
+        <div class="header">
+            <a href="/" class="back-btn">←</a>
+            <h1>Уведомления</h1>
+        </div>
+        
+        <!-- Фильтры -->
+        <div class="filter-bar">
+            <button class="filter-btn active" onclick="filterNotifications('all')">Все</button>
+            <button class="filter-btn" onclick="filterNotifications('alert')">Предупреждения</button>
+            <button class="filter-btn" onclick="filterNotifications('charging')">Зарядка</button>
+            <button class="filter-btn" onclick="filterNotifications('command')">Команды</button>
+            <button class="filter-btn" onclick="filterNotifications('climate')">Климат</button>
+        </div>
+        
+        <!-- Уведомления -->
+        <div id="notifications-container">
+            <div class="loading">Загрузка уведомлений...</div>
+        </div>
+    </div>
+    
+    <script>
+        let notifications = [];
+        let currentFilter = 'all';
+        
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', function() {
+            loadNotifications();
+        });
+        
+        // Загрузка уведомлений
+        async function loadNotifications() {
+            try {
+                const response = await fetch('/api/vehicle/notifications');
+                if (!response.ok) throw new Error('Ошибка загрузки уведомлений');
+                
+                notifications = await response.json();
+                renderNotifications();
+                
+            } catch (error) {
+                document.getElementById('notifications-container').innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">⚠️</div>
+                        <div class="empty-state-text">Ошибка загрузки уведомлений</div>
+                    </div>
+                `;
+                console.error('Error:', error);
+            }
+        }
+        
+        // Отображение уведомлений
+        function renderNotifications() {
+            const container = document.getElementById('notifications-container');
+            
+            let filteredNotifications = notifications;
+            if (currentFilter !== 'all') {
+                filteredNotifications = notifications.filter(n => 
+                    n.category.toLowerCase().includes(currentFilter.toLowerCase())
+                );
+            }
+            
+            if (filteredNotifications.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📭</div>
+                        <div class="empty-state-text">Нет уведомлений</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = filteredNotifications.map(notification => `
+                <div class="notification-card">
+                    ${!notification.read ? '<div class="unread-indicator"></div>' : ''}
+                    <div class="notification-header">
+                        <div class="notification-category">
+                            <div class="notification-icon ${getCategoryClass(notification.category)}">
+                                ${getCategoryIcon(notification.category)}
+                            </div>
+                            <span class="notification-type">${getCategoryName(notification.category)}</span>
+                        </div>
+                        <span class="notification-time">${formatTime(notification.date)}</span>
+                    </div>
+                    <div class="notification-message">${notification.message}</div>
+                </div>
+            `).join('');
+        }
+        
+        // Фильтрация уведомлений
+        function filterNotifications(filter) {
+            currentFilter = filter;
+            
+            // Обновить активную кнопку
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            renderNotifications();
+        }
+        
+        // Получить класс категории
+        function getCategoryClass(category) {
+            const categoryMap = {
+                'VehicleStatusAlert': 'alert',
+                'ChargingAlert': 'charging',
+                'RemoteCommand': 'command',
+                'ScheduledClimate': 'climate',
+                'UpdateSchedule': 'update'
+            };
+            return categoryMap[category] || 'alert';
+        }
+        
+        // Получить иконку категории
+        function getCategoryIcon(category) {
+            const iconMap = {
+                'VehicleStatusAlert': '⚠️',
+                'ChargingAlert': '🔋',
+                'RemoteCommand': '📱',
+                'ScheduledClimate': '❄️',
+                'UpdateSchedule': '🔄'
+            };
+            return iconMap[category] || '📢';
+        }
+        
+        // Получить название категории
+        function getCategoryName(category) {
+            const nameMap = {
+                'VehicleStatusAlert': 'Статус автомобиля',
+                'ChargingAlert': 'Зарядка',
+                'RemoteCommand': 'Удаленная команда',
+                'ScheduledClimate': 'Климат-контроль',
+                'UpdateSchedule': 'Обновление расписания'
+            };
+            return nameMap[category] || category;
+        }
+        
+        // Форматирование времени
+        function formatTime(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMins / 60);
+            const diffDays = Math.floor(diffHours / 24);
+            
+            if (diffMins < 1) return 'Только что';
+            if (diffMins < 60) return `${diffMins} мин назад`;
+            if (diffHours < 24) return `${diffHours} ч назад`;
+            if (diffDays < 7) return `${diffDays} дн назад`;
+            
+            return date.toLocaleDateString('ru-RU', {
+                day: 'numeric',
+                month: 'short',
+                year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
+            });
+        }
+    </script>
+</body>
+</html>
