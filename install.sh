@@ -252,11 +252,15 @@ install_dependencies() {
             print_info "  sudo dnf install -y python3 python3-pip gcc gcc-c++ make git curl wget"
         fi
         
-        read -p "Продолжить установку? (y/N) " -n 1 -r
-        echo
-        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-            print_error "Установка отменена"
-            exit 1
+        if [[ -t 0 ]]; then
+            read -p "Продолжить установку? (y/N) " -n 1 -r
+            echo
+            if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+                print_error "Установка отменена"
+                exit 1
+            fi
+        else
+            print_info "Неинтерактивный режим - продолжаем автоматически"
         fi
     fi
     
@@ -646,7 +650,8 @@ main() {
     print_info "Директория установки: $INSTALL_DIR"
     echo
     
-    if [[ "$AUTO_YES" != true ]]; then
+    # Проверяем интерактивный режим
+    if [[ "$AUTO_YES" != true ]] && [[ -t 0 ]]; then
         echo "Этот скрипт установит Toyota Dashboard в вашу домашнюю директорию."
         read -p "Продолжить? (y/N) " -n 1 -r
         echo
@@ -654,6 +659,10 @@ main() {
             print_info "Установка отменена"
             exit 0
         fi
+    elif [[ "$AUTO_YES" != true ]]; then
+        echo "Этот скрипт установит Toyota Dashboard в вашу домашнюю директорию."
+        echo "Запуск в неинтерактивном режиме - продолжаем автоматически..."
+        sleep 2
     fi
     
     # Выполнение установки
