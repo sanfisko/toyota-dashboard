@@ -65,20 +65,41 @@ class PathManager:
     def ensure_directories(self):
         """Создает все необходимые директории"""
         directories = [
-            self.data_dir,
-            self.log_dir,
-            self.config_dir,
-            self.cache_dir,
-            self.temp_dir,
-            os.path.join(self.data_dir, 'backups'),
-            os.path.join(self.temp_dir, 'uploads'),
+            ('Данные', self.data_dir),
+            ('Логи', self.log_dir),
+            ('Конфигурация', self.config_dir),
+            ('Кэш', self.cache_dir),
+            ('Временная', self.temp_dir),
+            ('Резервные копии', os.path.join(self.data_dir, 'backups')),
+            ('Загрузки', os.path.join(self.temp_dir, 'uploads')),
         ]
         
-        for directory in directories:
+        created_count = 0
+        failed_count = 0
+        
+        for name, directory in directories:
             try:
-                os.makedirs(directory, exist_ok=True)
+                if not os.path.exists(directory):
+                    os.makedirs(directory, exist_ok=True)
+                    print(f"✅ Создана директория {name}: {directory}")
+                    created_count += 1
+                else:
+                    # Проверяем права на запись
+                    if os.access(directory, os.W_OK):
+                        print(f"✅ Директория {name} доступна: {directory}")
+                    else:
+                        print(f"⚠️ Директория {name} недоступна для записи: {directory}")
+                        failed_count += 1
+                        
             except (OSError, PermissionError) as e:
-                print(f"Предупреждение: Не удалось создать директорию {directory}: {e}")
+                print(f"❌ Не удалось создать директорию {name} ({directory}): {e}")
+                failed_count += 1
+        
+        if created_count > 0:
+            print(f"📁 Создано директорий: {created_count}")
+        if failed_count > 0:
+            print(f"⚠️ Проблем с директориями: {failed_count}")
+            print("💡 Рекомендация: Проверьте права доступа или используйте пользовательские директории")
     
     @property
     def app_dir(self) -> str:

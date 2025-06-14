@@ -180,13 +180,34 @@ config = load_config()
 
 # Настройка логирования на основе конфигурации
 log_level = getattr(logging, config.get('logging', {}).get('level', 'INFO').upper())
+
+# Настройка обработчиков логирования с проверкой доступности
+handlers = [logging.StreamHandler()]  # Всегда добавляем консольный вывод
+
+# Пытаемся добавить файловый обработчик
+try:
+    log_file_path = paths.log_file
+    log_dir = os.path.dirname(log_file_path)
+    
+    # Создаем директорию логов если нужно
+    os.makedirs(log_dir, exist_ok=True)
+    
+    # Проверяем возможность записи
+    if os.access(log_dir, os.W_OK):
+        handlers.append(logging.FileHandler(log_file_path))
+        print(f"✅ Логирование в файл: {log_file_path}")
+    else:
+        print(f"⚠️ Нет прав на запись в директорию логов: {log_dir}")
+        print("Логирование будет только в консоль")
+        
+except (OSError, PermissionError) as e:
+    print(f"⚠️ Не удалось настроить файловое логирование: {e}")
+    print("Логирование будет только в консоль")
+
 logging.basicConfig(
     level=log_level,
     format=config.get('logging', {}).get('format', '%(asctime)s - %(name)s - %(levelname)s - %(message)s'),
-    handlers=[
-        logging.FileHandler(paths.log_file),
-        logging.StreamHandler()
-    ]
+    handlers=handlers
 )
 logger = logging.getLogger(__name__)
 
