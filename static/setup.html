@@ -257,10 +257,7 @@
                 <span class="config-label">VIN:</span>
                 <span class="config-value" id="current-vin">не настроен</span>
             </div>
-            <div class="config-item">
-                <span class="config-label">Регион:</span>
-                <span class="config-value" id="current-region">не настроен</span>
-            </div>
+            <!-- Регион скрыт, так как зафиксирован на Europe -->
             <div class="config-item">
                 <span class="config-label">Порт:</span>
                 <span class="config-value" id="current-port">не настроен</span>
@@ -295,15 +292,8 @@
                 <div class="help-text">VIN номер вашего Toyota автомобиля (17 символов)</div>
             </div>
             
-            <div class="form-group">
-                <label for="region">🌍 Регион</label>
-                <select id="region" name="region" required>
-                    <option value="europe">Европа</option>
-                    <option value="north_america">Северная Америка</option>
-                    <option value="asia">Азия</option>
-                </select>
-                <div class="help-text">Выберите ваш регион</div>
-            </div>
+            <!-- Регион зафиксирован для европейских автомобилей -->
+            <input type="hidden" id="region" name="region" value="europe">
             
             <div class="form-group">
                 <label for="port">🌐 Порт сервера</label>
@@ -352,7 +342,6 @@
             document.getElementById('current-username').textContent = config.toyota?.username || 'не настроен';
             document.getElementById('current-password').textContent = config.toyota?.password ? '••••••••' : 'не настроен';
             document.getElementById('current-vin').textContent = config.toyota?.vin || 'не настроен';
-            document.getElementById('current-region').textContent = config.toyota?.region || 'не настроен';
             document.getElementById('current-port').textContent = config.server?.port || 'не настроен';
         }
         
@@ -361,7 +350,8 @@
             if (config.toyota) {
                 document.getElementById('username').value = config.toyota.username || '';
                 document.getElementById('vin').value = config.toyota.vin || '';
-                document.getElementById('region').value = config.toyota.region || 'europe';
+                // Регион всегда europe для европейских автомобилей
+                document.getElementById('region').value = 'europe';
             }
             if (config.server) {
                 document.getElementById('port').value = config.server.port || 2025;

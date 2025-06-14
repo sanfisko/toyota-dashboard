@@ -16,7 +16,7 @@ def create_default_config():
             'username': '',
             'password': '',
             'vin': '',
-            'region': 'europe'
+            'region': 'europe'  # Зафиксировано для европейских автомобилей
         },
         'server': {
             'host': '0.0.0.0',
