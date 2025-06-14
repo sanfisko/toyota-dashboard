@@ -96,8 +96,19 @@ DATA_DIR = paths.data_dir
 def load_config() -> Dict:
     """Загрузить конфигурацию из файла."""
     try:
+        # Выводим диагностическую информацию о путях
+        print("=== Диагностика путей конфигурации ===")
+        print(f"Информация о путях: {paths.get_info()}")
+        
         config_path = paths.config_file
-        print(f"Попытка загрузки конфигурации из: {config_path}")
+        print(f"Основной путь к конфигурации: {config_path}")
+        
+        # Проверяем доступность директории для записи
+        config_dir = os.path.dirname(config_path)
+        print(f"Директория конфигурации: {config_dir}")
+        print(f"Директория существует: {os.path.exists(config_dir)}")
+        if os.path.exists(config_dir):
+            print(f"Права на запись в директорию: {os.access(config_dir, os.W_OK)}")
         
         if not os.path.exists(config_path):
             print(f"Файл конфигурации не найден: {config_path}")
@@ -105,29 +116,40 @@ def load_config() -> Dict:
             alternative_paths = [
                 '/etc/toyota-dashboard/config.yaml',
                 '/opt/toyota-dashboard/config.yaml',
-                os.path.join(os.path.expanduser('~'), '.config', 'toyota-dashboard', 'config.yaml')
+                os.path.join(os.path.expanduser('~'), '.config', 'toyota-dashboard', 'config.yaml'),
+                os.path.join(paths.app_dir, 'config.yaml')
             ]
             
+            print("Поиск альтернативных путей:")
             for alt_path in alternative_paths:
-                if os.path.exists(alt_path):
-                    print(f"Найден альтернативный файл конфигурации: {alt_path}")
-                    config_path = alt_path
-                    break
+                exists = os.path.exists(alt_path)
+                print(f"  {alt_path}: {'найден' if exists else 'не найден'}")
+                if exists:
+                    try:
+                        # Проверяем возможность чтения
+                        with open(alt_path, 'r') as test_f:
+                            test_f.read(1)
+                        print(f"Используем альтернативный файл конфигурации: {alt_path}")
+                        config_path = alt_path
+                        break
+                    except Exception as e:
+                        print(f"  Ошибка чтения {alt_path}: {e}")
             else:
                 print("Конфигурационный файл не найден ни в одном из ожидаемых мест")
                 print("Создаем базовую конфигурацию...")
                 return create_default_config()
         
+        print(f"Попытка чтения конфигурации из: {config_path}")
         with open(config_path, 'r', encoding='utf-8') as f:
             config_data = yaml.safe_load(f)
-            print(f"Конфигурация успешно загружена из: {config_path}")
+            print(f"✅ Конфигурация успешно загружена из: {config_path}")
             return config_data
             
     except yaml.YAMLError as e:
-        print(f"Ошибка в файле конфигурации: {e}")
+        print(f"❌ Ошибка в файле конфигурации: {e}")
         raise
     except Exception as e:
-        print(f"Неожиданная ошибка при загрузке конфигурации: {e}")
+        print(f"❌ Неожиданная ошибка при загрузке конфигурации: {e}")
         return create_default_config()
 
 def create_default_config() -> Dict:
@@ -1081,9 +1103,65 @@ async def save_config(request: ConfigRequest):
         config['toyota']['region'] = request.region
         config['server']['port'] = request.port
         
+        # Получаем путь к файлу конфигурации
+        config_file_path = paths.config_file
+        logger.info(f"Попытка сохранения конфигурации в: {config_file_path}")
+        
+        # Проверяем возможность записи в директорию
+        config_dir = os.path.dirname(config_file_path)
+        if not os.path.exists(config_dir):
+            try:
+                os.makedirs(config_dir, exist_ok=True)
+                logger.info(f"Создана директория конфигурации: {config_dir}")
+            except (OSError, PermissionError) as e:
+                logger.error(f"Не удалось создать директорию конфигурации {config_dir}: {e}")
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"Не удалось создать директорию конфигурации: {e}"
+                )
+        
+        # Проверяем права на запись в директорию
+        if not os.access(config_dir, os.W_OK):
+            logger.error(f"Нет прав на запись в директорию: {config_dir}")
+            raise HTTPException(
+                status_code=500,
+                detail=f"Нет прав на запись в директорию конфигурации: {config_dir}"
+            )
+        
+        # Создаем резервную копию существующего файла конфигурации
+        if os.path.exists(config_file_path):
+            try:
+                backup_path = f"{config_file_path}.backup"
+                shutil.copy2(config_file_path, backup_path)
+                logger.info(f"Создана резервная копия конфигурации: {backup_path}")
+            except Exception as e:
+                logger.warning(f"Не удалось создать резервную копию: {e}")
+        
         # Сохранить в файл
-        with open(paths.config_file, 'w', encoding='utf-8') as f:
-            yaml.dump(config, f, default_flow_style=False, allow_unicode=True)
+        try:
+            with open(config_file_path, 'w', encoding='utf-8') as f:
+                yaml.dump(config, f, default_flow_style=False, allow_unicode=True)
+            logger.info(f"Конфигурация успешно сохранена в: {config_file_path}")
+        except (OSError, PermissionError) as e:
+            logger.error(f"Ошибка записи файла конфигурации {config_file_path}: {e}")
+            
+            # Пытаемся сохранить в альтернативное место
+            fallback_path = os.path.join(os.path.expanduser("~"), '.config', 'toyota-dashboard', 'config.yaml')
+            try:
+                os.makedirs(os.path.dirname(fallback_path), exist_ok=True)
+                with open(fallback_path, 'w', encoding='utf-8') as f:
+                    yaml.dump(config, f, default_flow_style=False, allow_unicode=True)
+                logger.info(f"Конфигурация сохранена в альтернативное место: {fallback_path}")
+                
+                # Обновляем путь в менеджере путей
+                paths._user_config_dir = os.path.dirname(fallback_path)
+                
+            except Exception as fallback_error:
+                logger.error(f"Не удалось сохранить конфигурацию в альтернативное место: {fallback_error}")
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"Не удалось сохранить конфигурацию. Основная ошибка: {e}. Альтернативная ошибка: {fallback_error}"
+                )
         
         # Обновить глобальные переменные
         vehicle_vin = request.vin
@@ -1091,28 +1169,27 @@ async def save_config(request: ConfigRequest):
         # Переинициализировать Toyota клиент
         await init_toyota_client()
         
-        # Конфигурация сохранена и клиент переинициализирован
-        
         # Если порт изменился, нужно перезапустить сервер
         current_port = config.get('server', {}).get('port', 2025)
-        if request.port != current_port:
-            # Порт изменен
-            # В продакшене здесь должен быть перезапуск через systemd
-            pass
-            
+        restart_required = request.port != current_port
+        
         return {
             "success": True,
             "message": "Конфигурация сохранена успешно!",
-            "restart_required": request.port != current_port
+            "config_path": config_file_path,
+            "restart_required": restart_required
         }
         
+    except HTTPException:
+        # Перебрасываем HTTP исключения как есть
+        raise
     except Exception as e:
-        logger.error(f"Ошибка сохранения конфигурации: {e}")
+        logger.error(f"Неожиданная ошибка сохранения конфигурации: {e}")
         return JSONResponse(
             status_code=500,
             content={
                 "success": False,
-                "error": str(e)
+                "error": f"Неожиданная ошибка: {str(e)}"
             }
         )
 
@@ -1729,7 +1806,63 @@ async def force_update_fuel_prices():
             }
         )
 
-
+@app.get("/api/system/paths")
+async def get_system_paths():
+    """Получить информацию о системных путях для диагностики."""
+    try:
+        path_info = paths.get_info()
+        
+        # Добавляем дополнительную диагностическую информацию
+        config_file_path = paths.config_file
+        config_dir = os.path.dirname(config_file_path)
+        
+        diagnostic_info = {
+            "paths": path_info,
+            "config_file_status": {
+                "path": config_file_path,
+                "exists": os.path.exists(config_file_path),
+                "readable": os.access(config_file_path, os.R_OK) if os.path.exists(config_file_path) else False,
+                "writable": os.access(config_file_path, os.W_OK) if os.path.exists(config_file_path) else False,
+            },
+            "config_dir_status": {
+                "path": config_dir,
+                "exists": os.path.exists(config_dir),
+                "readable": os.access(config_dir, os.R_OK) if os.path.exists(config_dir) else False,
+                "writable": os.access(config_dir, os.W_OK) if os.path.exists(config_dir) else False,
+            },
+            "alternative_paths": []
+        }
+        
+        # Проверяем альтернативные пути
+        alternative_paths = [
+            '/etc/toyota-dashboard/config.yaml',
+            '/opt/toyota-dashboard/config.yaml',
+            os.path.join(os.path.expanduser('~'), '.config', 'toyota-dashboard', 'config.yaml'),
+            os.path.join(paths.app_dir, 'config.yaml')
+        ]
+        
+        for alt_path in alternative_paths:
+            alt_dir = os.path.dirname(alt_path)
+            diagnostic_info["alternative_paths"].append({
+                "path": alt_path,
+                "exists": os.path.exists(alt_path),
+                "readable": os.access(alt_path, os.R_OK) if os.path.exists(alt_path) else False,
+                "writable": os.access(alt_path, os.W_OK) if os.path.exists(alt_path) else False,
+                "dir_exists": os.path.exists(alt_dir),
+                "dir_writable": os.access(alt_dir, os.W_OK) if os.path.exists(alt_dir) else False,
+            })
+        
+        return diagnostic_info
+        
+    except Exception as e:
+        logger.error(f"Ошибка получения информации о путях: {e}")
+        return JSONResponse(
+            status_code=500,
+            content={
+                "success": False,
+                "error": str(e)
+            }
+        )
 
 # Маршрут для страницы тестирования
 @app.get("/test", response_class=HTMLResponse)
@@ -1741,6 +1874,19 @@ async def test_page():
     except FileNotFoundError:
         return HTMLResponse(
             content="<h1>Страница тестирования не найдена</h1>",
+            status_code=404
+        )
+
+# Страница диагностики системы
+@app.get("/diagnostics", response_class=HTMLResponse)
+async def diagnostics_page():
+    """Страница диагностики системы."""
+    try:
+        with open(os.path.join(APP_DIR, 'static', 'diagnostics.html'), 'r', encoding='utf-8') as f:
+            return f.read()
+    except FileNotFoundError:
+        return HTMLResponse(
+            content="<h1>Страница диагностики не найдена</h1>",
             status_code=404
         )
 
