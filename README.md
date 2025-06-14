@@ -75,6 +75,33 @@ curl -sSL "https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/inst
 
 Умеешь кодить? Pull requests приветствуются (но сначала убедись, что код работает).
 
+## 🔧 Устранение неполадок
+
+### Проблема с правами доступа "Permission denied"
+
+Если вы видите ошибки типа `Permission denied: '/home/toyota'`, выполните:
+
+```bash
+curl -sSL "https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/install.sh" | sudo bash -s -- --fix-permissions
+```
+
+### Проверка статуса сервиса
+
+```bash
+# Статус сервиса
+sudo systemctl status toyota-dashboard
+
+# Логи в реальном времени
+sudo journalctl -u toyota-dashboard -f
+
+# Перезапуск сервиса
+sudo systemctl restart toyota-dashboard
+```
+
+### Диагностика системы
+
+Откройте в браузере: `http://ваш-ip/diagnostics.html` для проверки состояния системы.
+
 ## 📜 Лицензия
 
 MIT - делай что хочешь, но если что-то сломается, это не наша вина.
