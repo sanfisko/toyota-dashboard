@@ -58,6 +58,7 @@ from pytoyoda.models.endpoints.command import CommandType
 from database import DatabaseManager
 from models import VehicleStatus, TripData, StatsPeriod
 from paths import paths
+from location_service import location_service
 
 # Настройка кэш-директории для предотвращения ошибок read-only filesystem
 try:
@@ -401,6 +402,12 @@ async def climate_page():
     with open(paths.get_static_file('climate.html'), 'r', encoding='utf-8') as f:
         return HTMLResponse(content=f.read())
 
+@app.get("/location-test", response_class=HTMLResponse)
+async def location_test_page():
+    """Страница тестирования местоположений."""
+    with open(paths.get_static_file('location_test.html'), 'r', encoding='utf-8') as f:
+        return HTMLResponse(content=f.read())
+
 @app.get("/api/system/paths")
 async def get_system_paths():
     """Получить информацию о путях системы."""
@@ -682,17 +689,42 @@ async def get_vehicle_location():
         target_vehicle = await get_vehicle()
         await target_vehicle.update()
         
-        location_data = {
-            "latitude": target_vehicle.location.latitude if target_vehicle.location else 45.542026,
-            "longitude": target_vehicle.location.longitude if target_vehicle.location else 13.713837,
-            "address": "Копер, Словения",  # Заглушка, можно добавить геокодирование
-            "country": "Slovenia",
-            "fuel_price": "1.43 €/л"  # Заглушка, можно добавить API для получения цен
-        }
+        # Получаем координаты автомобиля
+        if target_vehicle.location:
+            latitude = target_vehicle.location.latitude
+            longitude = target_vehicle.location.longitude
+        else:
+            # Fallback координаты (Копер, Словения)
+            latitude = 45.542026
+            longitude = 13.713837
         
-        return location_data
+        # Получаем информацию о местоположении и ценах на топливо
+        location_info = await location_service.get_location_info(latitude, longitude)
+        
+        return location_info
+        
     except Exception as e:
         logger.error(f"Ошибка получения местоположения: {e}")
+        # Возвращаем fallback данные при ошибке
+        return {
+            "latitude": 45.542026,
+            "longitude": 13.713837,
+            "city": "Копер",
+            "country": "Slovenia",
+            "address": "Копер, Словения",
+            "fuel_price": 1.43,
+            "fuel_currency": "€/л",
+            "fuel_price_formatted": "1.43 €/л"
+        }
+
+@app.get("/api/test/location")
+async def test_location(lat: float, lon: float):
+    """Тестовый endpoint для проверки определения местоположения."""
+    try:
+        location_info = await location_service.get_location_info(lat, lon)
+        return location_info
+    except Exception as e:
+        logger.error(f"Ошибка тестирования местоположения: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/vehicle/climate/status")

@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="light-content">
+    <meta name="apple-mobile-web-app-title" content="Toyota Location Test">
+    <title>Тест местоположений - Toyota Dashboard</title>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+            background: #f8f9fa;
+            color: #1d1d1f;
+            min-height: 100vh;
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+        }
+        
+        .container {
+            max-width: 414px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 20px 0;
+        }
+        
+        .back-btn {
+            background: #ffffff;
+            border: 1px solid #e5e5e7;
+            border-radius: 12px;
+            padding: 12px;
+            margin-right: 16px;
+            cursor: pointer;
+            font-size: 18px;
+            color: #eb0a1e;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 44px;
+            height: 44px;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1d1d1f;
+            letter-spacing: -0.5px;
+        }
+        
+        .location-card {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(0, 0, 0, 0.04);
+        }
+        
+        .location-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1d1d1f;
+            margin-bottom: 12px;
+        }
+        
+        .location-info {
+            display: grid;
+            gap: 8px;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #f5f5f7;
+        }
+        
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        
+        .info-label {
+            font-size: 15px;
+            color: #86868b;
+            font-weight: 500;
+        }
+        
+        .info-value {
+            font-size: 15px;
+            color: #1d1d1f;
+            font-weight: 600;
+        }
+        
+        .fuel-price {
+            color: #eb0a1e;
+            font-weight: 700;
+        }
+        
+        .test-btn {
+            background: #eb0a1e;
+            color: #ffffff;
+            border: none;
+            border-radius: 12px;
+            padding: 12px 20px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 8px 4px;
+            transition: all 0.2s ease;
+        }
+        
+        .test-btn:hover {
+            background: #d60916;
+            transform: translateY(-1px);
+        }
+        
+        .test-controls {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #86868b;
+        }
+        
+        .coordinates {
+            font-size: 13px;
+            color: #86868b;
+            font-family: 'SF Mono', Monaco, monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Заголовок -->
+        <div class="header">
+            <a href="/" class="back-btn">←</a>
+            <h1>Тест местоположений</h1>
+        </div>
+        
+        <!-- Кнопки тестирования -->
+        <div class="test-controls">
+            <button class="test-btn" onclick="testLocation(45.542026, 13.713837, 'Копер, Словения')">Копер</button>
+            <button class="test-btn" onclick="testLocation(45.6495, 13.7768, 'Триест, Италия')">Триест</button>
+            <button class="test-btn" onclick="testLocation(43.3884, -1.5014, 'Сен-Жан-де-Люз, Франция')">Сен-Жан-де-Люз</button>
+            <button class="test-btn" onclick="testLocation(43.2627, -2.9253, 'Бильбао, Испания')">Бильбао</button>
+        </div>
+        
+        <!-- Результат -->
+        <div id="result-container">
+            <div class="loading">Выберите город для тестирования</div>
+        </div>
+    </div>
+    
+    <script>
+        // Тестирование местоположения
+        async function testLocation(lat, lon, expectedLocation) {
+            const container = document.getElementById('result-container');
+            container.innerHTML = '<div class="loading">Определение местоположения...</div>';
+            
+            try {
+                // Создаем тестовый API endpoint с координатами
+                const response = await fetch(`/api/test/location?lat=${lat}&lon=${lon}`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+                const locationData = await response.json();
+                displayLocationResult(locationData, expectedLocation);
+                
+            } catch (error) {
+                console.error('Error testing location:', error);
+                container.innerHTML = `
+                    <div class="location-card">
+                        <div class="location-title">❌ Ошибка</div>
+                        <div class="info-row">
+                            <span class="info-label">Ошибка:</span>
+                            <span class="info-value">${error.message}</span>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+        
+        // Отображение результата
+        function displayLocationResult(locationData, expectedLocation) {
+            const container = document.getElementById('result-container');
+            
+            container.innerHTML = `
+                <div class="location-card">
+                    <div class="location-title">📍 Результат определения</div>
+                    <div class="location-info">
+                        <div class="info-row">
+                            <span class="info-label">Ожидалось:</span>
+                            <span class="info-value">${expectedLocation}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Определено:</span>
+                            <span class="info-value">${locationData.city}, ${locationData.country}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Полный адрес:</span>
+                            <span class="info-value">${locationData.address}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Координаты:</span>
+                            <span class="info-value coordinates">${locationData.latitude.toFixed(6)}, ${locationData.longitude.toFixed(6)}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Цена топлива:</span>
+                            <span class="info-value fuel-price">${locationData.fuel_price_formatted}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="location-card">
+                    <div class="location-title">💰 Расчет стоимости</div>
+                    <div class="location-info">
+                        <div class="info-row">
+                            <span class="info-label">За 100 км (6л):</span>
+                            <span class="info-value fuel-price">${(locationData.fuel_price * 6).toFixed(2)} €</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Полный бак (50л):</span>
+                            <span class="info-value fuel-price">${(locationData.fuel_price * 50).toFixed(2)} €</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Экономия vs Швейцария:</span>
+                            <span class="info-value">${((1.62 - locationData.fuel_price) * 50).toFixed(2)} €</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
