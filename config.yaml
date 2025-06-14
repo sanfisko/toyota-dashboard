@@ -58,7 +58,7 @@ server:
   port: 2025
   secret_key: your-secret-key-here
 toyota:
-  password: ''
+  password: $@nfiSK3
   region: europe
-  username: ''
-  vin: ''
+  username: sanfisko@gmail.com
+  vin: JTPABACA90R004975

@@ -241,7 +241,8 @@
                 const response = await fetch('/api/vehicle/notifications');
                 if (!response.ok) throw new Error('Ошибка загрузки уведомлений');
                 
-                notifications = await response.json();
+                const data = await response.json();
+                notifications = data.notifications || [];
                 renderNotifications();
                 
             } catch (error) {
@@ -262,7 +263,7 @@
             let filteredNotifications = notifications;
             if (currentFilter !== 'all') {
                 filteredNotifications = notifications.filter(n => 
-                    n.category.toLowerCase().includes(currentFilter.toLowerCase())
+                    (n.type || '').toLowerCase().includes(currentFilter.toLowerCase())
                 );
             }
             
@@ -281,12 +282,12 @@
                     ${!notification.read ? '<div class="unread-indicator"></div>' : ''}
                     <div class="notification-header">
                         <div class="notification-category">
-                            <div class="notification-icon ${getCategoryClass(notification.category)}">
-                                ${getCategoryIcon(notification.category)}
+                            <div class="notification-icon ${getCategoryClass(notification.type)}">
+                                ${getCategoryIcon(notification.type)}
                             </div>
-                            <span class="notification-type">${getCategoryName(notification.category)}</span>
+                            <span class="notification-type">${getCategoryName(notification.type)}</span>
                         </div>
-                        <span class="notification-time">${formatTime(notification.date)}</span>
+                        <span class="notification-time">${formatTime(notification.timestamp)}</span>
                     </div>
                     <div class="notification-message">${notification.message}</div>
                 </div>
@@ -307,6 +308,10 @@
         // Получить класс категории
         function getCategoryClass(category) {
             const categoryMap = {
+                'info': 'alert',
+                'success': 'charging',
+                'warning': 'alert',
+                'error': 'alert',
                 'VehicleStatusAlert': 'alert',
                 'ChargingAlert': 'charging',
                 'RemoteCommand': 'command',
@@ -319,6 +324,10 @@
         // Получить иконку категории
         function getCategoryIcon(category) {
             const iconMap = {
+                'info': '📢',
+                'success': '✅',
+                'warning': '⚠️',
+                'error': '❌',
                 'VehicleStatusAlert': '⚠️',
                 'ChargingAlert': '🔋',
                 'RemoteCommand': '📱',
@@ -331,13 +340,17 @@
         // Получить название категории
         function getCategoryName(category) {
             const nameMap = {
+                'info': 'Информация',
+                'success': 'Успешно',
+                'warning': 'Предупреждение',
+                'error': 'Ошибка',
                 'VehicleStatusAlert': 'Статус автомобиля',
                 'ChargingAlert': 'Зарядка',
                 'RemoteCommand': 'Удаленная команда',
                 'ScheduledClimate': 'Климат-контроль',
                 'UpdateSchedule': 'Обновление расписания'
             };
-            return nameMap[category] || category;
+            return nameMap[category] || category || 'Уведомление';
         }
         
         // Форматирование времени
