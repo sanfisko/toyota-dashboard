@@ -555,21 +555,27 @@ StandardError=journal
 WantedBy=default.target
 EOF
     
-    # Перезагружаем systemd для пользователя
+    # Устанавливаем правильного владельца для файла сервиса
     if [[ -n "$SUDO_USER" ]]; then
-        sudo -u "$SUDO_USER" systemctl --user daemon-reload
-        sudo -u "$SUDO_USER" systemctl --user enable toyota-dashboard.service
-    else
-        systemctl --user daemon-reload
-        systemctl --user enable toyota-dashboard.service
+        chown "$CURRENT_UID:$CURRENT_GID" "$CURRENT_HOME/.config/systemd/user/toyota-dashboard.service" 2>/dev/null || true
     fi
-    
-    print_success "Systemd сервис создан и включен"
+
+    print_success "Systemd сервис создан"
+    print_info "Файл сервиса создан: $CURRENT_HOME/.config/systemd/user/toyota-dashboard.service"
+    print_warning "Для активации сервиса выполните следующие команды от имени пользователя $CURRENT_USER:"
+    print_info "  systemctl --user daemon-reload"
+    print_info "  systemctl --user enable toyota-dashboard.service"
+    print_info "  systemctl --user start toyota-dashboard.service"
+    echo
     print_info "Управление сервисом:"
     print_info "  Запуск:    systemctl --user start toyota-dashboard"
     print_info "  Остановка: systemctl --user stop toyota-dashboard"
     print_info "  Статус:    systemctl --user status toyota-dashboard"
     print_info "  Логи:      journalctl --user -u toyota-dashboard -f"
+    echo
+    print_info "Альтернативно, используйте скрипты управления:"
+    print_info "  $INSTALL_DIR/start.sh    # Запуск"
+    print_info "  $INSTALL_DIR/stop.sh     # Остановка"
 }
 
 # Создание скриптов управления
@@ -579,18 +585,99 @@ create_management_scripts() {
     # Скрипт запуска
     cat > "$INSTALL_DIR/start.sh" << EOF
 #!/bin/bash
-cd "$INSTALL_DIR"
+# Toyota Dashboard - Скрипт запуска
+
+SCRIPT_DIR="\$(cd "\$(dirname "\${BASH_SOURCE[0]}")" && pwd)"
+cd "\$SCRIPT_DIR"
+
+# Проверяем, не запущен ли уже процесс
+if pgrep -f "python.*app.py" > /dev/null; then
+    echo "Toyota Dashboard уже запущен"
+    exit 0
+fi
+
+echo "Запуск Toyota Dashboard..."
 source venv/bin/activate
-python app.py
+
+# Запускаем в фоне
+nohup python app.py > logs/app.log 2>&1 &
+echo \$! > toyota-dashboard.pid
+
+echo "Toyota Dashboard запущен (PID: \$(cat toyota-dashboard.pid))"
+echo "Логи: \$SCRIPT_DIR/logs/app.log"
+echo "Веб-интерфейс: http://localhost:2025"
 EOF
     chmod +x "$INSTALL_DIR/start.sh"
     
     # Скрипт остановки
     cat > "$INSTALL_DIR/stop.sh" << EOF
 #!/bin/bash
-pkill -f "python.*app.py" || echo "Процесс не найден"
+# Toyota Dashboard - Скрипт остановки
+
+SCRIPT_DIR="\$(cd "\$(dirname "\${BASH_SOURCE[0]}")" && pwd)"
+cd "\$SCRIPT_DIR"
+
+echo "Остановка Toyota Dashboard..."
+
+# Останавливаем по PID файлу
+if [[ -f toyota-dashboard.pid ]]; then
+    PID=\$(cat toyota-dashboard.pid)
+    if kill "\$PID" 2>/dev/null; then
+        echo "Процесс \$PID остановлен"
+        rm -f toyota-dashboard.pid
+    else
+        echo "Процесс \$PID не найден"
+        rm -f toyota-dashboard.pid
+    fi
+fi
+
+# Дополнительно останавливаем по имени процесса
+if pkill -f "python.*app.py"; then
+    echo "Дополнительные процессы остановлены"
+fi
+
+echo "Toyota Dashboard остановлен"
 EOF
     chmod +x "$INSTALL_DIR/stop.sh"
+    
+    # Скрипт проверки статуса
+    cat > "$INSTALL_DIR/status.sh" << EOF
+#!/bin/bash
+# Toyota Dashboard - Проверка статуса
+
+SCRIPT_DIR="\$(cd "\$(dirname "\${BASH_SOURCE[0]}")" && pwd)"
+cd "\$SCRIPT_DIR"
+
+echo "=== Статус Toyota Dashboard ==="
+
+# Проверяем по PID файлу
+if [[ -f toyota-dashboard.pid ]]; then
+    PID=\$(cat toyota-dashboard.pid)
+    if kill -0 "\$PID" 2>/dev/null; then
+        echo "✅ Запущен (PID: \$PID)"
+        echo "📊 Веб-интерфейс: http://localhost:2025"
+        echo "📝 Логи: \$SCRIPT_DIR/logs/app.log"
+    else
+        echo "❌ PID файл существует, но процесс не найден"
+        rm -f toyota-dashboard.pid
+    fi
+else
+    # Проверяем по имени процесса
+    if pgrep -f "python.*app.py" > /dev/null; then
+        echo "⚠️  Запущен, но без PID файла"
+        echo "📊 Веб-интерфейс: http://localhost:2025"
+    else
+        echo "❌ Не запущен"
+    fi
+fi
+
+echo
+echo "=== Управление ==="
+echo "Запуск:    \$SCRIPT_DIR/start.sh"
+echo "Остановка: \$SCRIPT_DIR/stop.sh"
+echo "Статус:    \$SCRIPT_DIR/status.sh"
+EOF
+    chmod +x "$INSTALL_DIR/status.sh"
     
     # Скрипт обновления
     cat > "$INSTALL_DIR/update.sh" << EOF
@@ -620,21 +707,31 @@ setup_autostart() {
         sudo loginctl enable-linger "$CURRENT_USER" 2>/dev/null || print_warning "Не удалось включить lingering"
     fi
     
-    # Запускаем сервис
+    # Пытаемся запустить сервис
+    local service_started=false
+    
     if [[ -n "$SUDO_USER" ]]; then
-        sudo -u "$SUDO_USER" systemctl --user start toyota-dashboard.service
-        if sudo -u "$SUDO_USER" systemctl --user is-active toyota-dashboard.service >/dev/null 2>&1; then
-            print_success "Toyota Dashboard сервис запущен"
-        else
-            print_warning "Сервис не запущен. Проверьте конфигурацию и запустите вручную"
+        if sudo -u "$SUDO_USER" systemctl --user start toyota-dashboard.service 2>/dev/null; then
+            if sudo -u "$SUDO_USER" systemctl --user is-active toyota-dashboard.service >/dev/null 2>&1; then
+                print_success "Toyota Dashboard сервис запущен"
+                service_started=true
+            fi
         fi
     else
-        systemctl --user start toyota-dashboard.service
-        if systemctl --user is-active toyota-dashboard.service >/dev/null 2>&1; then
-            print_success "Toyota Dashboard сервис запущен"
-        else
-            print_warning "Сервис не запущен. Проверьте конфигурацию и запустите вручную"
+        if systemctl --user start toyota-dashboard.service 2>/dev/null; then
+            if systemctl --user is-active toyota-dashboard.service >/dev/null 2>&1; then
+                print_success "Toyota Dashboard сервис запущен"
+                service_started=true
+            fi
         fi
+    fi
+    
+    if [[ "$service_started" != true ]]; then
+        print_warning "Не удалось запустить сервис через systemd"
+        print_info "Попробуйте запустить вручную:"
+        print_info "  $INSTALL_DIR/start.sh"
+        print_info "Или после входа в систему:"
+        print_info "  systemctl --user start toyota-dashboard"
     fi
     
     print_success "Автозапуск настроен"
@@ -711,22 +808,27 @@ main() {
     echo "   - password: ваш пароль"
     echo "   - vin: VIN номер вашего Toyota автомобиля"
     echo
-    echo -e "${YELLOW}3. Управление сервисом:${NC}"
-    echo "   systemctl --user start toyota-dashboard    # Запуск"
-    echo "   systemctl --user stop toyota-dashboard     # Остановка"
-    echo "   systemctl --user restart toyota-dashboard  # Перезапуск"
-    echo "   systemctl --user status toyota-dashboard   # Статус"
+    echo -e "${YELLOW}3. Запуск приложения:${NC}"
+    echo "   Способ 1 (через systemd, если доступен):"
+    echo "     systemctl --user start toyota-dashboard"
+    echo "     systemctl --user status toyota-dashboard"
+    echo
+    echo "   Способ 2 (прямой запуск):"
+    echo "     $INSTALL_DIR/start.sh"
+    echo "     $INSTALL_DIR/status.sh"
     echo
     echo -e "${YELLOW}4. Доступ к дашборду:${NC}"
     echo "   http://localhost:2025"
     echo
-    echo -e "${YELLOW}5. Логи:${NC}"
-    echo "   journalctl --user -u toyota-dashboard -f"
+    echo -e "${YELLOW}5. Управление:${NC}"
+    echo "   $INSTALL_DIR/start.sh    # Запуск"
+    echo "   $INSTALL_DIR/stop.sh     # Остановка"
+    echo "   $INSTALL_DIR/status.sh   # Статус"
+    echo "   $INSTALL_DIR/update.sh   # Обновление"
     echo
-    echo -e "${YELLOW}6. Скрипты управления:${NC}"
-    echo "   $INSTALL_DIR/start.sh   # Прямой запуск"
-    echo "   $INSTALL_DIR/stop.sh    # Остановка"
-    echo "   $INSTALL_DIR/update.sh  # Обновление"
+    echo -e "${YELLOW}6. Логи:${NC}"
+    echo "   $INSTALL_DIR/logs/app.log              # Логи приложения"
+    echo "   journalctl --user -u toyota-dashboard  # Логи systemd (если доступен)"
     echo
     echo -e "${GREEN}Установка завершена успешно! Toyota Dashboard готов! ✨${NC}"
 }
