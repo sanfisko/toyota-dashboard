@@ -272,16 +272,20 @@ create_user() {
     # Убеждаемся, что домашняя директория существует и доступна
     if [ ! -d "/home/toyota" ]; then
         sudo mkdir -p /home/toyota
+        print_info "Создана домашняя директория /home/toyota"
     fi
     
     # Устанавливаем правильные права доступа
     sudo chown toyota:toyota /home/toyota
     sudo chmod 755 /home/toyota
+    print_info "Установлены права доступа для /home/toyota"
     
     # Создаем пользовательские директории для конфигурации
+    print_info "Создание пользовательских директорий..."
     sudo mkdir -p /home/toyota/.config/toyota-dashboard
     sudo mkdir -p /home/toyota/.local/share/toyota-dashboard
     sudo mkdir -p /home/toyota/.local/share/toyota-dashboard/logs
+    sudo mkdir -p /home/toyota/.local/share/toyota-dashboard/backups
     sudo mkdir -p /home/toyota/.cache/toyota-dashboard
     
     # Устанавливаем права доступа для всех директорий
@@ -291,6 +295,58 @@ create_user() {
     sudo chmod -R 755 /home/toyota/.config
     sudo chmod -R 755 /home/toyota/.local
     sudo chmod -R 755 /home/toyota/.cache
+    
+    print_success "Пользовательские директории созданы и настроены"
+}
+
+# Исправление прав доступа (можно вызвать отдельно)
+fix_permissions() {
+    print_step "Исправление прав доступа..."
+    
+    # Проверяем, что пользователь toyota существует
+    if ! id "toyota" &>/dev/null; then
+        print_error "Пользователь toyota не существует. Запустите полную установку."
+        return 1
+    fi
+    
+    # Останавливаем сервис
+    sudo systemctl stop toyota-dashboard 2>/dev/null || true
+    
+    # Создаем и исправляем домашнюю директорию
+    sudo mkdir -p /home/toyota
+    sudo chown toyota:toyota /home/toyota
+    sudo chmod 755 /home/toyota
+    
+    # Создаем все необходимые директории
+    sudo mkdir -p /home/toyota/.config/toyota-dashboard
+    sudo mkdir -p /home/toyota/.local/share/toyota-dashboard
+    sudo mkdir -p /home/toyota/.local/share/toyota-dashboard/logs
+    sudo mkdir -p /home/toyota/.local/share/toyota-dashboard/backups
+    sudo mkdir -p /home/toyota/.cache/toyota-dashboard
+    
+    # Устанавливаем правильные права доступа
+    sudo chown -R toyota:toyota /home/toyota/.config
+    sudo chown -R toyota:toyota /home/toyota/.local
+    sudo chown -R toyota:toyota /home/toyota/.cache
+    sudo chmod -R 755 /home/toyota/.config
+    sudo chmod -R 755 /home/toyota/.local
+    sudo chmod -R 755 /home/toyota/.cache
+    
+    # Исправляем системные директории
+    sudo mkdir -p /opt/toyota-dashboard
+    sudo mkdir -p /var/log/toyota-dashboard
+    sudo mkdir -p /var/lib/toyota-dashboard/data
+    sudo mkdir -p /var/lib/toyota-dashboard/backups
+    sudo mkdir -p /etc/toyota-dashboard
+    
+    sudo chown -R toyota:toyota /opt/toyota-dashboard
+    sudo chown -R toyota:toyota /var/log/toyota-dashboard
+    sudo chown -R toyota:toyota /var/lib/toyota-dashboard
+    
+    # Запускаем сервис
+    sudo systemctl start toyota-dashboard 2>/dev/null || true
+    
+    print_success "Права доступа исправлены"
 }
 
 # Создание директорий
@@ -920,6 +976,7 @@ main() {
     install_dependencies
     create_user
     create_directories
+    fix_permissions
     download_project
     install_python_deps
     setup_config
@@ -945,6 +1002,15 @@ case "${1:-}" in
             exit 1
         fi
         fix_dependencies
+        ;;
+    --fix-permissions)
+        print_header
+        if [[ $EUID -ne 0 ]]; then
+            print_error "Этот скрипт должен быть запущен с правами root (sudo)"
+            exit 1
+        fi
+        fix_permissions
+        print_success "Исправление прав доступа завершено!"
         ;;
     *)
         main "$@"
