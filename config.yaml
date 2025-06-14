@@ -58,7 +58,7 @@ server:
   port: 2025
   secret_key: your-secret-key-here
 toyota:
-  password: ''
-  region: europe
-  username: ''
-  vin: ''
+  password: ""
+  region: "europe"
+  username: ""
+  vin: ""

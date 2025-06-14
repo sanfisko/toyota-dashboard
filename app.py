@@ -18,7 +18,7 @@ from typing import Dict, List, Optional
 import yaml
 from fastapi import FastAPI, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 import uvicorn
@@ -1684,18 +1684,11 @@ async def test_page():
             status_code=404
         )
 
-# Маршрут для страницы статистики
-@app.get("/stats", response_class=HTMLResponse)
-async def stats_page():
-    """Страница детальной статистики."""
-    try:
-        with open(os.path.join(APP_DIR, 'static', 'stats.html'), 'r', encoding='utf-8') as f:
-            return f.read()
-    except FileNotFoundError:
-        return HTMLResponse(
-            content="<h1>Страница статистики не найдена</h1>",
-            status_code=404
-        )
+# Перенаправление с /statistics на /stats для совместимости
+@app.get("/statistics", response_class=HTMLResponse)
+async def statistics_redirect():
+    """Перенаправление на страницу статистики."""
+    return RedirectResponse(url="/stats", status_code=301)
 
 @app.post("/api/command")
 async def execute_command(request: dict):
