@@ -423,6 +423,18 @@ diagnose_permissions() {
         print_error "Создание директорий в .config НЕ работает"
     fi
     
+    print_info "6. Проверка переменных окружения процесса:"
+    if pgrep -f "toyota-dashboard" >/dev/null; then
+        PID=$(pgrep -f "toyota-dashboard" | head -1)
+        print_info "PID процесса: $PID"
+        print_info "Переменные окружения процесса:"
+        sudo cat /proc/$PID/environ | tr '\0' '\n' | grep -E "(HOME|XDG|PYTHONPATH)" || print_warning "Переменные не найдены"
+        print_info "Рабочая директория процесса:"
+        sudo readlink /proc/$PID/cwd || print_warning "Не удалось определить рабочую директорию"
+    else
+        print_warning "Процесс toyota-dashboard не найден"
+    fi
+    
     echo
     print_success "Диагностика завершена"
 }
