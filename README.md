@@ -79,9 +79,13 @@ curl -sSL "https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/inst
 
 ### Проблема с правами доступа "Permission denied"
 
-Если вы видите ошибки типа `Permission denied: '/home/toyota'`, выполните:
+Если вы видите ошибки типа `Permission denied: '/home/toyota'`, сначала проведите диагностику:
 
 ```bash
+# Диагностика проблемы
+curl -sSL "https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/install.sh" | sudo bash -s -- --diagnose
+
+# Исправление прав доступа
 curl -sSL "https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/install.sh" | sudo bash -s -- --fix-permissions
 ```
 

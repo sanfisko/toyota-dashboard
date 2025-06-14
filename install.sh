@@ -374,6 +374,59 @@ fix_permissions() {
     print_success "Права доступа исправлены"
 }
 
+# Диагностика прав доступа
+diagnose_permissions() {
+    print_step "Диагностика прав доступа Toyota Dashboard..."
+    echo
+    
+    print_info "1. Проверка пользователя toyota:"
+    if id "toyota" &>/dev/null; then
+        print_success "Пользователь toyota существует"
+        id toyota
+    else
+        print_error "Пользователь toyota НЕ существует"
+    fi
+    echo
+    
+    print_info "2. Проверка домашней директории:"
+    if [ -d "/home/toyota" ]; then
+        print_success "Директория /home/toyota существует"
+        ls -ld /home/toyota
+        echo "Содержимое:"
+        ls -la /home/toyota/ 2>/dev/null || print_warning "Не удалось прочитать содержимое"
+    else
+        print_error "Директория /home/toyota НЕ существует"
+    fi
+    echo
+    
+    print_info "3. Проверка systemd сервиса:"
+    systemctl status toyota-dashboard --no-pager -l || print_warning "Сервис не запущен"
+    echo
+    
+    print_info "4. Проверка процесса:"
+    ps aux | grep toyota-dashboard | grep -v grep || print_warning "Процесс не найден"
+    echo
+    
+    print_info "5. Тест записи в директории:"
+    print_info "Тестирование записи от имени пользователя toyota..."
+    if sudo -u toyota touch /home/toyota/test_file 2>/dev/null; then
+        print_success "Запись в /home/toyota работает"
+        sudo -u toyota rm -f /home/toyota/test_file 2>/dev/null
+    else
+        print_error "Запись в /home/toyota НЕ работает"
+    fi
+    
+    if sudo -u toyota mkdir -p /home/toyota/.config/test 2>/dev/null; then
+        print_success "Создание директорий в .config работает"
+        sudo -u toyota rmdir /home/toyota/.config/test 2>/dev/null
+    else
+        print_error "Создание директорий в .config НЕ работает"
+    fi
+    
+    echo
+    print_success "Диагностика завершена"
+}
+
 # Создание директорий
 create_directories() {
     print_step "Создание директорий..."
@@ -1036,6 +1089,14 @@ case "${1:-}" in
         fi
         fix_permissions
         print_success "Исправление прав доступа завершено!"
+        ;;
+    --diagnose|--check)
+        print_header
+        if [[ $EUID -ne 0 ]]; then
+            print_error "Этот скрипт должен быть запущен с правами root (sudo)"
+            exit 1
+        fi
+        diagnose_permissions
         ;;
     *)
         main "$@"
