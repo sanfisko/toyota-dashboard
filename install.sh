@@ -262,12 +262,35 @@ create_user() {
     print_step "Создание пользователя toyota..."
     
     if ! id "toyota" &>/dev/null; then
-        sudo useradd -m -s /bin/bash toyota
-        sudo usermod -aG sudo toyota
+        # Создаем системного пользователя для сервиса
+        sudo useradd -r -m -s /bin/false -d /home/toyota toyota
         print_success "Пользователь toyota создан"
     else
         print_info "Пользователь toyota уже существует"
     fi
+    
+    # Убеждаемся, что домашняя директория существует и доступна
+    if [ ! -d "/home/toyota" ]; then
+        sudo mkdir -p /home/toyota
+    fi
+    
+    # Устанавливаем правильные права доступа
+    sudo chown toyota:toyota /home/toyota
+    sudo chmod 755 /home/toyota
+    
+    # Создаем пользовательские директории для конфигурации
+    sudo mkdir -p /home/toyota/.config/toyota-dashboard
+    sudo mkdir -p /home/toyota/.local/share/toyota-dashboard
+    sudo mkdir -p /home/toyota/.local/share/toyota-dashboard/logs
+    sudo mkdir -p /home/toyota/.cache/toyota-dashboard
+    
+    # Устанавливаем права доступа для всех директорий
+    sudo chown -R toyota:toyota /home/toyota/.config
+    sudo chown -R toyota:toyota /home/toyota/.local
+    sudo chown -R toyota:toyota /home/toyota/.cache
+    sudo chmod -R 755 /home/toyota/.config
+    sudo chmod -R 755 /home/toyota/.local
+    sudo chmod -R 755 /home/toyota/.cache
 }
 
 # Создание директорий
