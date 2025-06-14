@@ -40,17 +40,27 @@ class PathManager:
         
     def _can_use_system_dirs(self) -> bool:
         """Проверяет, можно ли использовать системные директории"""
-        try:
-            # Пытаемся создать тестовый файл в системной директории
-            test_dir = '/var/lib/toyota-dashboard'
-            os.makedirs(test_dir, exist_ok=True)
-            test_file = os.path.join(test_dir, '.test_write')
-            with open(test_file, 'w') as f:
-                f.write('test')
-            os.remove(test_file)
-            return True
-        except (OSError, PermissionError):
-            return False
+        # Проверяем все критически важные системные директории
+        system_dirs_to_check = [
+            self._system_data_dir,
+            self._system_log_dir,
+            self._system_config_dir
+        ]
+        
+        for test_dir in system_dirs_to_check:
+            try:
+                # Пытаемся создать директорию и тестовый файл
+                os.makedirs(test_dir, exist_ok=True)
+                test_file = os.path.join(test_dir, '.test_write')
+                with open(test_file, 'w') as f:
+                    f.write('test')
+                os.remove(test_file)
+            except (OSError, PermissionError):
+                # Если хотя бы одна директория недоступна для записи, 
+                # используем пользовательские директории
+                return False
+        
+        return True
     
     def ensure_directories(self):
         """Создает все необходимые директории"""
@@ -114,30 +124,36 @@ class PathManager:
     @property
     def config_file(self) -> str:
         """Путь к файлу конфигурации"""
-        # Сначала проверяем, можем ли писать в пользовательскую директорию
+        # Определяем возможные пути к конфигурации в порядке приоритета
         user_config = os.path.join(self.config_dir, 'config.yaml')
+        system_config = os.path.join(self._system_config_dir, 'config.yaml')
+        app_config = os.path.join(self._app_dir, 'config.yaml')
         
-        # Если файл уже существует в пользовательской директории, используем его
+        # 1. Если файл уже существует в пользовательской директории, используем его
         if os.path.exists(user_config):
             return user_config
         
-        # Проверяем, можем ли писать в системную директорию
-        if self._use_system_dirs:
-            system_config = os.path.join(self._system_config_dir, 'config.yaml')
-            if os.path.exists(system_config):
-                # Проверяем права на запись
+        # 2. Если используем системные директории и файл существует там
+        if self._use_system_dirs and os.path.exists(system_config):
+            # Дополнительно проверяем права на запись в системную конфигурацию
+            try:
+                with open(system_config, 'a'):
+                    pass
+                return system_config
+            except (OSError, PermissionError):
+                # Если нет прав на запись в системную конфигурацию,
+                # копируем её в пользовательскую директорию
                 try:
-                    with open(system_config, 'a'):
-                        pass
-                    return system_config
+                    import shutil
+                    os.makedirs(self.config_dir, exist_ok=True)
+                    shutil.copy2(system_config, user_config)
+                    return user_config
                 except (OSError, PermissionError):
                     pass
         
-        # Проверяем файл в директории приложения (только для чтения)
-        app_config = os.path.join(self._app_dir, 'config.yaml')
+        # 3. Проверяем файл в директории приложения (только для чтения)
         if os.path.exists(app_config):
-            # Если файл существует в app_dir, но мы не можем в него писать,
-            # копируем его в пользовательскую директорию
+            # Копируем его в пользовательскую директорию для возможности редактирования
             try:
                 import shutil
                 os.makedirs(self.config_dir, exist_ok=True)
@@ -146,7 +162,24 @@ class PathManager:
             except (OSError, PermissionError):
                 pass
         
-        # Возвращаем путь для создания нового файла в пользовательской директории
+        # 4. Если используем системные директории и можем писать туда
+        if self._use_system_dirs:
+            try:
+                # Проверяем возможность создания файла в системной директории
+                os.makedirs(self._system_config_dir, exist_ok=True)
+                test_file = os.path.join(self._system_config_dir, '.test_config_write')
+                with open(test_file, 'w') as f:
+                    f.write('test')
+                os.remove(test_file)
+                return system_config
+            except (OSError, PermissionError):
+                pass
+        
+        # 5. Возвращаем путь для создания нового файла в пользовательской директории
+        try:
+            os.makedirs(self.config_dir, exist_ok=True)
+        except (OSError, PermissionError):
+            pass
         return user_config
     
     @property
