@@ -96,14 +96,62 @@ DATA_DIR = paths.data_dir
 def load_config() -> Dict:
     """Загрузить конфигурацию из файла."""
     try:
-        with open(paths.config_file, 'r', encoding='utf-8') as f:
-            return yaml.safe_load(f)
-    except FileNotFoundError:
-        print(f"Файл конфигурации не найден: {paths.config_file}")
-        raise
+        config_path = paths.config_file
+        print(f"Попытка загрузки конфигурации из: {config_path}")
+        
+        if not os.path.exists(config_path):
+            print(f"Файл конфигурации не найден: {config_path}")
+            # Попробуем найти конфигурацию в других местах
+            alternative_paths = [
+                '/etc/toyota-dashboard/config.yaml',
+                '/opt/toyota-dashboard/config.yaml',
+                os.path.join(os.path.expanduser('~'), '.config', 'toyota-dashboard', 'config.yaml')
+            ]
+            
+            for alt_path in alternative_paths:
+                if os.path.exists(alt_path):
+                    print(f"Найден альтернативный файл конфигурации: {alt_path}")
+                    config_path = alt_path
+                    break
+            else:
+                print("Конфигурационный файл не найден ни в одном из ожидаемых мест")
+                print("Создаем базовую конфигурацию...")
+                return create_default_config()
+        
+        with open(config_path, 'r', encoding='utf-8') as f:
+            config_data = yaml.safe_load(f)
+            print(f"Конфигурация успешно загружена из: {config_path}")
+            return config_data
+            
     except yaml.YAMLError as e:
         print(f"Ошибка в файле конфигурации: {e}")
         raise
+    except Exception as e:
+        print(f"Неожиданная ошибка при загрузке конфигурации: {e}")
+        return create_default_config()
+
+def create_default_config() -> Dict:
+    """Создать базовую конфигурацию по умолчанию."""
+    return {
+        'toyota': {
+            'username': '',
+            'password': '',
+            'vin': '',
+            'region': 'europe'
+        },
+        'server': {
+            'host': '0.0.0.0',
+            'port': 2025,
+            'secret_key': 'default-secret-key-change-me'
+        },
+        'database': {
+            'path': paths.database_path
+        },
+        'logging': {
+            'level': 'INFO',
+            'file': paths.log_file
+        }
+    }
 
 # Глобальные переменные
 config = load_config()

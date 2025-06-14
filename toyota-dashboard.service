@@ -12,7 +12,7 @@ Environment=HOME=/home/toyota
 Environment=XDG_CACHE_HOME=/home/toyota/.cache
 Environment=HTTPX_CACHE_DIR=/home/toyota/.cache/toyota-dashboard
 Environment=PYTHONPATH=/opt/toyota-dashboard
-ExecStartPre=/bin/mkdir -p /home/toyota/.cache/toyota-dashboard
+ExecStartPre=/bin/bash -c 'mkdir -p /home/toyota/.cache/toyota-dashboard /home/toyota/.config/toyota-dashboard /home/toyota/.local/share/toyota-dashboard && chown -R toyota:toyota /home/toyota'
 ExecStart=/opt/toyota-dashboard/venv/bin/python /opt/toyota-dashboard/app.py
 Restart=always
 RestartSec=10

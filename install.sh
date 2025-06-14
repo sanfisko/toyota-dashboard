@@ -459,12 +459,26 @@ setup_config() {
         python3 setup_config.py 2>/dev/null || python3 setup_config.py
     "
     
-    # Создание секретного ключа, если конфигурация была создана
+    # Копируем конфигурацию в правильные места
     CONFIG_FILE="/opt/toyota-dashboard/config.yaml"
+    USER_CONFIG="/home/toyota/.config/toyota-dashboard/config.yaml"
+    SYSTEM_CONFIG="/etc/toyota-dashboard/config.yaml"
+    
     if [[ -f "$CONFIG_FILE" ]]; then
+        # Создание секретного ключа
         SECRET_KEY=$(python3 -c "import secrets; print(secrets.token_urlsafe(32))")
         sudo -u toyota sed -i "s/your-secret-key-here/$SECRET_KEY/" "$CONFIG_FILE"
-        print_info "Файл конфигурации: $CONFIG_FILE"
+        
+        # Копируем в пользовательскую директорию
+        sudo -u toyota cp "$CONFIG_FILE" "$USER_CONFIG"
+        
+        # Копируем в системную директорию
+        sudo cp "$CONFIG_FILE" "$SYSTEM_CONFIG"
+        sudo chown toyota:toyota "$SYSTEM_CONFIG"
+        
+        print_info "Файл конфигурации скопирован в:"
+        print_info "  - $USER_CONFIG (пользовательская)"
+        print_info "  - $SYSTEM_CONFIG (системная)"
         print_warning "ВАЖНО: Отредактируйте файл конфигурации и добавьте ваши Toyota credentials!"
     fi
     
