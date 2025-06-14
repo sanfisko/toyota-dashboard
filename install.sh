@@ -454,7 +454,7 @@ setup_config() {
     "
     
     # Создание секретного ключа, если конфигурация была создана
-    CONFIG_FILE=$(sudo -u toyota bash -c "source venv/bin/activate && python3 -c 'from paths import paths; print(paths.config_file)'")
+    CONFIG_FILE="/opt/toyota-dashboard/config.yaml"
     if [[ -f "$CONFIG_FILE" ]]; then
         SECRET_KEY=$(python3 -c "import secrets; print(secrets.token_urlsafe(32))")
         sudo -u toyota sed -i "s/your-secret-key-here/$SECRET_KEY/" "$CONFIG_FILE"
