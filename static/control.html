@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="light-content">
+    <meta name="apple-mobile-web-app-title" content="Toyota Dashboard">
+    <title>Управление - Toyota Dashboard</title>
+    
+    <!-- PWA манифест -->
+    <link rel="manifest" href="/static/manifest.json">
+    
+    <!-- Стили -->
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+            background: #f8f9fa;
+            color: #1d1d1f;
+            min-height: 100vh;
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+        }
+        
+        .container {
+            max-width: 414px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 20px 0;
+        }
+        
+        .back-btn {
+            background: #ffffff;
+            border: 1px solid #e5e5e7;
+            border-radius: 12px;
+            padding: 12px;
+            margin-right: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            color: #1d1d1f;
+        }
+        
+        .back-btn:hover {
+            background: #f5f5f7;
+            transform: scale(0.95);
+        }
+        
+        .title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1d1d1f;
+        }
+        
+        .control-section {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #1d1d1f;
+        }
+        
+        .control-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        
+        .control-btn {
+            background: #007aff;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 20px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .control-btn:hover {
+            background: #0056b3;
+            transform: scale(0.95);
+        }
+        
+        .control-btn:disabled {
+            background: #8e8e93;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .control-btn.danger {
+            background: #ff3b30;
+        }
+        
+        .control-btn.danger:hover {
+            background: #d70015;
+        }
+        
+        .control-btn.success {
+            background: #34c759;
+        }
+        
+        .control-btn.success:hover {
+            background: #248a3d;
+        }
+        
+        .control-icon {
+            font-size: 24px;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-left: 8px;
+        }
+        
+        .status-indicator.online {
+            background: #34c759;
+        }
+        
+        .status-indicator.offline {
+            background: #ff3b30;
+        }
+        
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+        
+        .message {
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+        
+        .message.success {
+            background: #d1f2eb;
+            color: #0f5132;
+            border: 1px solid #a3cfbb;
+        }
+        
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f1aeb5;
+        }
+        
+        .message.info {
+            background: #cce5ff;
+            color: #004085;
+            border: 1px solid #99d3ff;
+        }
+        
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <a href="/" class="back-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="m15 18-6-6 6-6"/>
+                </svg>
+            </a>
+            <h1 class="title">Управление</h1>
+        </div>
+        
+        <div id="message" class="message hidden"></div>
+        
+        <!-- Замки -->
+        <div class="control-section">
+            <h2 class="section-title">
+                Замки
+                <span id="lock-status" class="status-indicator offline"></span>
+            </h2>
+            <div class="control-grid">
+                <button class="control-btn" id="lock-btn" onclick="controlLocks('lock')">
+                    <span class="control-icon">🔒</span>
+                    Заблокировать
+                </button>
+                <button class="control-btn danger" id="unlock-btn" onclick="controlLocks('unlock')">
+                    <span class="control-icon">🔓</span>
+                    Разблокировать
+                </button>
+            </div>
+        </div>
+        
+        <!-- Двигатель -->
+        <div class="control-section">
+            <h2 class="section-title">
+                Двигатель
+                <span id="engine-status" class="status-indicator offline"></span>
+            </h2>
+            <div class="control-grid">
+                <button class="control-btn success" id="start-btn" onclick="controlEngine('start')">
+                    <span class="control-icon">🚗</span>
+                    Запустить
+                </button>
+                <button class="control-btn danger" id="stop-btn" onclick="controlEngine('stop')">
+                    <span class="control-icon">⏹️</span>
+                    Остановить
+                </button>
+            </div>
+        </div>
+        
+        <!-- Климат-контроль -->
+        <div class="control-section">
+            <h2 class="section-title">
+                Климат-контроль
+                <span id="climate-status" class="status-indicator offline"></span>
+            </h2>
+            <div class="control-grid">
+                <button class="control-btn" id="climate-on-btn" onclick="controlClimate('on')">
+                    <span class="control-icon">❄️</span>
+                    Включить
+                </button>
+                <button class="control-btn" id="climate-off-btn" onclick="controlClimate('off')">
+                    <span class="control-icon">🌡️</span>
+                    Выключить
+                </button>
+            </div>
+        </div>
+        
+        <!-- Освещение -->
+        <div class="control-section">
+            <h2 class="section-title">Освещение</h2>
+            <div class="control-grid">
+                <button class="control-btn" id="lights-on-btn" onclick="controlLights('on')">
+                    <span class="control-icon">💡</span>
+                    Включить фары
+                </button>
+                <button class="control-btn" id="hazard-btn" onclick="controlLights('hazard')">
+                    <span class="control-icon">⚠️</span>
+                    Аварийка
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let isLoading = false;
+        
+        function showMessage(text, type = 'info') {
+            const messageEl = document.getElementById('message');
+            messageEl.textContent = text;
+            messageEl.className = `message ${type}`;
+            messageEl.classList.remove('hidden');
+            
+            setTimeout(() => {
+                messageEl.classList.add('hidden');
+            }, 5000);
+        }
+        
+        function setLoading(loading) {
+            isLoading = loading;
+            document.body.classList.toggle('loading', loading);
+            
+            // Отключаем все кнопки во время загрузки
+            const buttons = document.querySelectorAll('.control-btn');
+            buttons.forEach(btn => {
+                btn.disabled = loading;
+            });
+        }
+        
+        async function makeRequest(url, data = null) {
+            if (isLoading) return;
+            
+            setLoading(true);
+            
+            try {
+                const options = {
+                    method: data ? 'POST' : 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                };
+                
+                if (data) {
+                    options.body = JSON.stringify(data);
+                }
+                
+                const response = await fetch(url, options);
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showMessage(result.message || 'Команда выполнена успешно', 'success');
+                    updateStatus();
+                } else {
+                    showMessage(result.detail || 'Произошла ошибка', 'error');
+                }
+                
+                return result;
+            } catch (error) {
+                console.error('Ошибка запроса:', error);
+                showMessage('Ошибка соединения с сервером', 'error');
+            } finally {
+                setLoading(false);
+            }
+        }
+        
+        async function controlLocks(action) {
+            const command = action === 'lock' ? 'door_lock' : 'door_unlock';
+            await makeRequest('/api/vehicle/command', { command });
+        }
+        
+        async function controlEngine(action) {
+            const command = action === 'start' ? 'engine_start' : 'engine_stop';
+            await makeRequest('/api/vehicle/command', { command });
+        }
+        
+        async function controlClimate(action) {
+            const command = action === 'on' ? 'climate_on' : 'climate_off';
+            await makeRequest('/api/vehicle/command', { command });
+        }
+        
+        async function controlLights(action) {
+            const command = action === 'on' ? 'lights_on' : 'hazard_lights';
+            await makeRequest('/api/vehicle/command', { command });
+        }
+        
+        async function updateStatus() {
+            try {
+                const response = await fetch('/api/vehicle/status');
+                const status = await response.json();
+                
+                if (response.ok && status) {
+                    // Обновляем индикаторы статуса
+                    updateStatusIndicator('lock-status', status.lock_status?.doors ? 'online' : 'offline');
+                    updateStatusIndicator('engine-status', status.dashboard ? 'online' : 'offline');
+                    updateStatusIndicator('climate-status', status.climate_status ? 'online' : 'offline');
+                }
+            } catch (error) {
+                console.error('Ошибка получения статуса:', error);
+            }
+        }
+        
+        function updateStatusIndicator(id, status) {
+            const indicator = document.getElementById(id);
+            if (indicator) {
+                indicator.className = `status-indicator ${status}`;
+            }
+        }
+        
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', () => {
+            updateStatus();
+            
+            // Обновляем статус каждые 30 секунд
+            setInterval(updateStatus, 30000);
+        });
+    </script>
+</body>
+</html>

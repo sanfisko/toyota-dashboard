@@ -402,6 +402,18 @@ async def climate_page():
     with open(paths.get_static_file('climate.html'), 'r', encoding='utf-8') as f:
         return HTMLResponse(content=f.read())
 
+@app.get("/control", response_class=HTMLResponse)
+async def control_page():
+    """Страница управления автомобилем."""
+    with open(paths.get_static_file('control.html'), 'r', encoding='utf-8') as f:
+        return HTMLResponse(content=f.read())
+
+@app.get("/settings", response_class=HTMLResponse)
+async def settings_page():
+    """Страница настроек."""
+    with open(paths.get_static_file('settings.html'), 'r', encoding='utf-8') as f:
+        return HTMLResponse(content=f.read())
+
 @app.get("/location-test", response_class=HTMLResponse)
 async def location_test_page():
     """Страница тестирования местоположений."""
@@ -492,8 +504,8 @@ async def get_vehicle_status():
             "model_name": "Toyota C-HR - NG '24",
             "image_url": "https://dj3z27z47basa.cloudfront.net/3fd45119-ae71-4298-abd2-281907b01f73",
             "date_of_first_use": "2024-05-23",
-            "vin": "JTPABACA90R004975",
-            "alias": "JTPABACA90R004975",
+            "vin": "JTXXXXXXXXXXXXXXX",
+            "alias": "My Toyota",
             "odometer": 38491,
             "last_updated": datetime.now().isoformat()
         }
@@ -771,7 +783,7 @@ async def get_vehicle_notifications():
                 {
                     "id": "2", 
                     "title": "Статус автомобиля",
-                    "message": "JTPABACA90R004975: Несколько предупреждений автомобиля, проверьте приложение для подробностей.",
+                    "message": "Несколько предупреждений автомобиля, проверьте приложение для подробностей.",
                     "timestamp": (datetime.now() - timedelta(hours=1)).isoformat(),
                     "type": "warning",
                     "icon_url": "https://assets.preprod.ctdevops.com/assets/notification/icons/critical_alert.png",

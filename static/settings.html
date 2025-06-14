@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="light-content">
+    <meta name="apple-mobile-web-app-title" content="Toyota Dashboard">
+    <title>Настройки - Toyota Dashboard</title>
+    
+    <!-- PWA манифест -->
+    <link rel="manifest" href="/static/manifest.json">
+    
+    <!-- Стили -->
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+            background: #f8f9fa;
+            color: #1d1d1f;
+            min-height: 100vh;
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+        }
+        
+        .container {
+            max-width: 414px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 20px 0;
+        }
+        
+        .back-btn {
+            background: #ffffff;
+            border: 1px solid #e5e5e7;
+            border-radius: 12px;
+            padding: 12px;
+            margin-right: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            color: #1d1d1f;
+        }
+        
+        .back-btn:hover {
+            background: #f5f5f7;
+            transform: scale(0.95);
+        }
+        
+        .title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1d1d1f;
+        }
+        
+        .settings-section {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #1d1d1f;
+        }
+        
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .setting-item:last-child {
+            border-bottom: none;
+        }
+        
+        .setting-label {
+            font-size: 16px;
+            font-weight: 500;
+            color: #1d1d1f;
+        }
+        
+        .setting-description {
+            font-size: 14px;
+            color: #8e8e93;
+            margin-top: 4px;
+        }
+        
+        .setting-control {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .toggle {
+            position: relative;
+            width: 50px;
+            height: 30px;
+            background: #e5e5e7;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        
+        .toggle.active {
+            background: #007aff;
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 26px;
+            height: 26px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .toggle.active .toggle-slider {
+            transform: translateX(20px);
+        }
+        
+        .select-control {
+            background: #f8f9fa;
+            border: 1px solid #e5e5e7;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 14px;
+            color: #1d1d1f;
+            min-width: 100px;
+        }
+        
+        .input-control {
+            background: #f8f9fa;
+            border: 1px solid #e5e5e7;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 14px;
+            color: #1d1d1f;
+            min-width: 80px;
+            text-align: right;
+        }
+        
+        .save-btn {
+            background: #007aff;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 16px 24px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            width: 100%;
+            margin-top: 20px;
+        }
+        
+        .save-btn:hover {
+            background: #0056b3;
+            transform: scale(0.98);
+        }
+        
+        .save-btn:disabled {
+            background: #8e8e93;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .message {
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+        
+        .message.success {
+            background: #d1f2eb;
+            color: #0f5132;
+            border: 1px solid #a3cfbb;
+        }
+        
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f1aeb5;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <a href="/" class="back-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="m15 18-6-6 6-6"/>
+                </svg>
+            </a>
+            <h1 class="title">Настройки</h1>
+        </div>
+        
+        <div id="message" class="message hidden"></div>
+        
+        <!-- Основные настройки -->
+        <div class="settings-section">
+            <h2 class="section-title">Основные</h2>
+            
+            <div class="setting-item">
+                <div>
+                    <div class="setting-label">Язык</div>
+                    <div class="setting-description">Язык интерфейса</div>
+                </div>
+                <div class="setting-control">
+                    <select class="select-control" id="language">
+                        <option value="ru">Русский</option>
+                        <option value="en">English</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="setting-item">
+                <div>
+                    <div class="setting-label">Тема</div>
+                    <div class="setting-description">Оформление интерфейса</div>
+                </div>
+                <div class="setting-control">
+                    <select class="select-control" id="theme">
+                        <option value="auto">Авто</option>
+                        <option value="light">Светлая</option>
+                        <option value="dark">Темная</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="setting-item">
+                <div>
+                    <div class="setting-label">Единицы измерения</div>
+                    <div class="setting-description">Метрическая или имперская система</div>
+                </div>
+                <div class="setting-control">
+                    <select class="select-control" id="units">
+                        <option value="metric">Метрическая</option>
+                        <option value="imperial">Имперская</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="setting-item">
+                <div>
+                    <div class="setting-label">Валюта</div>
+                    <div class="setting-description">Валюта для расчетов</div>
+                </div>
+                <div class="setting-control">
+                    <select class="select-control" id="currency">
+                        <option value="RUB">RUB</option>
+                        <option value="USD">USD</option>
+                        <option value="EUR">EUR</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Мониторинг -->
+        <div class="settings-section">
+            <h2 class="section-title">Мониторинг</h2>
+            
+            <div class="setting-item">
+                <div>
+                    <div class="setting-label">Автообновление</div>
+                    <div class="setting-description">Автоматическое обновление данных</div>
+                </div>
+                <div class="setting-control">
+                    <div class="toggle" id="auto-refresh" onclick="toggleSetting('auto-refresh')">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="setting-item">
+                <div>
+                    <div class="setting-label">Интервал сбора данных</div>
+                    <div class="setting-description">Частота обновления в секундах</div>
+                </div>
+                <div class="setting-control">
+                    <input type="number" class="input-control" id="data-interval" min="60" max="3600" value="300">
+                </div>
+            </div>
+            
+            <div class="setting-item">
+                <div>
+                    <div class="setting-label">Детекция поездок</div>
+                    <div class="setting-description">Автоматическое отслеживание поездок</div>
+                </div>
+                <div class="setting-control">
+                    <div class="toggle" id="trip-detection" onclick="toggleSetting('trip-detection')">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Уведомления -->
+        <div class="settings-section">
+            <h2 class="section-title">Уведомления</h2>
+            
+            <div class="setting-item">
+                <div>
+                    <div class="setting-label">Ежедневные отчеты</div>
+                    <div class="setting-description">Отправка ежедневной статистики</div>
+                </div>
+                <div class="setting-control">
+                    <div class="toggle" id="daily-reports" onclick="toggleSetting('daily-reports')">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="setting-item">
+                <div>
+                    <div class="setting-label">Предупреждения о топливе</div>
+                    <div class="setting-description">Уведомления при низком уровне топлива</div>
+                </div>
+                <div class="setting-control">
+                    <input type="number" class="input-control" id="fuel-threshold" min="10" max="100" value="50">
+                    <span style="font-size: 14px; color: #8e8e93;">км</span>
+                </div>
+            </div>
+            
+            <div class="setting-item">
+                <div>
+                    <div class="setting-label">Предупреждения о батарее</div>
+                    <div class="setting-description">Уведомления при низком заряде</div>
+                </div>
+                <div class="setting-control">
+                    <input type="number" class="input-control" id="battery-threshold" min="5" max="50" value="20">
+                    <span style="font-size: 14px; color: #8e8e93;">%</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Цены -->
+        <div class="settings-section">
+            <h2 class="section-title">Цены</h2>
+            
+            <div class="setting-item">
+                <div>
+                    <div class="setting-label">Цена топлива</div>
+                    <div class="setting-description">Стоимость за литр</div>
+                </div>
+                <div class="setting-control">
+                    <input type="number" class="input-control" id="fuel-price" min="0" step="0.1" value="50.0">
+                    <span style="font-size: 14px; color: #8e8e93;" id="fuel-currency">₽</span>
+                </div>
+            </div>
+            
+            <div class="setting-item">
+                <div>
+                    <div class="setting-label">Цена электричества</div>
+                    <div class="setting-description">Стоимость за кВт⋅ч</div>
+                </div>
+                <div class="setting-control">
+                    <input type="number" class="input-control" id="electricity-price" min="0" step="0.1" value="5.0">
+                    <span style="font-size: 14px; color: #8e8e93;" id="electricity-currency">₽</span>
+                </div>
+            </div>
+        </div>
+        
+        <button class="save-btn" id="save-btn" onclick="saveSettings()">
+            Сохранить настройки
+        </button>
+    </div>
+
+    <script>
+        let isLoading = false;
+        let currentConfig = {};
+        
+        function showMessage(text, type = 'success') {
+            const messageEl = document.getElementById('message');
+            messageEl.textContent = text;
+            messageEl.className = `message ${type}`;
+            messageEl.classList.remove('hidden');
+            
+            setTimeout(() => {
+                messageEl.classList.add('hidden');
+            }, 5000);
+        }
+        
+        function setLoading(loading) {
+            isLoading = loading;
+            document.body.classList.toggle('loading', loading);
+            document.getElementById('save-btn').disabled = loading;
+        }
+        
+        function toggleSetting(id) {
+            const toggle = document.getElementById(id);
+            toggle.classList.toggle('active');
+        }
+        
+        function updateCurrencySymbols() {
+            const currency = document.getElementById('currency').value;
+            const symbols = {
+                'RUB': '₽',
+                'USD': '$',
+                'EUR': '€'
+            };
+            
+            const symbol = symbols[currency] || currency;
+            document.getElementById('fuel-currency').textContent = symbol;
+            document.getElementById('electricity-currency').textContent = symbol;
+        }
+        
+        async function loadSettings() {
+            try {
+                const response = await fetch('/api/config');
+                const config = await response.json();
+                
+                if (response.ok) {
+                    currentConfig = config;
+                    
+                    // Основные настройки
+                    document.getElementById('language').value = config.dashboard?.language || 'ru';
+                    document.getElementById('theme').value = config.dashboard?.theme || 'auto';
+                    document.getElementById('units').value = config.dashboard?.units || 'metric';
+                    document.getElementById('currency').value = config.dashboard?.currency || 'RUB';
+                    
+                    // Мониторинг
+                    setToggleState('auto-refresh', config.monitoring?.auto_refresh);
+                    document.getElementById('data-interval').value = config.monitoring?.data_collection_interval || 300;
+                    setToggleState('trip-detection', config.monitoring?.trip_detection);
+                    
+                    // Уведомления
+                    setToggleState('daily-reports', config.notifications?.daily_reports);
+                    document.getElementById('fuel-threshold').value = config.notifications?.low_fuel_threshold || 50;
+                    document.getElementById('battery-threshold').value = config.notifications?.low_battery_threshold || 20;
+                    
+                    // Цены
+                    document.getElementById('fuel-price').value = config.dashboard?.fuel_price || 50.0;
+                    document.getElementById('electricity-price').value = config.dashboard?.electricity_price || 5.0;
+                    
+                    updateCurrencySymbols();
+                }
+            } catch (error) {
+                console.error('Ошибка загрузки настроек:', error);
+                showMessage('Ошибка загрузки настроек', 'error');
+            }
+        }
+        
+        function setToggleState(id, state) {
+            const toggle = document.getElementById(id);
+            if (state) {
+                toggle.classList.add('active');
+            } else {
+                toggle.classList.remove('active');
+            }
+        }
+        
+        function getToggleState(id) {
+            return document.getElementById(id).classList.contains('active');
+        }
+        
+        async function saveSettings() {
+            if (isLoading) return;
+            
+            setLoading(true);
+            
+            try {
+                const settings = {
+                    dashboard: {
+                        language: document.getElementById('language').value,
+                        theme: document.getElementById('theme').value,
+                        units: document.getElementById('units').value,
+                        currency: document.getElementById('currency').value,
+                        fuel_price: parseFloat(document.getElementById('fuel-price').value),
+                        electricity_price: parseFloat(document.getElementById('electricity-price').value)
+                    },
+                    monitoring: {
+                        auto_refresh: getToggleState('auto-refresh'),
+                        data_collection_interval: parseInt(document.getElementById('data-interval').value),
+                        trip_detection: getToggleState('trip-detection')
+                    },
+                    notifications: {
+                        daily_reports: getToggleState('daily-reports'),
+                        low_fuel_threshold: parseInt(document.getElementById('fuel-threshold').value),
+                        low_battery_threshold: parseInt(document.getElementById('battery-threshold').value)
+                    }
+                };
+                
+                const response = await fetch('/api/config', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(settings)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showMessage('Настройки сохранены успешно', 'success');
+                } else {
+                    showMessage(result.detail || 'Ошибка сохранения настроек', 'error');
+                }
+            } catch (error) {
+                console.error('Ошибка сохранения настроек:', error);
+                showMessage('Ошибка соединения с сервером', 'error');
+            } finally {
+                setLoading(false);
+            }
+        }
+        
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', () => {
+            loadSettings();
+            
+            // Обновляем символы валюты при изменении
+            document.getElementById('currency').addEventListener('change', updateCurrencySymbols);
+        });
+    </script>
+</body>
+</html>
