@@ -1744,6 +1744,51 @@ async def get_total_stats():
             }
         )
 
+@app.get("/api/statistics")
+async def get_statistics():
+    """Получить статистику поездок и использования автомобиля."""
+    try:
+        # Получить общую статистику из базы данных
+        total_stats = await db.get_total_statistics()
+        
+        # Получить статистику за последние периоды
+        stats_30d = await db.get_phev_statistics("30d")
+        stats_7d = await db.get_phev_statistics("7d")
+        
+        return {
+            "success": True,
+            "total": {
+                "distance": total_stats.get("total_distance", 0),
+                "electric_percentage": total_stats.get("electric_percentage", 0),
+                "fuel_consumed": total_stats.get("fuel_consumed", 0),
+                "cost_savings": total_stats.get("cost_savings", 0)
+            },
+            "last_30_days": {
+                "distance": stats_30d.get("distance", 0),
+                "electric_percentage": stats_30d.get("electric_percentage", 0),
+                "fuel_consumed": stats_30d.get("fuel_consumed", 0),
+                "cost_savings": stats_30d.get("cost_savings", 0),
+                "trips_count": stats_30d.get("trips_count", 0)
+            },
+            "last_7_days": {
+                "distance": stats_7d.get("distance", 0),
+                "electric_percentage": stats_7d.get("electric_percentage", 0),
+                "fuel_consumed": stats_7d.get("fuel_consumed", 0),
+                "cost_savings": stats_7d.get("cost_savings", 0),
+                "trips_count": stats_7d.get("trips_count", 0)
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"Ошибка получения статистики: {e}")
+        return JSONResponse(
+            status_code=500,
+            content={
+                "success": False,
+                "error": str(e)
+            }
+        )
+
 @app.get("/api/fuel-prices")
 async def get_current_fuel_prices():
     """Получить актуальные цены на топливо для текущего местоположения."""
@@ -1890,7 +1935,7 @@ async def get_system_paths():
 async def test_page():
     """Страница тестирования функций автомобиля."""
     try:
-        with open(os.path.join(APP_DIR, 'static', 'test.html'), 'r', encoding='utf-8') as f:
+        with open(paths.get_static_file('test_all.html'), 'r', encoding='utf-8') as f:
             return f.read()
     except FileNotFoundError:
         return HTMLResponse(

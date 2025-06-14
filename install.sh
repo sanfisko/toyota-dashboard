@@ -1099,8 +1099,12 @@ case "${1:-}" in
             print_error "Этот скрипт должен быть запущен с правами root (sudo)"
             exit 1
         fi
-        fix_permissions
-        print_success "Исправление прав доступа завершено!"
+        if fix_permissions; then
+            print_success "Исправление прав доступа завершено!"
+        else
+            print_error "Установка прервана из-за ошибки на строке $LINENO"
+            exit 1
+        fi
         ;;
     --diagnose|--check)
         print_header
