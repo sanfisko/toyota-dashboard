@@ -114,8 +114,13 @@ main() {
     
     # Остановка и удаление сервиса
     print_info "Остановка сервиса..."
-    systemctl --user stop toyota-dashboard.service 2>/dev/null || print_warning "Сервис не был запущен"
-    systemctl --user disable toyota-dashboard.service 2>/dev/null || print_warning "Сервис не был включен"
+    if [[ -n "$SUDO_USER" ]]; then
+        sudo -u "$SUDO_USER" systemctl --user stop toyota-dashboard.service 2>/dev/null || print_warning "Сервис не был запущен"
+        sudo -u "$SUDO_USER" systemctl --user disable toyota-dashboard.service 2>/dev/null || print_warning "Сервис не был включен"
+    else
+        systemctl --user stop toyota-dashboard.service 2>/dev/null || print_warning "Сервис не был запущен"
+        systemctl --user disable toyota-dashboard.service 2>/dev/null || print_warning "Сервис не был включен"
+    fi
     
     # Удаление файла сервиса
     if [[ -f "$CURRENT_HOME/.config/systemd/user/toyota-dashboard.service" ]]; then
@@ -124,7 +129,11 @@ main() {
     fi
     
     # Перезагрузка systemd
-    systemctl --user daemon-reload 2>/dev/null || true
+    if [[ -n "$SUDO_USER" ]]; then
+        sudo -u "$SUDO_USER" systemctl --user daemon-reload 2>/dev/null || true
+    else
+        systemctl --user daemon-reload 2>/dev/null || true
+    fi
     
     # Удаление директорий
     for dir in "$INSTALL_DIR" "$CONFIG_DIR" "$DATA_DIR" "$CACHE_DIR"; do
@@ -139,9 +148,16 @@ main() {
     # Отключение lingering (если был включен только для Toyota Dashboard)
     if command -v loginctl &> /dev/null; then
         # Проверяем, есть ли другие пользовательские сервисы
-        if ! systemctl --user list-unit-files --state=enabled | grep -q "\.service" 2>/dev/null; then
-            sudo loginctl disable-linger "$CURRENT_USER" 2>/dev/null || true
-            print_info "Lingering отключен"
+        if [[ -n "$SUDO_USER" ]]; then
+            if ! sudo -u "$SUDO_USER" systemctl --user list-unit-files --state=enabled | grep -q "\.service" 2>/dev/null; then
+                sudo loginctl disable-linger "$CURRENT_USER" 2>/dev/null || true
+                print_info "Lingering отключен"
+            fi
+        else
+            if ! systemctl --user list-unit-files --state=enabled | grep -q "\.service" 2>/dev/null; then
+                sudo loginctl disable-linger "$CURRENT_USER" 2>/dev/null || true
+                print_info "Lingering отключен"
+            fi
         fi
     fi
     

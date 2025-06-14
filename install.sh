@@ -70,43 +70,41 @@ print_success() {
     echo -e "${GREEN}[SUCCESS]${NC} $1"
 }
 
-# Проверка и установка Python
+# Проверка Python
 check_and_install_python() {
     print_step "Проверка Python..."
+    echo "[DEBUG] Проверяем наличие python3"
     
     # Проверяем, установлен ли Python 3
     if ! command -v python3 &> /dev/null; then
-        print_warning "Python 3 не найден. Устанавливаем..."
+        print_error "Python 3 не найден!"
+        print_info "Установите Python 3.8+ перед запуском скрипта:"
         
-        # Определяем пакетный менеджер и устанавливаем Python
+        # Определяем пакетный менеджер и показываем команды
         if command -v apt &> /dev/null; then
-            apt update
-            apt install -y python3 python3-pip python3-venv python3-dev
+            print_info "  sudo apt update"
+            print_info "  sudo apt install -y python3 python3-pip python3-venv python3-dev"
         elif command -v yum &> /dev/null; then
-            yum install -y python3 python3-pip python3-venv python3-devel
+            print_info "  sudo yum install -y python3 python3-pip python3-venv python3-devel"
         elif command -v dnf &> /dev/null; then
-            dnf install -y python3 python3-pip python3-venv python3-devel
+            print_info "  sudo dnf install -y python3 python3-pip python3-venv python3-devel"
         elif command -v pacman &> /dev/null; then
-            pacman -S --noconfirm python python-pip python-virtualenv
+            print_info "  sudo pacman -S --noconfirm python python-pip python-virtualenv"
         else
-            print_error "Неподдерживаемый пакетный менеджер. Установите Python 3.8+ вручную."
-            exit 1
+            print_info "Установите Python 3.8+ с официального сайта python.org"
         fi
         
-        # Проверяем установку
-        if ! command -v python3 &> /dev/null; then
-            print_error "Не удалось установить Python 3"
-            exit 1
-        fi
-        
-        print_success "Python 3 успешно установлен"
+        exit 1
     fi
+    
+    echo "[DEBUG] Python найден, проверяем версию"
     
     # Получаем версию Python
     PYTHON_VERSION=$(python3 --version | cut -d' ' -f2)
     PYTHON_MAJOR=$(echo "$PYTHON_VERSION" | cut -d'.' -f1)
     PYTHON_MINOR=$(echo "$PYTHON_VERSION" | cut -d'.' -f2)
     
+    echo "[DEBUG] Версия Python: $PYTHON_VERSION"
     print_success "Python $PYTHON_VERSION найден"
     
     # Проверяем версию Python (требуется 3.8+)
@@ -179,6 +177,7 @@ check_and_install_python() {
 # Проверка системы
 check_system() {
     print_step "Проверка системы..."
+    echo "[DEBUG] Начинаем проверку системы"
     
     # Проверка ОС
     if [[ ! -f /etc/os-release ]]; then
@@ -186,18 +185,23 @@ check_system() {
         exit 1
     fi
     
+    echo "[DEBUG] Загружаем информацию об ОС"
     source /etc/os-release
+    echo "[DEBUG] ОС: $ID"
+    
     if [[ "$ID" != "raspbian" && "$ID" != "debian" && "$ID" != "ubuntu" ]]; then
         print_warning "Система не является Raspbian/Debian/Ubuntu. Продолжение на свой страх и риск."
     fi
     
     # Проверка архитектуры
     ARCH=$(uname -m)
+    echo "[DEBUG] Архитектура: $ARCH"
     if [[ "$ARCH" != "armv7l" && "$ARCH" != "aarch64" && "$ARCH" != "x86_64" ]]; then
         print_warning "Неподдерживаемая архитектура: $ARCH"
     fi
     
     # Проверка и установка Python
+    echo "[DEBUG] Проверяем Python"
     check_and_install_python
     
     print_success "Система совместима"
@@ -252,11 +256,15 @@ install_dependencies() {
             print_info "  sudo dnf install -y python3 python3-pip gcc gcc-c++ make git curl wget"
         fi
         
-        read -p "Продолжить установку? (y/N) " -n 1 -r
-        echo
-        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-            print_error "Установка отменена"
-            exit 1
+        if [[ -t 0 ]]; then
+            read -p "Продолжить установку? (y/N) " -n 1 -r
+            echo
+            if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+                print_error "Установка отменена"
+                exit 1
+            fi
+        else
+            print_info "Неинтерактивный режим - продолжаем автоматически"
         fi
     fi
     
@@ -266,12 +274,15 @@ install_dependencies() {
 # Проверка файловой системы
 check_filesystem() {
     print_step "Проверка файловой системы..."
+    echo "[DEBUG] Проверяем права на запись в $CURRENT_HOME"
     
     # Проверяем, можем ли мы писать в домашнюю директорию
     if [[ ! -w "$CURRENT_HOME" ]]; then
         print_error "Нет прав на запись в домашнюю директорию: $CURRENT_HOME"
         exit 1
     fi
+    
+    echo "[DEBUG] Права на запись есть, проверяем место"
     
     # Проверяем доступное место
     AVAILABLE_SPACE=$(df -h "$CURRENT_HOME" | awk 'NR==2 {print $4}')
@@ -285,6 +296,10 @@ check_filesystem() {
 # Создание директорий
 create_directories() {
     print_step "Создание директорий..."
+    echo "[DEBUG] Создаем директории"
+    echo "[DEBUG] INSTALL_DIR: $INSTALL_DIR"
+    echo "[DEBUG] CONFIG_DIR: $CONFIG_DIR"
+    echo "[DEBUG] DATA_DIR: $DATA_DIR"
     
     mkdir -p "$INSTALL_DIR"
     mkdir -p "$CONFIG_DIR"
@@ -293,8 +308,11 @@ create_directories() {
     mkdir -p "$LOG_DIR"
     mkdir -p "$DATA_DIR/backups"
     
+    echo "[DEBUG] Директории созданы, проверяем права"
+    
     # Устанавливаем правильного владельца если запущено через sudo
     if [[ -n "$SUDO_USER" ]]; then
+        echo "[DEBUG] Устанавливаем владельца: $CURRENT_UID:$CURRENT_GID"
         chown -R "$CURRENT_UID:$CURRENT_GID" "$INSTALL_DIR" "$CONFIG_DIR" "$DATA_DIR" "$CACHE_DIR" 2>/dev/null || true
     fi
     
@@ -646,7 +664,8 @@ main() {
     print_info "Директория установки: $INSTALL_DIR"
     echo
     
-    if [[ "$AUTO_YES" != true ]]; then
+    # Проверяем интерактивный режим
+    if [[ "$AUTO_YES" != true ]] && [[ -t 0 ]]; then
         echo "Этот скрипт установит Toyota Dashboard в вашу домашнюю директорию."
         read -p "Продолжить? (y/N) " -n 1 -r
         echo
@@ -654,7 +673,14 @@ main() {
             print_info "Установка отменена"
             exit 0
         fi
+    elif [[ "$AUTO_YES" != true ]]; then
+        echo "Этот скрипт установит Toyota Dashboard в вашу домашнюю директорию."
+        echo "Запуск в неинтерактивном режиме - продолжаем автоматически..."
+        echo "Начинаем установку через 3 секунды..."
+        sleep 3
     fi
+    
+    echo "Переходим к проверке системы..."
     
     # Выполнение установки
     check_system
