@@ -7,7 +7,7 @@ Wants=network.target
 Type=simple
 User=toyota
 Group=toyota
-WorkingDirectory=/opt/toyota-dashboard
+WorkingDirectory=/home/toyota
 Environment=HOME=/home/toyota
 Environment=XDG_CACHE_HOME=/home/toyota/.cache
 Environment=HTTPX_CACHE_DIR=/home/toyota/.cache/toyota-dashboard
