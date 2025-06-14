@@ -40,27 +40,9 @@ class PathManager:
         
     def _can_use_system_dirs(self) -> bool:
         """Проверяет, можно ли использовать системные директории"""
-        # Проверяем все критически важные системные директории
-        system_dirs_to_check = [
-            self._system_data_dir,
-            self._system_log_dir,
-            self._system_config_dir
-        ]
-        
-        for test_dir in system_dirs_to_check:
-            try:
-                # Пытаемся создать директорию и тестовый файл
-                os.makedirs(test_dir, exist_ok=True)
-                test_file = os.path.join(test_dir, '.test_write')
-                with open(test_file, 'w') as f:
-                    f.write('test')
-                os.remove(test_file)
-            except (OSError, PermissionError):
-                # Если хотя бы одна директория недоступна для записи, 
-                # используем пользовательские директории
-                return False
-        
-        return True
+        # Принудительно используем пользовательские директории для безопасности
+        # и избежания проблем с правами доступа
+        return False
     
     def ensure_directories(self):
         """Создает все необходимые директории"""

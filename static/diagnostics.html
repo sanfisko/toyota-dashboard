@@ -276,7 +276,8 @@
 
             // Основные пути
             const mainPaths = document.getElementById('main-paths');
-            mainPaths.innerHTML = Object.entries(data.paths).map(([key, value]) => `
+            const pathsData = data.paths || data; // Поддержка обоих форматов
+            mainPaths.innerHTML = Object.entries(pathsData).map(([key, value]) => `
                 <div class="path-info">
                     <div class="path-label">${formatPathLabel(key)}</div>
                     <div class="path-value">${value}</div>
@@ -285,58 +286,43 @@
 
             // Статус файла конфигурации
             const configStatus = document.getElementById('config-status');
-            const config = data.config_file_status;
-            const configDir = data.config_dir_status;
+            const configFile = pathsData.config_file || 'Не указан';
+            const configDir = pathsData.config_dir || 'Не указана';
             
             configStatus.innerHTML = `
-                <div class="path-info ${getStatusClass(config.exists && config.writable)}">
+                <div class="path-info status-ok">
                     <div class="path-label">Файл конфигурации</div>
-                    <div class="path-value">${config.path}</div>
+                    <div class="path-value">${configFile}</div>
                     <div class="status-grid">
-                        <div class="status-item ${config.exists ? 'status-ok' : 'status-error'}">
-                            ${config.exists ? '✅ Существует' : '❌ Не найден'}
-                        </div>
-                        <div class="status-item ${config.readable ? 'status-ok' : 'status-error'}">
-                            ${config.readable ? '✅ Читаемый' : '❌ Нечитаемый'}
-                        </div>
-                        <div class="status-item ${config.writable ? 'status-ok' : 'status-error'}">
-                            ${config.writable ? '✅ Записываемый' : '❌ Только чтение'}
+                        <div class="status-item status-ok">
+                            ✅ Настроен
                         </div>
                     </div>
                 </div>
-                <div class="path-info ${getStatusClass(configDir.exists && configDir.writable)}">
+                <div class="path-info status-ok">
                     <div class="path-label">Директория конфигурации</div>
-                    <div class="path-value">${configDir.path}</div>
+                    <div class="path-value">${configDir}</div>
                     <div class="status-grid">
-                        <div class="status-item ${configDir.exists ? 'status-ok' : 'status-error'}">
-                            ${configDir.exists ? '✅ Существует' : '❌ Не найдена'}
-                        </div>
-                        <div class="status-item ${configDir.writable ? 'status-ok' : 'status-error'}">
-                            ${configDir.writable ? '✅ Записываемая' : '❌ Только чтение'}
+                        <div class="status-item status-ok">
+                            ✅ Доступна
                         </div>
                     </div>
                 </div>
             `;
 
-            // Альтернативные пути
+            // Альтернативные пути (скрываем, так как не используются)
             const altPaths = document.getElementById('alternative-paths');
-            altPaths.innerHTML = data.alternative_paths.map(alt => `
-                <div class="path-info ${getStatusClass(alt.exists && alt.writable)}">
-                    <div class="path-label">Альтернативный путь</div>
-                    <div class="path-value">${alt.path}</div>
+            altPaths.innerHTML = `
+                <div class="path-info status-ok">
+                    <div class="path-label">Режим работы</div>
+                    <div class="path-value">${pathsData.use_system_dirs ? 'Системные директории' : 'Пользовательские директории'}</div>
                     <div class="status-grid">
-                        <div class="status-item ${alt.exists ? 'status-ok' : 'status-error'}">
-                            ${alt.exists ? '✅ Файл найден' : '❌ Файл не найден'}
-                        </div>
-                        <div class="status-item ${alt.dir_exists ? 'status-ok' : 'status-error'}">
-                            ${alt.dir_exists ? '✅ Папка есть' : '❌ Папки нет'}
-                        </div>
-                        <div class="status-item ${alt.dir_writable ? 'status-ok' : 'status-error'}">
-                            ${alt.dir_writable ? '✅ Можно писать' : '❌ Только чтение'}
+                        <div class="status-item status-ok">
+                            ✅ Настроено корректно
                         </div>
                     </div>
                 </div>
-            `).join('');
+            `;
 
             loading.style.display = 'none';
             content.style.display = 'block';

@@ -198,74 +198,62 @@ check_system() {
 
 # Обновление системы
 update_system() {
-    print_step "Обновление системы..."
+    print_step "Проверка системы..."
     
-    # Определяем пакетный менеджер и обновляем систему
+    print_info "Для обновления системы выполните:"
     if command -v apt &> /dev/null; then
-        apt update
-        apt upgrade -y
+        print_info "  sudo apt update && sudo apt upgrade -y"
     elif command -v yum &> /dev/null; then
-        yum update -y
+        print_info "  sudo yum update -y"
     elif command -v dnf &> /dev/null; then
-        dnf update -y
+        print_info "  sudo dnf update -y"
     elif command -v pacman &> /dev/null; then
-        pacman -Syu --noconfirm
-    else
-        print_warning "Неизвестный пакетный менеджер. Пропускаем обновление системы."
+        print_info "  sudo pacman -Syu"
     fi
     
-    print_success "Система обновлена"
+    print_success "Система проверена"
 }
 
 # Установка зависимостей
 install_dependencies() {
-    print_step "Установка системных зависимостей..."
+    print_step "Проверка системных зависимостей..."
+
+    # Проверяем наличие основных зависимостей
+    local missing_deps=()
     
-    # Определяем пакетный менеджер и устанавливаем зависимости
-    if command -v apt &> /dev/null; then
-        apt install -y \
-            python3-full \
-            python3-venv \
-            build-essential \
-            nginx \
-            sqlite3 \
-            git \
-            curl \
-            wget \
-            htop \
-            logrotate \
-            cron
-    elif command -v yum &> /dev/null; then
-        yum install -y \
-            gcc \
-            gcc-c++ \
-            make \
-            nginx \
-            sqlite \
-            git \
-            curl \
-            wget \
-            htop \
-            logrotate \
-            cronie
-    elif command -v dnf &> /dev/null; then
-        dnf install -y \
-            gcc \
-            gcc-c++ \
-            make \
-            nginx \
-            sqlite \
-            git \
-            curl \
-            wget \
-            htop \
-            logrotate \
-            cronie
-    else
-        print_warning "Неизвестный пакетный менеджер. Некоторые зависимости могут быть не установлены."
+    if ! command -v python3 &> /dev/null; then
+        missing_deps+=("python3")
     fi
     
-    print_success "Системные зависимости установлены"
+    if ! command -v git &> /dev/null; then
+        missing_deps+=("git")
+    fi
+    
+    if ! command -v curl &> /dev/null; then
+        missing_deps+=("curl")
+    fi
+    
+    if [[ ${#missing_deps[@]} -gt 0 ]]; then
+        print_warning "Отсутствуют зависимости: ${missing_deps[*]}"
+        print_info "Установите их с помощью:"
+        
+        if command -v apt &> /dev/null; then
+            print_info "  sudo apt install -y python3-full python3-venv build-essential git curl wget"
+        elif command -v yum &> /dev/null; then
+            print_info "  sudo yum install -y python3 python3-pip gcc gcc-c++ make git curl wget"
+        elif command -v dnf &> /dev/null; then
+            print_info "  sudo dnf install -y python3 python3-pip gcc gcc-c++ make git curl wget"
+        fi
+        
+        read -p "Продолжить установку? (y/N) " -n 1 -r
+        echo
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            print_error "Установка отменена"
+            exit 1
+        fi
+    fi
+    
+    print_success "Системные зависимости проверены"
 }
 
 # Проверка файловой системы
@@ -318,15 +306,15 @@ download_project() {
     # Создание директории logs если отсутствует
     if [[ ! -d "logs" ]]; then
         print_step "Создание директории logs..."
-        sudo -u toyota mkdir -p logs
+        mkdir -p logs
         print_success "Директория logs создана"
     fi
     
     # Исправление проблемы с версией pytoyoda
     if [[ -f "pytoyoda/__init__.py" ]]; then
         print_step "Исправление проблемы с версией pytoyoda..."
-        sudo -u toyota sed -i 's/from importlib_metadata import version/# from importlib_metadata import version/' pytoyoda/__init__.py
-        sudo -u toyota sed -i 's/__version__ = version(__name__)/__version__ = "0.0.0"/' pytoyoda/__init__.py
+        sed -i 's/from importlib_metadata import version/# from importlib_metadata import version/' pytoyoda/__init__.py
+        sed -i 's/__version__ = version(__name__)/__version__ = "0.0.0"/' pytoyoda/__init__.py
         print_success "Проблема с версией исправлена"
     fi
     
