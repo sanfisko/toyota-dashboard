@@ -1,5 +1,5 @@
 [Unit]
-Description=Toyota Dashboard Server (User Mode)
+Description=Toyota Dashboard Server (User)
 After=network.target
 Wants=network.target
 

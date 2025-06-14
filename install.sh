@@ -2,18 +2,29 @@
 
 # Toyota Dashboard Server - Установочный скрипт для Raspberry Pi
 # Автор: OpenHands AI
-# Версия: 1.0.0
+# Версия: 2.0.0
 #
 # Использование:
-#   curl -sSL https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/install.sh | sudo bash
-#   curl -sSL https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/install.sh | sudo bash -s -- -y
-#   curl -sSL https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/install.sh | sudo bash -s -- --fix-deps
+#   curl -sSL https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/install.sh | bash
+#   curl -sSL https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/install.sh | bash -s -- -y
 #
 # Флаги:
 #   -y, --yes                    Автоматическое подтверждение без интерактивного запроса
-#   --fix-deps, --fix-dependencies   Исправление зависимостей в уже установленной системе
 
 set -e  # Остановить при ошибке
+
+# Получаем информацию о текущем пользователе
+CURRENT_USER=$(whoami)
+CURRENT_HOME=$(eval echo ~$CURRENT_USER)
+CURRENT_UID=$(id -u)
+CURRENT_GID=$(id -g)
+
+# Пути для установки
+INSTALL_DIR="$CURRENT_HOME/toyota-dashboard"
+CONFIG_DIR="$CURRENT_HOME/.config/toyota-dashboard"
+DATA_DIR="$CURRENT_HOME/.local/share/toyota-dashboard"
+CACHE_DIR="$CURRENT_HOME/.cache/toyota-dashboard"
+LOG_DIR="$DATA_DIR/logs"
 
 # Цвета для вывода
 RED='\033[0;31m'
@@ -27,7 +38,7 @@ print_header() {
     echo -e "${BLUE}"
     echo "╔══════════════════════════════════════════════════════════════╗"
     echo "║                    Toyota Dashboard                          ║"
-    echo "║              Установка на Raspberry Pi                      ║"
+    echo "║         Установка под текущим пользователем                 ║"
     echo "╚══════════════════════════════════════════════════════════════╝"
     echo -e "${NC}"
 }
@@ -257,209 +268,35 @@ install_dependencies() {
     print_success "Системные зависимости установлены"
 }
 
-# Создание пользователя
-create_user() {
-    print_step "Создание пользователя toyota..."
+# Проверка файловой системы
+check_filesystem() {
+    print_step "Проверка файловой системы..."
     
-    if ! id "toyota" &>/dev/null; then
-        # Создаем системного пользователя для сервиса
-        sudo useradd -r -m -s /bin/false -d /home/toyota toyota
-        print_success "Пользователь toyota создан"
-    else
-        print_info "Пользователь toyota уже существует"
+    # Проверяем, можем ли мы писать в домашнюю директорию
+    if [[ ! -w "$CURRENT_HOME" ]]; then
+        print_error "Нет прав на запись в домашнюю директорию: $CURRENT_HOME"
+        exit 1
     fi
     
-    # Убеждаемся, что домашняя директория существует и доступна
-    if [ ! -d "/home/toyota" ]; then
-        sudo mkdir -p /home/toyota
-        print_info "Создана домашняя директория /home/toyota"
-    fi
+    # Проверяем доступное место
+    AVAILABLE_SPACE=$(df -h "$CURRENT_HOME" | awk 'NR==2 {print $4}')
+    print_info "Доступное место в $CURRENT_HOME: $AVAILABLE_SPACE"
     
-    # Устанавливаем правильные права доступа
-    sudo chown toyota:toyota /home/toyota
-    sudo chmod 755 /home/toyota
-    print_info "Установлены права доступа для /home/toyota"
-    
-    # Создаем пользовательские директории для конфигурации
-    print_info "Создание пользовательских директорий..."
-    sudo mkdir -p /home/toyota/.config/toyota-dashboard
-    sudo mkdir -p /home/toyota/.local/share/toyota-dashboard
-    sudo mkdir -p /home/toyota/.local/share/toyota-dashboard/logs
-    sudo mkdir -p /home/toyota/.local/share/toyota-dashboard/backups
-    sudo mkdir -p /home/toyota/.cache/toyota-dashboard
-    
-    # Устанавливаем права доступа для всех директорий
-    sudo chown -R toyota:toyota /home/toyota/.config
-    sudo chown -R toyota:toyota /home/toyota/.local
-    sudo chown -R toyota:toyota /home/toyota/.cache
-    sudo chmod -R 755 /home/toyota/.config
-    sudo chmod -R 755 /home/toyota/.local
-    sudo chmod -R 755 /home/toyota/.cache
-    
-    print_success "Пользовательские директории созданы и настроены"
+    print_success "Файловая система доступна для записи"
 }
 
 
-
-# Исправление прав доступа (можно вызвать отдельно)
-fix_permissions() {
-    print_step "Исправление прав доступа..."
-    
-    # Проверяем, что пользователь toyota существует
-    if ! id "toyota" &>/dev/null; then
-        print_error "Пользователь toyota не существует. Запустите полную установку."
-        return 1
-    fi
-    
-    print_info "Пользователь toyota найден: $(id toyota)"
-    
-    # Останавливаем сервис
-    print_info "Остановка сервиса toyota-dashboard..."
-    sudo systemctl stop toyota-dashboard 2>/dev/null || true
-    
-    # Создаем и исправляем домашнюю директорию
-    print_info "Создание и настройка домашней директории..."
-    sudo mkdir -p /home/toyota
-    sudo chown toyota:toyota /home/toyota
-    sudo chmod 755 /home/toyota
-    
-    # Проверяем права на домашнюю директорию
-    print_info "Права на /home/toyota: $(ls -ld /home/toyota)"
-    
-    # Создаем все необходимые директории
-    print_info "Создание пользовательских директорий..."
-    sudo mkdir -p /home/toyota/.config/toyota-dashboard
-    sudo mkdir -p /home/toyota/.local/share/toyota-dashboard
-    sudo mkdir -p /home/toyota/.local/share/toyota-dashboard/logs
-    sudo mkdir -p /home/toyota/.local/share/toyota-dashboard/backups
-    sudo mkdir -p /home/toyota/.cache/toyota-dashboard
-    
-    # Устанавливаем правильные права доступа
-    print_info "Установка прав доступа для пользовательских директорий..."
-    sudo chown -R toyota:toyota /home/toyota/.config
-    sudo chown -R toyota:toyota /home/toyota/.local
-    sudo chown -R toyota:toyota /home/toyota/.cache
-    sudo chmod -R 755 /home/toyota/.config
-    sudo chmod -R 755 /home/toyota/.local
-    sudo chmod -R 755 /home/toyota/.cache
-    
-    # Проверяем результат
-    print_info "Проверка созданных директорий:"
-    ls -la /home/toyota/ 2>/dev/null || print_warning "Не удалось показать содержимое /home/toyota"
-    
-    # Исправляем системные директории
-    print_info "Создание и настройка системных директорий..."
-    sudo mkdir -p /opt/toyota-dashboard
-    sudo mkdir -p /var/log/toyota-dashboard
-    sudo mkdir -p /var/lib/toyota-dashboard/data
-    sudo mkdir -p /var/lib/toyota-dashboard/backups
-    sudo mkdir -p /etc/toyota-dashboard
-    
-    sudo chown -R toyota:toyota /opt/toyota-dashboard
-    sudo chown -R toyota:toyota /var/log/toyota-dashboard
-    sudo chown -R toyota:toyota /var/lib/toyota-dashboard
-    
-    # Перезагружаем systemd и запускаем сервис
-    print_info "Перезагрузка systemd и запуск сервиса..."
-    sudo systemctl daemon-reload
-    sudo systemctl start toyota-dashboard 2>/dev/null || true
-    
-    # Проверяем статус сервиса
-    if sudo systemctl is-active toyota-dashboard >/dev/null 2>&1; then
-        print_success "Сервис toyota-dashboard запущен успешно"
-    else
-        print_warning "Сервис toyota-dashboard не запущен. Проверьте логи: sudo journalctl -u toyota-dashboard -n 20"
-    fi
-    
-    print_success "Права доступа исправлены"
-}
-
-# Диагностика прав доступа
-diagnose_permissions() {
-    print_step "Диагностика прав доступа Toyota Dashboard..."
-    echo
-    
-    print_info "1. Проверка пользователя toyota:"
-    if id "toyota" &>/dev/null; then
-        print_success "Пользователь toyota существует"
-        id toyota
-    else
-        print_error "Пользователь toyota НЕ существует"
-    fi
-    echo
-    
-    print_info "2. Проверка домашней директории:"
-    if [ -d "/home/toyota" ]; then
-        print_success "Директория /home/toyota существует"
-        ls -ld /home/toyota
-        echo "Содержимое:"
-        ls -la /home/toyota/ 2>/dev/null || print_warning "Не удалось прочитать содержимое"
-    else
-        print_error "Директория /home/toyota НЕ существует"
-    fi
-    echo
-    
-    print_info "3. Проверка systemd сервиса:"
-    systemctl status toyota-dashboard --no-pager -l || print_warning "Сервис не запущен"
-    echo
-    
-    print_info "4. Проверка процесса:"
-    ps aux | grep toyota-dashboard | grep -v grep || print_warning "Процесс не найден"
-    echo
-    
-    print_info "5. Тест записи в директории:"
-    print_info "Тестирование записи от имени пользователя toyota..."
-    if sudo -u toyota touch /home/toyota/test_file 2>/dev/null; then
-        print_success "Запись в /home/toyota работает"
-        sudo -u toyota rm -f /home/toyota/test_file 2>/dev/null
-    else
-        print_error "Запись в /home/toyota НЕ работает"
-    fi
-    
-    if sudo -u toyota mkdir -p /home/toyota/.config/test 2>/dev/null; then
-        print_success "Создание директорий в .config работает"
-        sudo -u toyota rmdir /home/toyota/.config/test 2>/dev/null
-    else
-        print_error "Создание директорий в .config НЕ работает"
-    fi
-    
-    print_info "6. Проверка переменных окружения процесса:"
-    if pgrep -f "toyota-dashboard" >/dev/null; then
-        PID=$(pgrep -f "toyota-dashboard" | head -1)
-        print_info "PID процесса: $PID"
-        print_info "Переменные окружения процесса:"
-        sudo cat /proc/$PID/environ | tr '\0' '\n' | grep -E "(HOME|XDG|PYTHONPATH)" || print_warning "Переменные не найдены"
-        print_info "Рабочая директория процесса:"
-        sudo readlink /proc/$PID/cwd || print_warning "Не удалось определить рабочую директорию"
-    else
-        print_warning "Процесс toyota-dashboard не найден"
-    fi
-    
-    echo
-    print_success "Диагностика завершена"
-}
 
 # Создание директорий
 create_directories() {
     print_step "Создание директорий..."
     
-    sudo mkdir -p /opt/toyota-dashboard
-    sudo mkdir -p /opt/toyota-dashboard/logs
-    sudo mkdir -p /var/log/toyota-dashboard
-    sudo mkdir -p /var/lib/toyota-dashboard/data
-    sudo mkdir -p /var/lib/toyota-dashboard/backups
-    sudo mkdir -p /home/toyota/.cache/toyota-dashboard
-    sudo mkdir -p /home/toyota/.config/toyota-dashboard
-    sudo mkdir -p /home/toyota/.local/share/toyota-dashboard
-    sudo mkdir -p /etc/toyota-dashboard
-    
-    sudo chown -R toyota:toyota /opt/toyota-dashboard
-    sudo chown -R toyota:toyota /var/log/toyota-dashboard
-    sudo chown -R toyota:toyota /var/lib/toyota-dashboard
-    sudo chown -R toyota:toyota /home/toyota/.cache
-    sudo chown -R toyota:toyota /home/toyota/.config
-    sudo chown -R toyota:toyota /home/toyota/.local
-    sudo chown -R toyota:toyota /etc/toyota-dashboard
+    mkdir -p "$INSTALL_DIR"
+    mkdir -p "$CONFIG_DIR"
+    mkdir -p "$DATA_DIR"
+    mkdir -p "$CACHE_DIR"
+    mkdir -p "$LOG_DIR"
+    mkdir -p "$DATA_DIR/backups"
     
     print_success "Директории созданы"
 }
@@ -468,29 +305,15 @@ create_directories() {
 download_project() {
     print_step "Скачивание проекта..."
     
-    cd /opt/toyota-dashboard
-    
-    # Если это локальная установка, копируем файлы
-    if [[ -d "/workspace/pytoyoda" ]]; then
-        sudo cp -r /workspace/pytoyoda/pytoyoda .
-        sudo cp /workspace/pytoyoda/*.py .
-        sudo cp /workspace/pytoyoda/*.sh .
-        sudo cp /workspace/pytoyoda/*.yaml .
-        sudo cp /workspace/pytoyoda/*.txt .
-        sudo cp -r /workspace/pytoyoda/static .
-    else
-        # Скачиваем с GitHub
-        sudo -u toyota git clone https://github.com/sanfisko/toyota-dashboard.git temp_repo
-        sudo -u toyota cp temp_repo/*.py .
-        sudo -u toyota cp temp_repo/*.sh .
-        sudo -u toyota cp temp_repo/*.yaml .
-        sudo -u toyota cp temp_repo/*.txt .
-        sudo -u toyota cp -r temp_repo/static .
-        sudo -u toyota cp -r temp_repo/pytoyoda .
-        sudo -u toyota rm -rf temp_repo
+    # Удаляем старую установку если есть
+    if [[ -d "$INSTALL_DIR" ]]; then
+        print_info "Удаление старой установки..."
+        rm -rf "$INSTALL_DIR"
     fi
     
-    sudo chown -R toyota:toyota /opt/toyota-dashboard
+    # Клонируем репозиторий
+    git clone https://github.com/sanfisko/toyota-dashboard.git "$INSTALL_DIR"
+    cd "$INSTALL_DIR"
     
     # Создание директории logs если отсутствует
     if [[ ! -d "logs" ]]; then
@@ -514,103 +337,50 @@ download_project() {
 install_python_deps() {
     print_step "Установка Python зависимостей..."
     
-    cd /opt/toyota-dashboard
+    cd "$INSTALL_DIR"
     
     # Создание виртуального окружения
-    sudo -u toyota python3 -m venv venv
+    python3 -m venv venv
     
     # Активация и установка зависимостей
-    sudo -u toyota bash -c "
-        source venv/bin/activate
-        pip install --upgrade pip
-        
-        # Попытка установки всех зависимостей (с оптимизацией)
-        echo 'Установка зависимостей из requirements.txt...'
-        if [[ -f requirements-simple.txt ]]; then
-            echo 'Используем упрощенный файл зависимостей без конфликтов...'
-            pip install -r requirements-simple.txt
-        elif [[ -f requirements-optimized.txt ]]; then
-            echo 'Используем оптимизированный порядок установки...'
-            pip install -r requirements-optimized.txt || pip install -r requirements.txt
-        else
-            pip install -r requirements.txt
-        fi || {
-            echo 'Ошибка установки всех зависимостей. Устанавливаем критически важные пакеты по отдельности...'
-            
-            # Устанавливаем основные зависимости по отдельности
-            pip install fastapi==0.104.1
-            pip install \"uvicorn[standard]==0.24.0\"
-            pip install pydantic==2.5.0
-            pip install pydantic-settings==2.1.0
-            pip install \"httpx>=0.28.0\"
-            pip install \"aiohttp>=3.9.0\"
-            pip install \"hishel>=0.1.0,<0.2.0\"
-            pip install pyyaml==6.0.1
-            pip install python-dotenv==1.0.0
-            pip install \"loguru>=0.7.3,<0.8.0\"
-            pip install jinja2==3.1.2
-            pip install aiofiles==23.2.1
-            pip install python-dateutil==2.8.2
-            pip install pytz==2023.3
-            pip install arrow==1.3.0
-            pip install \"aiosqlite>=0.19.0\"
-            pip install \"pytoyoda>=3.0.0,<4.0.0\"
-            pip install \"beautifulsoup4>=4.12.0\"
-        }
-        
-        # Проверка критически важных зависимостей
-        echo 'Проверка критически важных зависимостей...'
-        
-        python3 -c 'import fastapi; print(\"✓ FastAPI установлен:\", fastapi.__version__)' || {
-            echo 'Установка FastAPI...'
-            pip install fastapi==0.104.1
-        }
-        
-        python3 -c 'import uvicorn; print(\"✓ Uvicorn установлен:\", uvicorn.__version__)' || {
-            echo 'Установка Uvicorn...'
-            pip install \"uvicorn[standard]==0.24.0\"
-        }
-        
-        python3 -c 'import pydantic; print(\"✓ Pydantic установлен:\", pydantic.__version__)' || {
-            echo 'Установка Pydantic...'
-            pip install pydantic==2.5.0
-        }
-        
-        python3 -c 'import httpx; print(\"✓ HTTPX установлен:\", httpx.__version__)' || {
-            echo 'Установка HTTPX...'
-            pip install \"httpx>=0.28.0\"
-        }
-        
-        python3 -c 'import yaml; print(\"✓ PyYAML установлен\")' || {
-            echo 'Установка PyYAML...'
-            pip install pyyaml==6.0.1
-        }
-        
-        python3 -c 'import aiosqlite; print(\"✓ AIOSQLite установлен:\", aiosqlite.__version__)' || {
-            echo 'Установка AIOSQLite...'
-            pip install \"aiosqlite>=0.19.0\"
-        }
-
-        python3 -c 'import bs4; print(\"✓ BeautifulSoup4 установлен:\", bs4.__version__)' || {
-            echo 'Установка BeautifulSoup4...'
-            pip install \"beautifulsoup4>=4.12.0\"
-        }
-        
-        echo 'Все критически важные зависимости проверены'
-    " || {
-        print_error "Ошибка установки Python зависимостей"
-        exit 1
-    }
+    source venv/bin/activate
+    pip install --upgrade pip
     
-    # Отдельная проверка PyToyoda
-    print_info "Проверка PyToyoda..."
-    if sudo -u toyota bash -c "source /opt/toyota-dashboard/venv/bin/activate && python3 -c 'import pytoyoda' >/dev/null 2>&1"; then
-        sudo -u toyota bash -c "source /opt/toyota-dashboard/venv/bin/activate && python3 -c 'import pytoyoda; print(\"✓ PyToyoda установлен:\", getattr(pytoyoda, \"__version__\", \"локальная версия\"))'"
+    # Установка зависимостей
+    if [[ -f "requirements.txt" ]]; then
+        print_info "Установка зависимостей из requirements.txt..."
+        pip install -r requirements.txt
     else
-        print_info "Установка PyToyoda..."
-        sudo -u toyota bash -c "source /opt/toyota-dashboard/venv/bin/activate && pip install 'pytoyoda>=3.0.0,<4.0.0'"
-        sudo -u toyota bash -c "source /opt/toyota-dashboard/venv/bin/activate && python3 -c 'import pytoyoda; print(\"✓ PyToyoda установлен:\", getattr(pytoyoda, \"__version__\", \"локальная версия\"))'"
+        print_error "Файл requirements.txt не найден"
+        exit 1
     fi
+    
+    # Проверка критически важных зависимостей
+    print_info "Проверка критически важных зависимостей..."
+    
+    CRITICAL_DEPS=("fastapi" "uvicorn" "pydantic" "httpx" "pyyaml" "aiosqlite" "beautifulsoup4")
+    for dep in "${CRITICAL_DEPS[@]}"; do
+        if pip show "$dep" &> /dev/null; then
+            VERSION=$(pip show "$dep" | grep Version | cut -d' ' -f2)
+            print_success "$dep установлен: $VERSION"
+        else
+            print_error "$dep НЕ установлен"
+            exit 1
+        fi
+    done
+    
+    # Проверяем PyToyoda отдельно
+    print_info "Проверка PyToyoda..."
+    if pip show pytoyoda &> /dev/null; then
+        VERSION=$(pip show pytoyoda | grep Version | cut -d' ' -f2)
+        print_success "PyToyoda установлен: $VERSION"
+    else
+        print_warning "PyToyoda не установлен через pip, но может быть включен в проект"
+    fi
+    
+    print_info "Все критически важные зависимости проверены"
+    
+    deactivate
     
     print_success "Python зависимости установлены"
 }
@@ -619,37 +389,66 @@ install_python_deps() {
 setup_config() {
     print_step "Настройка конфигурации..."
     
-    cd /opt/toyota-dashboard
+    cd "$INSTALL_DIR"
     
-    # Используем утилиту настройки конфигурации
-    print_info "Настройка конфигурации..."
-    sudo -u toyota bash -c "
-        source venv/bin/activate
-        python3 setup_config.py 2>/dev/null || python3 setup_config.py
-    "
-    
-    # Копируем конфигурацию в правильные места
-    CONFIG_FILE="/opt/toyota-dashboard/config.yaml"
-    USER_CONFIG="/home/toyota/.config/toyota-dashboard/config.yaml"
-    SYSTEM_CONFIG="/etc/toyota-dashboard/config.yaml"
-    
-    if [[ -f "$CONFIG_FILE" ]]; then
-        # Создание секретного ключа
-        SECRET_KEY=$(python3 -c "import secrets; print(secrets.token_urlsafe(32))")
-        sudo -u toyota sed -i "s/your-secret-key-here/$SECRET_KEY/" "$CONFIG_FILE"
-        
-        # Копируем в пользовательскую директорию
-        sudo -u toyota cp "$CONFIG_FILE" "$USER_CONFIG"
-        
-        # Копируем в системную директорию
-        sudo cp "$CONFIG_FILE" "$SYSTEM_CONFIG"
-        sudo chown toyota:toyota "$SYSTEM_CONFIG"
-        
-        print_info "Файл конфигурации скопирован в:"
-        print_info "  - $USER_CONFIG (пользовательская)"
-        print_info "  - $SYSTEM_CONFIG (системная)"
-        print_warning "ВАЖНО: Отредактируйте файл конфигурации и добавьте ваши Toyota credentials!"
+    # Создаем базовый конфигурационный файл
+    if [[ -f "config.example.yaml" ]]; then
+        cp config.example.yaml "$CONFIG_DIR/config.yaml"
+        print_success "Базовый конфигурационный файл создан: $CONFIG_DIR/config.yaml"
+    elif [[ -f "config.yaml" ]]; then
+        cp config.yaml "$CONFIG_DIR/config.yaml"
+        print_success "Конфигурационный файл скопирован: $CONFIG_DIR/config.yaml"
+    else
+        # Создаем минимальный конфигурационный файл
+        cat > "$CONFIG_DIR/config.yaml" << EOF
+# Toyota Dashboard Configuration
+toyota:
+  username: ""  # Ваш email от Toyota Connected
+  password: ""  # Ваш пароль
+  vin: ""       # VIN номер вашего автомобиля
+  region: "europe"  # Регион: europe, north_america, asia
+
+server:
+  host: "0.0.0.0"
+  port: 2025
+  debug: false
+
+database:
+  path: "$DATA_DIR/toyota.db"
+
+logging:
+  level: "INFO"
+  file: "$LOG_DIR/app.log"
+  max_size: "10MB"
+  backup_count: 5
+
+cache:
+  directory: "$CACHE_DIR"
+  ttl: 300  # 5 минут
+
+fuel_prices:
+  enabled: true
+  update_interval: 3600  # 1 час
+  sources:
+    - "https://www.benzinpreis.de"
+EOF
+        print_success "Минимальный конфигурационный файл создан: $CONFIG_DIR/config.yaml"
     fi
+    
+    print_success "Директории созданы: $DATA_DIR, $LOG_DIR"
+    
+    echo
+    print_info "📝 Следующие шаги:"
+    print_info "1. Отредактируйте $CONFIG_DIR/config.yaml и укажите ваши данные Toyota:"
+    print_info "   - username: ваш email"
+    print_info "   - password: ваш пароль"
+    print_info "   - vin: VIN номер автомобиля"
+    echo
+    print_info "2. Запустите приложение:"
+    print_info "   systemctl --user restart toyota-dashboard"
+    echo
+    print_info "3. Откройте в браузере:"
+    print_info "   http://localhost:2025"
     
     print_success "Конфигурация настроена"
 }
@@ -658,12 +457,20 @@ setup_config() {
 check_installation() {
     print_step "Проверка установки..."
     
-    cd /opt/toyota-dashboard
+    cd "$INSTALL_DIR"
     
-    # Проверка импорта основных модулей
-    sudo -u toyota bash -c "
-        source venv/bin/activate
-        python3 -c '
+    # Проверяем, что все основные файлы на месте
+    REQUIRED_FILES=("app.py" "requirements.txt" "venv/bin/python")
+    for file in "${REQUIRED_FILES[@]}"; do
+        if [[ ! -f "$file" ]]; then
+            print_error "Отсутствует файл: $file"
+            exit 1
+        fi
+    done
+    
+    # Проверяем импорт основных модулей
+    source venv/bin/activate
+    python3 -c "
 import sys
 try:
     import fastapi
@@ -672,391 +479,150 @@ try:
     import httpx
     import yaml
     import aiosqlite
-    import pytoyoda
     import bs4
-    print(\"✅ Все основные модули успешно импортированы\")
+    print('✅ Все основные модули успешно импортированы')
 except ImportError as e:
-    print(f\"❌ Ошибка импорта: {e}\")
+    print(f'❌ Ошибка импорта: {e}')
     sys.exit(1)
-        '
-    "
+"
+    deactivate
     
     print_success "Установка проверена"
 }
 
-# Настройка systemd сервиса
+# Создание systemd сервиса для текущего пользователя
 setup_systemd() {
-    print_step "Настройка systemd сервиса..."
+    print_step "Создание systemd сервиса..."
     
-    sudo tee /etc/systemd/system/toyota-dashboard.service > /dev/null <<EOF
+    # Создаем директорию для пользовательских сервисов
+    mkdir -p "$CURRENT_HOME/.config/systemd/user"
+    
+    # Создаем файл сервиса
+    cat > "$CURRENT_HOME/.config/systemd/user/toyota-dashboard.service" << EOF
 [Unit]
 Description=Toyota Dashboard Server
 After=network.target
+Wants=network.target
 
 [Service]
 Type=simple
-User=toyota
-Group=toyota
-WorkingDirectory=/opt/toyota-dashboard
-Environment=PATH=/opt/toyota-dashboard/venv/bin
-Environment=HOME=/home/toyota
-Environment=XDG_CACHE_HOME=/home/toyota/.cache
-Environment=HTTPX_CACHE_DIR=/home/toyota/.cache/toyota-dashboard
-ExecStart=/opt/toyota-dashboard/venv/bin/python app.py
+WorkingDirectory=$INSTALL_DIR
+Environment=HOME=$CURRENT_HOME
+Environment=XDG_CONFIG_HOME=$CURRENT_HOME/.config
+Environment=XDG_DATA_HOME=$CURRENT_HOME/.local/share
+Environment=XDG_CACHE_HOME=$CURRENT_HOME/.cache
+Environment=PYTHONPATH=$INSTALL_DIR
+ExecStart=$INSTALL_DIR/venv/bin/python $INSTALL_DIR/app.py
 Restart=always
 RestartSec=10
-
-# Логирование
 StandardOutput=journal
 StandardError=journal
-SyslogIdentifier=toyota-dashboard
-
-# Безопасность
-NoNewPrivileges=true
-PrivateTmp=true
-ProtectSystem=strict
-ProtectHome=true
-ReadWritePaths=/var/lib/toyota-dashboard /var/log/toyota-dashboard
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=default.target
 EOF
     
-    sudo systemctl daemon-reload
-    sudo systemctl enable toyota-dashboard
+    # Перезагружаем systemd для пользователя
+    systemctl --user daemon-reload
     
-    print_success "Systemd сервис настроен"
+    # Включаем сервис
+    systemctl --user enable toyota-dashboard.service
+    
+    print_success "Systemd сервис создан и включен"
+    print_info "Управление сервисом:"
+    print_info "  Запуск:    systemctl --user start toyota-dashboard"
+    print_info "  Остановка: systemctl --user stop toyota-dashboard"
+    print_info "  Статус:    systemctl --user status toyota-dashboard"
+    print_info "  Логи:      journalctl --user -u toyota-dashboard -f"
 }
 
-# Настройка nginx
-setup_nginx() {
-    print_step "Настройка nginx..."
+# Создание скриптов управления
+create_management_scripts() {
+    print_step "Создание скриптов управления..."
     
-    sudo tee /etc/nginx/sites-available/toyota-dashboard > /dev/null <<EOF
-server {
-    listen 80;
-    server_name _;
-    
-    # Безопасность
-    add_header X-Frame-Options DENY;
-    add_header X-Content-Type-Options nosniff;
-    add_header X-XSS-Protection "1; mode=block";
-    
-    # Статические файлы
-    location /static/ {
-        alias /opt/toyota-dashboard/static/;
-        expires 1y;
-        add_header Cache-Control "public, immutable";
-    }
-    
-    # API и приложение
-    location / {
-        proxy_pass http://127.0.0.1:2025;
-        proxy_set_header Host \$host;
-        proxy_set_header X-Real-IP \$remote_addr;
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto \$scheme;
-        
-        # WebSocket поддержка
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade \$http_upgrade;
-        proxy_set_header Connection "upgrade";
-    }
-}
-EOF
-    
-    sudo ln -sf /etc/nginx/sites-available/toyota-dashboard /etc/nginx/sites-enabled/
-    sudo rm -f /etc/nginx/sites-enabled/default
-    
-    sudo nginx -t
-    sudo systemctl enable nginx
-    sudo systemctl restart nginx
-    
-    print_success "Nginx настроен"
-}
-
-# Настройка логирования
-setup_logging() {
-    print_step "Настройка логирования..."
-    
-    sudo tee /etc/logrotate.d/toyota-dashboard > /dev/null <<EOF
-/var/log/toyota-dashboard/*.log {
-    daily
-    missingok
-    rotate 7
-    compress
-    delaycompress
-    notifempty
-    create 644 toyota toyota
-    postrotate
-        systemctl reload toyota-dashboard
-    endscript
-}
-EOF
-    
-    print_success "Логирование настроено"
-}
-
-# Настройка резервного копирования
-setup_backup() {
-    print_step "Настройка резервного копирования..."
-    
-    sudo -u toyota tee /opt/toyota-dashboard/backup.sh > /dev/null <<'EOF'
+    # Скрипт запуска
+    cat > "$INSTALL_DIR/start.sh" << EOF
 #!/bin/bash
-
-BACKUP_DIR="/var/lib/toyota-dashboard/backups"
-DATE=$(date +%Y%m%d_%H%M%S)
-DB_FILE="/var/lib/toyota-dashboard/data/toyota.db"
-
-# Создание резервной копии базы данных
-if [[ -f "$DB_FILE" ]]; then
-    sqlite3 "$DB_FILE" ".backup $BACKUP_DIR/toyota_$DATE.db"
-    echo "Резервная копия создана: toyota_$DATE.db"
-fi
-
-# Удаление старых копий (старше 7 дней)
-find "$BACKUP_DIR" -name "toyota_*.db" -mtime +7 -delete
-
-# Архивирование конфигурации
-tar -czf "$BACKUP_DIR/config_$DATE.tar.gz" -C /opt/toyota-dashboard config.yaml
-
-echo "Резервное копирование завершено"
+cd "$INSTALL_DIR"
+source venv/bin/activate
+python app.py
 EOF
+    chmod +x "$INSTALL_DIR/start.sh"
     
-    sudo chmod +x /opt/toyota-dashboard/backup.sh
+    # Скрипт остановки
+    cat > "$INSTALL_DIR/stop.sh" << EOF
+#!/bin/bash
+pkill -f "python.*app.py" || echo "Процесс не найден"
+EOF
+    chmod +x "$INSTALL_DIR/stop.sh"
     
-    # Добавление в crontab
-    (sudo -u toyota crontab -l 2>/dev/null; echo "0 2 * * * /opt/toyota-dashboard/backup.sh") | sudo -u toyota crontab -
+    # Скрипт обновления
+    cat > "$INSTALL_DIR/update.sh" << EOF
+#!/bin/bash
+cd "$INSTALL_DIR"
+git pull
+source venv/bin/activate
+pip install -r requirements.txt --upgrade
+echo "Обновление завершено. Перезапустите сервис."
+EOF
+    chmod +x "$INSTALL_DIR/update.sh"
     
-    print_success "Резервное копирование настроено"
+    print_success "Скрипты управления созданы"
 }
 
-# Настройка файрвола
-setup_firewall() {
-    print_step "Настройка файрвола..."
+# Настройка автозапуска
+setup_autostart() {
+    print_step "Настройка автозапуска..."
     
-    if command -v ufw &> /dev/null; then
-        sudo ufw --force enable
-        sudo ufw allow ssh
-        sudo ufw allow 80/tcp
-        sudo ufw allow 443/tcp
-        print_success "UFW файрвол настроен"
-    else
-        print_warning "UFW не установлен, пропускаем настройку файрвола"
+    # Включаем lingering для пользователя (чтобы сервисы запускались без входа в систему)
+    if command -v loginctl &> /dev/null; then
+        sudo loginctl enable-linger "$CURRENT_USER" 2>/dev/null || print_warning "Не удалось включить lingering"
     fi
-}
-
-# Запуск сервисов
-start_services() {
-    print_step "Запуск сервисов..."
     
-    sudo systemctl start toyota-dashboard
-    sudo systemctl start nginx
+    # Запускаем сервис
+    systemctl --user start toyota-dashboard.service
     
-    # Проверка статуса
-    sleep 5
-    
-    if sudo systemctl is-active --quiet toyota-dashboard; then
+    if systemctl --user is-active toyota-dashboard.service >/dev/null 2>&1; then
         print_success "Toyota Dashboard сервис запущен"
     else
-        print_error "Ошибка запуска Toyota Dashboard сервиса"
-        sudo journalctl -u toyota-dashboard --no-pager -n 20
+        print_warning "Сервис не запущен. Проверьте конфигурацию и запустите вручную"
     fi
     
-    if sudo systemctl is-active --quiet nginx; then
-        print_success "Nginx запущен"
-    else
-        print_error "Ошибка запуска Nginx"
-    fi
+    print_success "Автозапуск настроен"
 }
 
-# Финальная информация
-show_final_info() {
-    print_success "Установка завершена!"
-    echo
-    echo -e "${BLUE}╔══════════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${BLUE}║                    ВАЖНАЯ ИНФОРМАЦИЯ                        ║${NC}"
-    echo -e "${BLUE}╚══════════════════════════════════════════════════════════════╝${NC}"
-    echo
-    echo -e "${YELLOW}1. Настройте конфигурацию:${NC}"
-    echo "   sudo nano /opt/toyota-dashboard/config.yaml"
-    echo
-    echo -e "${YELLOW}2. Добавьте ваши Toyota credentials:${NC}"
-    echo "   - username: ваш email от Toyota Connected"
-    echo "   - password: ваш пароль"
-    echo "   - vin: VIN номер вашего Toyota автомобиля"
-    echo
-    echo -e "${YELLOW}3. Перезапустите сервис после настройки:${NC}"
-    echo "   sudo systemctl restart toyota-dashboard"
-    echo
-    echo -e "${YELLOW}4. Доступ к дашборду:${NC}"
-    IP=$(hostname -I | awk '{print $1}')
-    echo "   Локальная сеть: http://$IP (через nginx)"
-    echo "   Прямой доступ: http://$IP:2025"
-    echo "   Локально: http://localhost"
-    echo "   Настройка: http://$IP/setup"
-    echo
-    echo -e "${YELLOW}5. Логи:${NC}"
-    echo "   sudo journalctl -u toyota-dashboard -f"
-    echo "   tail -f /var/log/toyota-dashboard/app.log"
-    echo
-    echo -e "${YELLOW}6. Управление сервисом:${NC}"
-    echo "   sudo systemctl start|stop|restart|status toyota-dashboard"
-    echo
-    echo -e "${YELLOW}7. Удаление (если понадобится):${NC}"
-    echo "   curl -sSL \"https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/uninstall.sh?\$(date +%s)\" | sudo bash"
-    echo
-    echo -e "${GREEN}Установка завершена успешно! Toyota Dashboard готов! ✨${NC}"
-}
-
-# Функция для исправления зависимостей в уже установленной системе
-fix_dependencies() {
-    print_step "Исправление зависимостей в установленной системе..."
-    
-    # Проверка существования установки
-    if [[ ! -d "/opt/toyota-dashboard" ]]; then
-        print_error "Toyota Dashboard не найден в /opt/toyota-dashboard"
-        print_info "Запустите полную установку вместо исправления зависимостей"
-        exit 1
-    fi
-    
-    cd /opt/toyota-dashboard
-    
-    # Остановка сервиса
-    print_step "Остановка сервиса toyota-dashboard..."
-    systemctl stop toyota-dashboard || true
-    
-    # Проверка виртуального окружения
-    if [[ ! -d "venv" ]]; then
-        print_warning "Виртуальное окружение не найдено, создаем новое..."
-        sudo -u toyota python3 -m venv venv
-    fi
-    
-    # Установка недостающих зависимостей
-    print_step "Установка недостающих зависимостей..."
-    sudo -u toyota bash -c "
-        source venv/bin/activate
-        pip install --upgrade pip
-        
-        # Установка критически важных зависимостей
-        echo 'Установка PyJWT...'
-        pip install pyjwt==2.8.0
-        
-        echo 'Установка Arrow...'
-        pip install arrow==1.3.0
-        
-        echo 'Установка Langcodes...'
-        pip install langcodes==3.4.0
-        
-        # Проверка установки
-        echo 'Проверка установленных зависимостей:'
-        python3 -c 'import jwt; print(\"✓ PyJWT:\", jwt.__version__)'
-        python3 -c 'import arrow; print(\"✓ Arrow:\", arrow.__version__)'
-        python3 -c 'import langcodes; print(\"✓ Langcodes установлен\")'
-        
-        echo 'Все зависимости установлены успешно'
-    " || {
-        print_error "Ошибка установки зависимостей"
-        exit 1
-    }
-    
-    # Создание директории logs если отсутствует
-    if [[ ! -d "logs" ]]; then
-        print_step "Создание директории logs..."
-        sudo -u toyota mkdir -p logs
-        print_success "Директория logs создана"
-    fi
-    
-    # Исправление проблемы с версией pytoyoda
-    if [[ -f "pytoyoda/__init__.py" ]]; then
-        print_step "Исправление проблемы с версией pytoyoda..."
-        sudo -u toyota sed -i 's/from importlib_metadata import version/# from importlib_metadata import version/' pytoyoda/__init__.py
-        sudo -u toyota sed -i 's/__version__ = version(__name__)/__version__ = "0.0.0"/' pytoyoda/__init__.py
-        print_success "Проблема с версией исправлена"
-    fi
-    
-    # Запуск сервиса
-    print_step "Запуск сервиса toyota-dashboard..."
-    systemctl start toyota-dashboard
-    
-    # Проверка статуса
-    sleep 3
-    if systemctl is-active --quiet toyota-dashboard; then
-        print_success "Toyota Dashboard сервис запущен!"
-    else
-        print_error "Сервис не удалось запустить. Проверьте логи: sudo journalctl -u toyota-dashboard -f"
-        exit 1
-    fi
-    
-    print_success "Зависимости исправлены успешно!"
-    print_info "Проверьте статус: sudo systemctl status toyota-dashboard"
-    print_info "Просмотр логов: sudo journalctl -u toyota-dashboard -f"
-}
-
-# Проверка файловой системы
-check_filesystem() {
-    print_step "Проверка файловой системы..."
-    
-    # Проверка на read-only файловую систему
-    if mount | grep -q "/ .*ro,"; then
-        print_warning "Корневая файловая система смонтирована только для чтения!"
-        print_step "Попытка перемонтирования в режим чтения-записи..."
-        
-        if mount -o remount,rw / 2>/dev/null; then
-            print_success "Файловая система перемонтирована в режим чтения-записи"
-        else
-            print_error "Не удалось перемонтировать файловую систему"
-            print_info "Возможные решения:"
-            print_info "1. Перезагрузите систему: sudo reboot"
-            print_info "2. Проверьте SD-карту на ошибки: sudo fsck /dev/mmcblk0p2"
-            print_info "3. Проверьте свободное место: df -h"
-            exit 1
-        fi
-    else
-        print_success "Файловая система доступна для записи"
-    fi
-    
-    # Проверка свободного места
-    available_space=$(df / | tail -1 | awk '{print $4}')
-    if [[ $available_space -lt 1048576 ]]; then  # Меньше 1GB
-        print_warning "Мало свободного места на диске (менее 1GB)"
-        print_info "Рекомендуется освободить место перед установкой"
-    fi
-}
-
-# Основная функция
+# Основная функция установки
 main() {
+    # Обработка аргументов
+    AUTO_YES=false
+    while [[ $# -gt 0 ]]; do
+        case $1 in
+            -y|--yes)
+                AUTO_YES=true
+                shift
+                ;;
+            *)
+                print_error "Неизвестный аргумент: $1"
+                exit 1
+                ;;
+        esac
+    done
+    
     print_header
     
-    # Проверка прав root
-    if [[ $EUID -ne 0 ]]; then
-        print_error "Этот скрипт должен быть запущен с правами root (sudo)"
-        exit 1
-    fi
+    print_info "Установка Toyota Dashboard под пользователем: $CURRENT_USER"
+    print_info "Домашняя директория: $CURRENT_HOME"
+    print_info "Директория установки: $INSTALL_DIR"
+    echo
     
-    # Подтверждение установки (если не указан флаг -y)
-    if [[ "$1" != "-y" && "$1" != "--yes" ]]; then
-        echo -e "${YELLOW}Этот скрипт установит Toyota Dashboard на ваш Raspberry Pi.${NC}"
-        echo -e "${YELLOW}Продолжить? (y/N)${NC}"
-        
-        # Проверяем доступность терминала
-        if [[ -t 0 ]] || [[ -c /dev/tty ]]; then
-            # Читаем напрямую из терминала
-            read -r response < /dev/tty
-        else
-            # Если терминал недоступен, используем автоматическое подтверждение
-            echo -e "${YELLOW}Терминал недоступен для интерактивного ввода.${NC}"
-            echo -e "${YELLOW}Используйте флаг -y для автоматической установки:${NC}"
-            echo "curl -sSL https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/install.sh | sudo bash -s -- -y"
-            exit 1
-        fi
-        
-        if [[ ! "$response" =~ ^[Yy]$ ]]; then
-            echo "Установка отменена"
+    if [[ "$AUTO_YES" != true ]]; then
+        echo "Этот скрипт установит Toyota Dashboard в вашу домашнюю директорию."
+        read -p "Продолжить? (y/N) " -n 1 -r
+        echo
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            print_info "Установка отменена"
             exit 0
         fi
-    else
-        echo -e "${GREEN}Автоматическая установка Toyota Dashboard...${NC}"
     fi
     
     # Выполнение установки
@@ -1064,57 +630,52 @@ main() {
     check_filesystem
     update_system
     install_dependencies
-    create_user
     create_directories
-    fix_permissions
     download_project
     install_python_deps
     setup_config
     check_installation
     setup_systemd
-    setup_nginx
-    setup_logging
-    setup_backup
-    setup_firewall
-    start_services
-    show_final_info
+    create_management_scripts
+    setup_autostart
+    
+    # Финальная информация
+    print_success "Установка завершена!"
+    echo
+    echo -e "${BLUE}╔══════════════════════════════════════════════════════════════╗${NC}"
+    echo -e "${BLUE}║                    ВАЖНАЯ ИНФОРМАЦИЯ                        ║${NC}"
+    echo -e "${BLUE}╚══════════════════════════════════════════════════════════════╝${NC}"
+    echo
+    echo -e "${YELLOW}1. Настройте конфигурацию:${NC}"
+    echo "   nano $CONFIG_DIR/config.yaml"
+    echo
+    echo -e "${YELLOW}2. Добавьте ваши Toyota credentials:${NC}"
+    echo "   - username: ваш email от Toyota Connected"
+    echo "   - password: ваш пароль"
+    echo "   - vin: VIN номер вашего Toyota автомобиля"
+    echo
+    echo -e "${YELLOW}3. Управление сервисом:${NC}"
+    echo "   systemctl --user start toyota-dashboard    # Запуск"
+    echo "   systemctl --user stop toyota-dashboard     # Остановка"
+    echo "   systemctl --user restart toyota-dashboard  # Перезапуск"
+    echo "   systemctl --user status toyota-dashboard   # Статус"
+    echo
+    echo -e "${YELLOW}4. Доступ к дашборду:${NC}"
+    echo "   http://localhost:2025"
+    echo
+    echo -e "${YELLOW}5. Логи:${NC}"
+    echo "   journalctl --user -u toyota-dashboard -f"
+    echo
+    echo -e "${YELLOW}6. Скрипты управления:${NC}"
+    echo "   $INSTALL_DIR/start.sh   # Прямой запуск"
+    echo "   $INSTALL_DIR/stop.sh    # Остановка"
+    echo "   $INSTALL_DIR/update.sh  # Обновление"
+    echo
+    echo -e "${GREEN}Установка завершена успешно! Toyota Dashboard готов! ✨${NC}"
 }
 
 # Обработка ошибок
 trap 'print_error "Установка прервана из-за ошибки на строке $LINENO"' ERR
 
-# Обработка аргументов и запуск
-case "${1:-}" in
-    --fix-deps|--fix-dependencies)
-        print_header
-        if [[ $EUID -ne 0 ]]; then
-            print_error "Этот скрипт должен быть запущен с правами root (sudo)"
-            exit 1
-        fi
-        fix_dependencies
-        ;;
-    --fix-permissions)
-        print_header
-        if [[ $EUID -ne 0 ]]; then
-            print_error "Этот скрипт должен быть запущен с правами root (sudo)"
-            exit 1
-        fi
-        if fix_permissions; then
-            print_success "Исправление прав доступа завершено!"
-        else
-            print_error "Установка прервана из-за ошибки на строке $LINENO"
-            exit 1
-        fi
-        ;;
-    --diagnose|--check)
-        print_header
-        if [[ $EUID -ne 0 ]]; then
-            print_error "Этот скрипт должен быть запущен с правами root (sudo)"
-            exit 1
-        fi
-        diagnose_permissions
-        ;;
-    *)
-        main "$@"
-        ;;
-esac
+# Запуск установки
+main "$@"
