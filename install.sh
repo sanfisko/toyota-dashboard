@@ -311,15 +311,23 @@ fix_permissions() {
         return 1
     fi
     
+    print_info "Пользователь toyota найден: $(id toyota)"
+    
     # Останавливаем сервис
+    print_info "Остановка сервиса toyota-dashboard..."
     sudo systemctl stop toyota-dashboard 2>/dev/null || true
     
     # Создаем и исправляем домашнюю директорию
+    print_info "Создание и настройка домашней директории..."
     sudo mkdir -p /home/toyota
     sudo chown toyota:toyota /home/toyota
     sudo chmod 755 /home/toyota
     
+    # Проверяем права на домашнюю директорию
+    print_info "Права на /home/toyota: $(ls -ld /home/toyota)"
+    
     # Создаем все необходимые директории
+    print_info "Создание пользовательских директорий..."
     sudo mkdir -p /home/toyota/.config/toyota-dashboard
     sudo mkdir -p /home/toyota/.local/share/toyota-dashboard
     sudo mkdir -p /home/toyota/.local/share/toyota-dashboard/logs
@@ -327,6 +335,7 @@ fix_permissions() {
     sudo mkdir -p /home/toyota/.cache/toyota-dashboard
     
     # Устанавливаем правильные права доступа
+    print_info "Установка прав доступа для пользовательских директорий..."
     sudo chown -R toyota:toyota /home/toyota/.config
     sudo chown -R toyota:toyota /home/toyota/.local
     sudo chown -R toyota:toyota /home/toyota/.cache
@@ -334,7 +343,12 @@ fix_permissions() {
     sudo chmod -R 755 /home/toyota/.local
     sudo chmod -R 755 /home/toyota/.cache
     
+    # Проверяем результат
+    print_info "Проверка созданных директорий:"
+    ls -la /home/toyota/ 2>/dev/null || print_warning "Не удалось показать содержимое /home/toyota"
+    
     # Исправляем системные директории
+    print_info "Создание и настройка системных директорий..."
     sudo mkdir -p /opt/toyota-dashboard
     sudo mkdir -p /var/log/toyota-dashboard
     sudo mkdir -p /var/lib/toyota-dashboard/data
@@ -345,8 +359,17 @@ fix_permissions() {
     sudo chown -R toyota:toyota /var/log/toyota-dashboard
     sudo chown -R toyota:toyota /var/lib/toyota-dashboard
     
-    # Запускаем сервис
+    # Перезагружаем systemd и запускаем сервис
+    print_info "Перезагрузка systemd и запуск сервиса..."
+    sudo systemctl daemon-reload
     sudo systemctl start toyota-dashboard 2>/dev/null || true
+    
+    # Проверяем статус сервиса
+    if sudo systemctl is-active toyota-dashboard >/dev/null 2>&1; then
+        print_success "Сервис toyota-dashboard запущен успешно"
+    else
+        print_warning "Сервис toyota-dashboard не запущен. Проверьте логи: sudo journalctl -u toyota-dashboard -n 20"
+    fi
     
     print_success "Права доступа исправлены"
 }
