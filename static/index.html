@@ -96,6 +96,13 @@
             font-weight: 400;
         }
         
+        .vehicle-vin, .vehicle-odometer {
+            font-size: 12px;
+            color: #86868b;
+            margin-top: 4px;
+            font-family: 'SF Mono', Monaco, monospace;
+        }
+        
         .status-card {
             background: #ffffff;
             border-radius: 16px;
@@ -382,6 +389,8 @@
             <div class="vehicle-info">
                 <div class="vehicle-model" id="vehicle-model">Toyota C-HR - NG '24</div>
                 <div class="vehicle-date" id="vehicle-date">Дата первого использования: 2024-05-23</div>
+                <div class="vehicle-vin" id="vehicle-vin">VIN: JTPABACA90R004975</div>
+                <div class="vehicle-odometer" id="vehicle-odometer">Пробег: 38,491 км</div>
             </div>
         </div>
         
@@ -545,7 +554,38 @@
         function updateLocationUI(locationData) {
             if (locationData) {
                 document.getElementById('location').textContent = locationData.address || 'Копер, Словения';
-                document.getElementById('fuel-price').textContent = locationData.fuel_price || '1.43 €/л';
+                document.getElementById('fuel-price').textContent = locationData.fuel_price_formatted || '1.43 €/л';
+            }
+        }
+        
+        // Обновление информации об автомобиле
+        function updateVehicleInfo() {
+            if (!vehicleData) return;
+            
+            // Обновляем изображение автомобиля
+            if (vehicleData.image_url) {
+                document.getElementById('vehicle-image').src = vehicleData.image_url;
+            }
+            
+            // Обновляем модель
+            if (vehicleData.model_name) {
+                document.getElementById('vehicle-model').textContent = vehicleData.model_name;
+            }
+            
+            // Обновляем дату первого использования
+            if (vehicleData.date_of_first_use) {
+                document.getElementById('vehicle-date').textContent = `Дата первого использования: ${vehicleData.date_of_first_use}`;
+            }
+            
+            // Обновляем VIN
+            if (vehicleData.vin) {
+                document.getElementById('vehicle-vin').textContent = `VIN: ${vehicleData.vin}`;
+            }
+            
+            // Обновляем пробег
+            if (vehicleData.odometer) {
+                const odometer = Number(vehicleData.odometer).toLocaleString('ru-RU');
+                document.getElementById('vehicle-odometer').textContent = `Пробег: ${odometer} км`;
             }
         }
         
@@ -557,6 +597,8 @@
                 
                 vehicleData = await response.json();
                 updateUI();
+                updateVehicleInfo();
+                updateLocationUI(vehicleData.location);
                 
             } catch (error) {
                 showNotification('Ошибка подключения к автомобилю', 'error');
@@ -612,16 +654,14 @@
             document.getElementById('battery-bar').style.width = vehicleData.battery_level + '%';
             
             // Топливо
-            document.getElementById('fuel-level').textContent = vehicleData.fuel_level + 'км';
+            document.getElementById('fuel-level').textContent = vehicleData.fuel_level + '%';
             
             // Запас хода
-            document.getElementById('range-electric').textContent = vehicleData.range_electric + 'км';
-            document.getElementById('range-fuel').textContent = vehicleData.range_fuel + 'км';
+            document.getElementById('range-electric').textContent = vehicleData.range_electric + ' км';
+            document.getElementById('range-fuel').textContent = vehicleData.range_fuel + ' км';
             
-            // Местоположение
-            if (vehicleData.location && vehicleData.location.address) {
-                document.getElementById('location').textContent = vehicleData.location.address;
-            }
+            // Статус зарядки
+            updateChargingStatus();
             
             // Статус блокировки
             isLocked = vehicleData.locked;
@@ -630,6 +670,27 @@
             // Время обновления
             document.getElementById('last-updated').textContent = 
                 'Последнее обновление: ' + new Date().toLocaleTimeString('ru-RU');
+        }
+        
+        // Обновление статуса зарядки
+        function updateChargingStatus() {
+            const chargingIcon = document.getElementById('charging-status').querySelector('.charging-icon');
+            const chargingText = document.getElementById('charging-text');
+            
+            if (vehicleData.charging_status === 'charging') {
+                chargingIcon.textContent = '🔌';
+                chargingText.textContent = 'Заряжается';
+                chargingIcon.style.color = '#34c759';
+                
+                // Показать время до полной зарядки
+                if (vehicleData.remaining_charge_time) {
+                    chargingText.textContent += ` (${vehicleData.remaining_charge_time})`;
+                }
+            } else {
+                chargingIcon.textContent = '🔌';
+                chargingText.textContent = 'Не заряжается';
+                chargingIcon.style.color = '#86868b';
+            }
         }
         
         // Обновление UI блокировки
