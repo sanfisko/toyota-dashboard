@@ -114,23 +114,39 @@ class PathManager:
     @property
     def config_file(self) -> str:
         """Путь к файлу конфигурации"""
-        # Сначала ищем в пользовательской директории
+        # Сначала проверяем, можем ли писать в пользовательскую директорию
         user_config = os.path.join(self.config_dir, 'config.yaml')
+        
+        # Если файл уже существует в пользовательской директории, используем его
         if os.path.exists(user_config):
             return user_config
         
-        # Затем в системной директории
+        # Проверяем, можем ли писать в системную директорию
         if self._use_system_dirs:
             system_config = os.path.join(self._system_config_dir, 'config.yaml')
             if os.path.exists(system_config):
-                return system_config
+                # Проверяем права на запись
+                try:
+                    with open(system_config, 'a'):
+                        pass
+                    return system_config
+                except (OSError, PermissionError):
+                    pass
         
-        # Наконец, в директории приложения (только для чтения)
+        # Проверяем файл в директории приложения (только для чтения)
         app_config = os.path.join(self._app_dir, 'config.yaml')
         if os.path.exists(app_config):
-            return app_config
+            # Если файл существует в app_dir, но мы не можем в него писать,
+            # копируем его в пользовательскую директорию
+            try:
+                import shutil
+                os.makedirs(self.config_dir, exist_ok=True)
+                shutil.copy2(app_config, user_config)
+                return user_config
+            except (OSError, PermissionError):
+                pass
         
-        # Возвращаем путь для создания нового файла
+        # Возвращаем путь для создания нового файла в пользовательской директории
         return user_config
     
     @property
