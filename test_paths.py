@@ -60,6 +60,30 @@ def test_paths():
     if os.path.exists(config_dir):
         print(f"  Директория записываемая: {'✅' if os.access(config_dir, os.W_OK) else '❌'}")
     
+    # Тестируем логирование
+    print(f"\n📝 Тест логирования:")
+    log_file = paths.log_file
+    log_dir = os.path.dirname(log_file)
+    
+    print(f"  Путь к логу: {log_file}")
+    print(f"  Директория логов: {log_dir}")
+    print(f"  Директория существует: {'✅' if os.path.exists(log_dir) else '❌'}")
+    
+    if os.path.exists(log_dir):
+        print(f"  Директория записываемая: {'✅' if os.access(log_dir, os.W_OK) else '❌'}")
+        
+        # Пытаемся создать тестовый лог-файл
+        try:
+            test_log_file = os.path.join(log_dir, 'test.log')
+            with open(test_log_file, 'w') as f:
+                f.write('test log entry\n')
+            os.remove(test_log_file)
+            print(f"  ✅ Тест записи в лог-файл успешен")
+        except Exception as e:
+            print(f"  ❌ Ошибка записи в лог-файл: {e}")
+    else:
+        print(f"  ❌ Директория логов не существует")
+    
     # Тестируем создание временного файла конфигурации
     print(f"\n🧪 Тест записи конфигурации:")
     try:
