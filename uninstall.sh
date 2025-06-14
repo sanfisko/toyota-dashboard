@@ -552,7 +552,7 @@ main() {
     echo "   • Системные пакеты (nginx, sqlite3, git и др.)"
     echo
     print_warning "Если вы хотите переустановить Toyota Dashboard:"
-    echo "curl -sSL https://raw.githubusercontent.com/reedike3w/toyota-dashboard/main/install.sh | sudo bash"
+    echo "curl -sSL https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/install.sh | sudo bash"
     echo
     print_info "Спасибо за использование Toyota Dashboard!"
 }

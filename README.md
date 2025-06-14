@@ -16,12 +16,12 @@
 
 ### Для ленивых (рекомендуется)
 ```bash
-curl -sSL "https://raw.githubusercontent.com/reedike3w/toyota-dashboard/main/install.sh" | sudo bash
+curl -sSL "https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/install.sh" | sudo bash
 ```
 
 ### Для параноиков
 ```bash
-git clone https://github.com/reedike3w/toyota-dashboard.git
+git clone https://github.com/sanfisko/toyota-dashboard.git
 cd toyota-dashboard
 # Читаем код, убеждаемся что он не майнит биткоины
 pip install -r requirements.txt
@@ -60,8 +60,8 @@ toyota:
 sudo journalctl -u toyota-dashboard -f
 
 # Если не помогло, переустанови
-curl -sSL "https://raw.githubusercontent.com/reedike3w/toyota-dashboard/main/uninstall.sh" | sudo bash
-curl -sSL "https://raw.githubusercontent.com/reedike3w/toyota-dashboard/main/install.sh" | sudo bash
+curl -sSL "https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/uninstall.sh" | sudo bash
+curl -sSL "https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/install.sh" | sudo bash
 ```
 
 ### Raspberry Pi тормозит
@@ -71,7 +71,7 @@ curl -sSL "https://raw.githubusercontent.com/reedike3w/toyota-dashboard/main/ins
 
 ## 🤝 Помощь проекту
 
-Нашел баг? Хочешь новую фичу? Добро пожаловать в [Issues](https://github.com/reedike3w/toyota-dashboard/issues).
+Нашел баг? Хочешь новую фичу? Добро пожаловать в [Issues](https://github.com/sanfisko/toyota-dashboard/issues).
 
 Умеешь кодить? Pull requests приветствуются (но сначала убедись, что код работает).
 

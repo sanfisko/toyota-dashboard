@@ -5,9 +5,9 @@
 # Версия: 1.0.0
 #
 # Использование:
-#   curl -sSL https://raw.githubusercontent.com/reedike3w/toyota-dashboard/main/install.sh | sudo bash
-#   curl -sSL https://raw.githubusercontent.com/reedike3w/toyota-dashboard/main/install.sh | sudo bash -s -- -y
-#   curl -sSL https://raw.githubusercontent.com/reedike3w/toyota-dashboard/main/install.sh | sudo bash -s -- --fix-deps
+#   curl -sSL https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/install.sh | sudo bash
+#   curl -sSL https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/install.sh | sudo bash -s -- -y
+#   curl -sSL https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/install.sh | sudo bash -s -- --fix-deps
 #
 # Флаги:
 #   -y, --yes                    Автоматическое подтверждение без интерактивного запроса
@@ -305,7 +305,7 @@ download_project() {
         sudo cp -r /workspace/pytoyoda/static .
     else
         # Скачиваем с GitHub
-        sudo -u toyota git clone https://github.com/reedike3w/toyota-dashboard.git temp_repo
+        sudo -u toyota git clone https://github.com/sanfisko/toyota-dashboard.git temp_repo
         sudo -u toyota cp temp_repo/*.py .
         sudo -u toyota cp temp_repo/*.sh .
         sudo -u toyota cp temp_repo/*.yaml .
@@ -715,7 +715,7 @@ show_final_info() {
     echo "   sudo systemctl start|stop|restart|status toyota-dashboard"
     echo
     echo -e "${YELLOW}7. Удаление (если понадобится):${NC}"
-    echo "   curl -sSL \"https://raw.githubusercontent.com/reedike3w/toyota-dashboard/main/uninstall.sh?\$(date +%s)\" | sudo bash"
+    echo "   curl -sSL \"https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/uninstall.sh?\$(date +%s)\" | sudo bash"
     echo
     echo -e "${GREEN}Установка завершена успешно! Toyota Dashboard готов! ✨${NC}"
 }
@@ -858,7 +858,7 @@ main() {
             # Если терминал недоступен, используем автоматическое подтверждение
             echo -e "${YELLOW}Терминал недоступен для интерактивного ввода.${NC}"
             echo -e "${YELLOW}Используйте флаг -y для автоматической установки:${NC}"
-            echo "curl -sSL https://raw.githubusercontent.com/reedike3w/toyota-dashboard/main/install.sh | sudo bash -s -- -y"
+            echo "curl -sSL https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/install.sh | sudo bash -s -- -y"
             exit 1
         fi
         
