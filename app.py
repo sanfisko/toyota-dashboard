@@ -238,8 +238,8 @@ async def lifespan(app: FastAPI):
     """Управление жизненным циклом приложения."""
     # Startup
     try:
-        # Создать директории
-        os.makedirs(f'{DATA_DIR}/data', exist_ok=True)
+        # Убеждаемся, что все директории созданы
+        paths.ensure_directories()
         
         # Инициализировать базу данных
         await db.init_database()
