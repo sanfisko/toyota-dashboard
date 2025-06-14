@@ -13,11 +13,18 @@
 
 set -e  # Остановить при ошибке
 
-# Получаем информацию о текущем пользователе
-CURRENT_USER=$(whoami)
-CURRENT_HOME=$(eval echo ~$CURRENT_USER)
-CURRENT_UID=$(id -u)
-CURRENT_GID=$(id -g)
+# Получаем информацию о реальном пользователе (не root при sudo)
+if [[ -n "$SUDO_USER" ]]; then
+    CURRENT_USER="$SUDO_USER"
+    CURRENT_HOME=$(eval echo ~$SUDO_USER)
+    CURRENT_UID=$(id -u "$SUDO_USER")
+    CURRENT_GID=$(id -g "$SUDO_USER")
+else
+    CURRENT_USER=$(whoami)
+    CURRENT_HOME=$(eval echo ~$CURRENT_USER)
+    CURRENT_UID=$(id -u)
+    CURRENT_GID=$(id -g)
+fi
 
 # Пути для установки
 INSTALL_DIR="$CURRENT_HOME/toyota-dashboard"
@@ -286,6 +293,11 @@ create_directories() {
     mkdir -p "$LOG_DIR"
     mkdir -p "$DATA_DIR/backups"
     
+    # Устанавливаем правильного владельца если запущено через sudo
+    if [[ -n "$SUDO_USER" ]]; then
+        chown -R "$CURRENT_UID:$CURRENT_GID" "$INSTALL_DIR" "$CONFIG_DIR" "$DATA_DIR" "$CACHE_DIR" 2>/dev/null || true
+    fi
+    
     print_success "Директории созданы"
 }
 
@@ -302,6 +314,11 @@ download_project() {
     # Клонируем репозиторий
     git clone https://github.com/sanfisko/toyota-dashboard.git "$INSTALL_DIR"
     cd "$INSTALL_DIR"
+    
+    # Устанавливаем правильного владельца если запущено через sudo
+    if [[ -n "$SUDO_USER" ]]; then
+        chown -R "$CURRENT_UID:$CURRENT_GID" "$INSTALL_DIR" 2>/dev/null || true
+    fi
     
     # Создание директории logs если отсутствует
     if [[ ! -d "logs" ]]; then
@@ -423,6 +440,11 @@ EOF
         print_success "Минимальный конфигурационный файл создан: $CONFIG_DIR/config.yaml"
     fi
     
+    # Устанавливаем правильного владельца если запущено через sudo
+    if [[ -n "$SUDO_USER" ]]; then
+        chown -R "$CURRENT_UID:$CURRENT_GID" "$CONFIG_DIR" 2>/dev/null || true
+    fi
+    
     print_success "Директории созданы: $DATA_DIR, $LOG_DIR"
     
     echo
@@ -485,6 +507,11 @@ setup_systemd() {
     # Создаем директорию для пользовательских сервисов
     mkdir -p "$CURRENT_HOME/.config/systemd/user"
     
+    # Устанавливаем правильного владельца если запущено через sudo
+    if [[ -n "$SUDO_USER" ]]; then
+        chown -R "$CURRENT_UID:$CURRENT_GID" "$CURRENT_HOME/.config/systemd" 2>/dev/null || true
+    fi
+    
     # Создаем файл сервиса
     cat > "$CURRENT_HOME/.config/systemd/user/toyota-dashboard.service" << EOF
 [Unit]
@@ -511,10 +538,13 @@ WantedBy=default.target
 EOF
     
     # Перезагружаем systemd для пользователя
-    systemctl --user daemon-reload
-    
-    # Включаем сервис
-    systemctl --user enable toyota-dashboard.service
+    if [[ -n "$SUDO_USER" ]]; then
+        sudo -u "$SUDO_USER" systemctl --user daemon-reload
+        sudo -u "$SUDO_USER" systemctl --user enable toyota-dashboard.service
+    else
+        systemctl --user daemon-reload
+        systemctl --user enable toyota-dashboard.service
+    fi
     
     print_success "Systemd сервис создан и включен"
     print_info "Управление сервисом:"
@@ -555,6 +585,11 @@ echo "Обновление завершено. Перезапустите сер
 EOF
     chmod +x "$INSTALL_DIR/update.sh"
     
+    # Устанавливаем правильного владельца если запущено через sudo
+    if [[ -n "$SUDO_USER" ]]; then
+        chown "$CURRENT_UID:$CURRENT_GID" "$INSTALL_DIR"/*.sh 2>/dev/null || true
+    fi
+    
     print_success "Скрипты управления созданы"
 }
 
@@ -568,12 +603,20 @@ setup_autostart() {
     fi
     
     # Запускаем сервис
-    systemctl --user start toyota-dashboard.service
-    
-    if systemctl --user is-active toyota-dashboard.service >/dev/null 2>&1; then
-        print_success "Toyota Dashboard сервис запущен"
+    if [[ -n "$SUDO_USER" ]]; then
+        sudo -u "$SUDO_USER" systemctl --user start toyota-dashboard.service
+        if sudo -u "$SUDO_USER" systemctl --user is-active toyota-dashboard.service >/dev/null 2>&1; then
+            print_success "Toyota Dashboard сервис запущен"
+        else
+            print_warning "Сервис не запущен. Проверьте конфигурацию и запустите вручную"
+        fi
     else
-        print_warning "Сервис не запущен. Проверьте конфигурацию и запустите вручную"
+        systemctl --user start toyota-dashboard.service
+        if systemctl --user is-active toyota-dashboard.service >/dev/null 2>&1; then
+            print_success "Toyota Dashboard сервис запущен"
+        else
+            print_warning "Сервис не запущен. Проверьте конфигурацию и запустите вручную"
+        fi
     fi
     
     print_success "Автозапуск настроен"
