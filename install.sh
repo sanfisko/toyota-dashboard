@@ -766,6 +766,54 @@ EOF
     print_success "Автозапуск настроен"
 }
 
+# Автоматический запуск сервера после установки
+start_server_after_install() {
+    print_step "Запуск сервера..."
+    
+    # Проверяем, не запущен ли уже сервер
+    if pgrep -f "python.*app.py" > /dev/null; then
+        print_info "Сервер уже запущен"
+        return 0
+    fi
+    
+    # Пытаемся запустить через systemd
+    if [[ -f "$CURRENT_HOME/.config/systemd/user/toyota-dashboard.service" ]] && check_systemd_user; then
+        print_info "Запуск через systemd..."
+        if [[ -n "$SUDO_USER" ]]; then
+            sudo -u "$SUDO_USER" systemctl --user start toyota-dashboard 2>/dev/null && {
+                print_success "Сервер запущен через systemd"
+                return 0
+            }
+        else
+            systemctl --user start toyota-dashboard 2>/dev/null && {
+                print_success "Сервер запущен через systemd"
+                return 0
+            }
+        fi
+    fi
+    
+    # Если systemd не работает, запускаем напрямую
+    print_info "Systemd недоступен, запуск напрямую..."
+    cd "$INSTALL_DIR"
+    
+    if [[ -n "$SUDO_USER" ]]; then
+        # Запуск от имени пользователя
+        sudo -u "$SUDO_USER" bash -c "cd '$INSTALL_DIR' && source venv/bin/activate && nohup python app.py > logs/install_startup.log 2>&1 &"
+    else
+        # Запуск от текущего пользователя
+        source venv/bin/activate && nohup python app.py > logs/install_startup.log 2>&1 &
+    fi
+    
+    # Ждем немного и проверяем что сервер запустился
+    sleep 3
+    if pgrep -f "python.*app.py" > /dev/null; then
+        print_success "Сервер запущен! Доступен по адресу: http://localhost:2025"
+    else
+        print_warning "Не удалось автоматически запустить сервер"
+        print_info "Запустите вручную: $INSTALL_DIR/start.sh"
+    fi
+}
+
 # Основная функция установки
 main() {
     # Обработка аргументов
@@ -821,6 +869,7 @@ main() {
     setup_systemd
     create_management_scripts
     setup_autostart
+    start_server_after_install
     
     # Финальная информация
     print_success "Установка завершена!"
