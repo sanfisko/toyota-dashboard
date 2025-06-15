@@ -831,8 +831,11 @@ start_server_after_install() {
     # Если systemd не работает, запускаем напрямую
     print_info "Systemd недоступен, запуск напрямую..."
     
-    # Создаем лог файл
+    # Создаем лог файл с правильными правами
     mkdir -p "$INSTALL_DIR/logs"
+    if [[ -n "$SUDO_USER" ]]; then
+        chown -R "$SUDO_USER:$SUDO_USER" "$INSTALL_DIR/logs"
+    fi
     
     if [[ -n "$SUDO_USER" ]]; then
         # Запуск от имени пользователя через start.sh
@@ -840,6 +843,7 @@ start_server_after_install() {
         sudo -u "$SUDO_USER" bash -c "
             cd '$INSTALL_DIR' || exit 1
             export HOME='$CURRENT_HOME'
+            mkdir -p logs
             if [[ -f 'start.sh' ]]; then
                 chmod +x start.sh
                 ./start.sh > logs/install_startup.log 2>&1 &
