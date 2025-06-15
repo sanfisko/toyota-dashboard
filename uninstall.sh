@@ -164,6 +164,24 @@ main() {
     print_info "Остановка процессов Toyota Dashboard..."
     pkill -f "python.*app.py" 2>/dev/null || print_info "Процессы не найдены"
     
+    # Удаление cron задач
+    print_info "Удаление cron задач..."
+    if [[ -n "$SUDO_USER" ]]; then
+        if sudo -u "$SUDO_USER" crontab -l 2>/dev/null | grep -q "toyota-dashboard/autostart.sh"; then
+            sudo -u "$SUDO_USER" crontab -l 2>/dev/null | grep -v "toyota-dashboard/autostart.sh" | sudo -u "$SUDO_USER" crontab -
+            print_success "Cron задачи удалены"
+        else
+            print_info "Cron задачи не найдены"
+        fi
+    else
+        if crontab -l 2>/dev/null | grep -q "toyota-dashboard/autostart.sh"; then
+            crontab -l 2>/dev/null | grep -v "toyota-dashboard/autostart.sh" | crontab -
+            print_success "Cron задачи удалены"
+        else
+            print_info "Cron задачи не найдены"
+        fi
+    fi
+    
     # Удаление директорий
     for dir in "$INSTALL_DIR" "$CONFIG_DIR" "$DATA_DIR" "$CACHE_DIR"; do
         if [[ -d "$dir" ]]; then

@@ -678,6 +678,50 @@ setup_autostart() {
         sudo loginctl enable-linger "$CURRENT_USER" 2>/dev/null || print_warning "Не удалось включить lingering"
     fi
     
+    # Добавляем автозапуск через cron как резервный вариант
+    setup_cron_autostart() {
+        print_info "Настройка автозапуска через cron..."
+        
+        # Создаем скрипт автозапуска
+        cat > "$INSTALL_DIR/autostart.sh" << 'EOF'
+#!/bin/bash
+# Автозапуск Toyota Dashboard
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR"
+
+# Проверяем, не запущен ли уже
+if pgrep -f "python.*app.py" > /dev/null; then
+    exit 0
+fi
+
+# Запускаем сервер
+source venv/bin/activate
+nohup python app.py > logs/autostart.log 2>&1 &
+EOF
+        chmod +x "$INSTALL_DIR/autostart.sh"
+        
+        # Добавляем в crontab
+        if [[ -n "$SUDO_USER" ]]; then
+            # Проверяем, есть ли уже запись в crontab
+            if ! sudo -u "$SUDO_USER" crontab -l 2>/dev/null | grep -q "toyota-dashboard/autostart.sh"; then
+                (sudo -u "$SUDO_USER" crontab -l 2>/dev/null; echo "@reboot $INSTALL_DIR/autostart.sh") | sudo -u "$SUDO_USER" crontab -
+                print_success "Автозапуск через cron настроен"
+            else
+                print_info "Автозапуск через cron уже настроен"
+            fi
+        else
+            if ! crontab -l 2>/dev/null | grep -q "toyota-dashboard/autostart.sh"; then
+                (crontab -l 2>/dev/null; echo "@reboot $INSTALL_DIR/autostart.sh") | crontab -
+                print_success "Автозапуск через cron настроен"
+            else
+                print_info "Автозапуск через cron уже настроен"
+            fi
+        fi
+    }
+    
+    # Настраиваем cron автозапуск
+    setup_cron_autostart
+    
     # Запускаем сервис
     if [[ -n "$SUDO_USER" ]]; then
         if sudo -u "$SUDO_USER" systemctl --user start toyota-dashboard.service 2>/dev/null; then
@@ -687,7 +731,16 @@ setup_autostart() {
                 print_warning "Сервис не запущен. Проверьте конфигурацию и запустите вручную"
             fi
         else
-            print_warning "Не удалось запустить сервис. Используйте: $INSTALL_DIR/start.sh"
+            print_warning "Не удалось запустить сервис через systemd. Запускаем напрямую..."
+            # Запускаем сервер напрямую в фоне
+            cd "$INSTALL_DIR"
+            sudo -u "$SUDO_USER" bash -c "cd '$INSTALL_DIR' && source venv/bin/activate && nohup python app.py > logs/server.log 2>&1 &"
+            sleep 3
+            if pgrep -f "python.*app.py" > /dev/null; then
+                print_success "Toyota Dashboard запущен напрямую"
+            else
+                print_warning "Не удалось запустить сервер. Используйте: $INSTALL_DIR/start.sh"
+            fi
         fi
     else
         if systemctl --user start toyota-dashboard.service 2>/dev/null; then
@@ -697,7 +750,16 @@ setup_autostart() {
                 print_warning "Сервис не запущен. Проверьте конфигурацию и запустите вручную"
             fi
         else
-            print_warning "Не удалось запустить сервис. Используйте: $INSTALL_DIR/start.sh"
+            print_warning "Не удалось запустить сервис через systemd. Запускаем напрямую..."
+            # Запускаем сервер напрямую в фоне
+            cd "$INSTALL_DIR"
+            source venv/bin/activate && nohup python app.py > logs/server.log 2>&1 &
+            sleep 3
+            if pgrep -f "python.*app.py" > /dev/null; then
+                print_success "Toyota Dashboard запущен напрямую"
+            else
+                print_warning "Не удалось запустить сервер. Используйте: $INSTALL_DIR/start.sh"
+            fi
         fi
     fi
     
