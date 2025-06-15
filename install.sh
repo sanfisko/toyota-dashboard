@@ -518,9 +518,39 @@ except ImportError as e:
     print_success "Установка проверена"
 }
 
+# Проверка доступности systemd user session
+check_systemd_user() {
+    # Проверяем, доступен ли systemd для пользователя
+    if [[ -n "$SUDO_USER" ]]; then
+        if ! sudo -u "$SUDO_USER" systemctl --user status >/dev/null 2>&1; then
+            return 1
+        fi
+    else
+        if ! systemctl --user status >/dev/null 2>&1; then
+            return 1
+        fi
+    fi
+    return 0
+}
+
 # Создание systemd сервиса для текущего пользователя
 setup_systemd() {
     print_step "Создание systemd сервиса..."
+    
+    # Проверяем доступность systemd user session
+    if ! check_systemd_user; then
+        print_warning "Systemd user session недоступен"
+        print_info "Возможные причины:"
+        print_info "  - Запуск в контейнере или chroot окружении"
+        print_info "  - SSH сессия без X11 forwarding"
+        print_info "  - Systemd не настроен для пользовательских сервисов"
+        print_info ""
+        print_info "Systemd сервис не будет создан, но вы можете:"
+        print_info "  1. Запустить вручную: $INSTALL_DIR/start.sh"
+        print_info "  2. Добавить в crontab: @reboot $INSTALL_DIR/start.sh"
+        print_info "  3. Настроить systemd позже вручную"
+        return 0
+    fi
     
     # Создаем директорию для пользовательских сервисов
     mkdir -p "$CURRENT_HOME/.config/systemd/user"
@@ -555,16 +585,30 @@ StandardError=journal
 WantedBy=default.target
 EOF
     
-    # Перезагружаем systemd для пользователя
+    # Устанавливаем правильного владельца для файла сервиса
     if [[ -n "$SUDO_USER" ]]; then
-        sudo -u "$SUDO_USER" systemctl --user daemon-reload
-        sudo -u "$SUDO_USER" systemctl --user enable toyota-dashboard.service
-    else
-        systemctl --user daemon-reload
-        systemctl --user enable toyota-dashboard.service
+        chown "$CURRENT_UID:$CURRENT_GID" "$CURRENT_HOME/.config/systemd/user/toyota-dashboard.service" 2>/dev/null || true
     fi
     
-    print_success "Systemd сервис создан и включен"
+    # Перезагружаем systemd для пользователя
+    if [[ -n "$SUDO_USER" ]]; then
+        if sudo -u "$SUDO_USER" systemctl --user daemon-reload 2>/dev/null; then
+            sudo -u "$SUDO_USER" systemctl --user enable toyota-dashboard.service 2>/dev/null || print_warning "Не удалось включить сервис"
+            print_success "Systemd сервис создан и включен"
+        else
+            print_warning "Не удалось перезагрузить systemd daemon"
+            return 1
+        fi
+    else
+        if systemctl --user daemon-reload 2>/dev/null; then
+            systemctl --user enable toyota-dashboard.service 2>/dev/null || print_warning "Не удалось включить сервис"
+            print_success "Systemd сервис создан и включен"
+        else
+            print_warning "Не удалось перезагрузить systemd daemon"
+            return 1
+        fi
+    fi
+    
     print_info "Управление сервисом:"
     print_info "  Запуск:    systemctl --user start toyota-dashboard"
     print_info "  Остановка: systemctl --user stop toyota-dashboard"
@@ -615,6 +659,20 @@ EOF
 setup_autostart() {
     print_step "Настройка автозапуска..."
     
+    # Проверяем, был ли создан systemd сервис
+    if [[ ! -f "$CURRENT_HOME/.config/systemd/user/toyota-dashboard.service" ]]; then
+        print_info "Systemd сервис не создан, пропускаем автозапуск"
+        print_info "Для запуска используйте: $INSTALL_DIR/start.sh"
+        return 0
+    fi
+    
+    # Проверяем доступность systemd user session
+    if ! check_systemd_user; then
+        print_warning "Systemd user session недоступен, пропускаем автозапуск"
+        print_info "Для запуска используйте: $INSTALL_DIR/start.sh"
+        return 0
+    fi
+    
     # Включаем lingering для пользователя (чтобы сервисы запускались без входа в систему)
     if command -v loginctl &> /dev/null; then
         sudo loginctl enable-linger "$CURRENT_USER" 2>/dev/null || print_warning "Не удалось включить lingering"
@@ -622,18 +680,24 @@ setup_autostart() {
     
     # Запускаем сервис
     if [[ -n "$SUDO_USER" ]]; then
-        sudo -u "$SUDO_USER" systemctl --user start toyota-dashboard.service
-        if sudo -u "$SUDO_USER" systemctl --user is-active toyota-dashboard.service >/dev/null 2>&1; then
-            print_success "Toyota Dashboard сервис запущен"
+        if sudo -u "$SUDO_USER" systemctl --user start toyota-dashboard.service 2>/dev/null; then
+            if sudo -u "$SUDO_USER" systemctl --user is-active toyota-dashboard.service >/dev/null 2>&1; then
+                print_success "Toyota Dashboard сервис запущен"
+            else
+                print_warning "Сервис не запущен. Проверьте конфигурацию и запустите вручную"
+            fi
         else
-            print_warning "Сервис не запущен. Проверьте конфигурацию и запустите вручную"
+            print_warning "Не удалось запустить сервис. Используйте: $INSTALL_DIR/start.sh"
         fi
     else
-        systemctl --user start toyota-dashboard.service
-        if systemctl --user is-active toyota-dashboard.service >/dev/null 2>&1; then
-            print_success "Toyota Dashboard сервис запущен"
+        if systemctl --user start toyota-dashboard.service 2>/dev/null; then
+            if systemctl --user is-active toyota-dashboard.service >/dev/null 2>&1; then
+                print_success "Toyota Dashboard сервис запущен"
+            else
+                print_warning "Сервис не запущен. Проверьте конфигурацию и запустите вручную"
+            fi
         else
-            print_warning "Сервис не запущен. Проверьте конфигурацию и запустите вручную"
+            print_warning "Не удалось запустить сервис. Используйте: $INSTALL_DIR/start.sh"
         fi
     fi
     
