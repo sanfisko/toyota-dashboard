@@ -687,16 +687,52 @@ setup_autostart() {
 #!/bin/bash
 # Автозапуск Toyota Dashboard
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cd "$SCRIPT_DIR"
+LOG_FILE="$SCRIPT_DIR/logs/autostart.log"
+
+# Создаем директорию для логов
+mkdir -p "$SCRIPT_DIR/logs"
+
+# Логируем запуск
+echo "$(date): Запуск автозапуска Toyota Dashboard" >> "$LOG_FILE"
+
+# Переходим в директорию проекта
+cd "$SCRIPT_DIR" || {
+    echo "$(date): Ошибка: не удалось перейти в $SCRIPT_DIR" >> "$LOG_FILE"
+    exit 1
+}
 
 # Проверяем, не запущен ли уже
 if pgrep -f "python.*app.py" > /dev/null; then
+    echo "$(date): Сервер уже запущен" >> "$LOG_FILE"
     exit 0
 fi
 
+# Ждем немного после загрузки системы
+sleep 30
+
+# Проверяем наличие виртуального окружения
+if [[ ! -f "venv/bin/activate" ]]; then
+    echo "$(date): Ошибка: виртуальное окружение не найдено" >> "$LOG_FILE"
+    exit 1
+fi
+
+# Активируем виртуальное окружение
+source venv/bin/activate || {
+    echo "$(date): Ошибка: не удалось активировать виртуальное окружение" >> "$LOG_FILE"
+    exit 1
+}
+
 # Запускаем сервер
-source venv/bin/activate
-nohup python app.py > logs/autostart.log 2>&1 &
+echo "$(date): Запуск сервера..." >> "$LOG_FILE"
+nohup python app.py >> "$LOG_FILE" 2>&1 &
+
+# Проверяем что сервер запустился
+sleep 5
+if pgrep -f "python.*app.py" > /dev/null; then
+    echo "$(date): Сервер успешно запущен, PID: $(pgrep -f 'python.*app.py')" >> "$LOG_FILE"
+else
+    echo "$(date): Ошибка: не удалось запустить сервер" >> "$LOG_FILE"
+fi
 EOF
         chmod +x "$INSTALL_DIR/autostart.sh"
         
@@ -794,22 +830,54 @@ start_server_after_install() {
     
     # Если systemd не работает, запускаем напрямую
     print_info "Systemd недоступен, запуск напрямую..."
-    cd "$INSTALL_DIR"
+    
+    # Создаем лог файл
+    mkdir -p "$INSTALL_DIR/logs"
     
     if [[ -n "$SUDO_USER" ]]; then
-        # Запуск от имени пользователя
-        sudo -u "$SUDO_USER" bash -c "cd '$INSTALL_DIR' && source venv/bin/activate && nohup python app.py > logs/install_startup.log 2>&1 &"
+        # Запуск от имени пользователя через start.sh
+        print_info "Запуск от имени пользователя $SUDO_USER..."
+        sudo -u "$SUDO_USER" bash -c "
+            cd '$INSTALL_DIR' || exit 1
+            export HOME='$CURRENT_HOME'
+            if [[ -f 'start.sh' ]]; then
+                chmod +x start.sh
+                ./start.sh > logs/install_startup.log 2>&1 &
+            else
+                source venv/bin/activate || exit 1
+                nohup python app.py > logs/install_startup.log 2>&1 &
+            fi
+        "
     else
         # Запуск от текущего пользователя
-        source venv/bin/activate && nohup python app.py > logs/install_startup.log 2>&1 &
+        print_info "Запуск от текущего пользователя..."
+        cd "$INSTALL_DIR" || {
+            print_error "Не удалось перейти в $INSTALL_DIR"
+            return 1
+        }
+        
+        if [[ -f "start.sh" ]]; then
+            chmod +x start.sh
+            ./start.sh > logs/install_startup.log 2>&1 &
+        else
+            source venv/bin/activate || {
+                print_error "Не удалось активировать виртуальное окружение"
+                return 1
+            }
+            nohup python app.py > logs/install_startup.log 2>&1 &
+        fi
     fi
     
     # Ждем немного и проверяем что сервер запустился
-    sleep 3
+    print_info "Ожидание запуска сервера..."
+    sleep 5
+    
     if pgrep -f "python.*app.py" > /dev/null; then
         print_success "Сервер запущен! Доступен по адресу: http://localhost:2025"
+        print_info "PID сервера: $(pgrep -f 'python.*app.py')"
     else
         print_warning "Не удалось автоматически запустить сервер"
+        print_info "Проверьте логи: tail -f $INSTALL_DIR/logs/install_startup.log"
         print_info "Запустите вручную: $INSTALL_DIR/start.sh"
     fi
 }
