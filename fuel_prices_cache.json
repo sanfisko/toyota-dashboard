@@ -1,0 +1,150 @@
+{
+  "timestamp": "2025-06-15T09:03:30.937131",
+  "prices": {
+    "AT": {
+      "gasoline": 1.58,
+      "electricity": 0.27
+    },
+    "AL": {
+      "gasoline": 1.76,
+      "electricity": 0.13
+    },
+    "BE": {
+      "gasoline": 1.63,
+      "electricity": 0.29
+    },
+    "BG": {
+      "gasoline": 1.21,
+      "electricity": 0.16
+    },
+    "GB": {
+      "gasoline": 1.92,
+      "electricity": 0.35
+    },
+    "HU": {
+      "gasoline": 1.45,
+      "electricity": 0.2
+    },
+    "DE": {
+      "gasoline": 1.75,
+      "electricity": 0.3
+    },
+    "GR": {
+      "gasoline": 1.73,
+      "electricity": 0.24
+    },
+    "DK": {
+      "gasoline": 1.82,
+      "electricity": 0.4
+    },
+    "IE": {
+      "gasoline": 1.71,
+      "electricity": 0.3
+    },
+    "IS": {
+      "gasoline": 1.99,
+      "electricity": 0.18
+    },
+    "ES": {
+      "gasoline": 1.45,
+      "electricity": 0.26
+    },
+    "IT": {
+      "gasoline": 1.7,
+      "electricity": 0.28
+    },
+    "CY": {
+      "gasoline": 1.33,
+      "electricity": 0.24
+    },
+    "LV": {
+      "gasoline": 1.51,
+      "electricity": 0.22
+    },
+    "LT": {
+      "gasoline": 1.38,
+      "electricity": 0.21
+    },
+    "LU": {
+      "gasoline": 1.46,
+      "electricity": 0.28
+    },
+    "MT": {
+      "gasoline": 1.34,
+      "electricity": 0.26
+    },
+    "MD": {
+      "gasoline": 1.17,
+      "electricity": 0.12
+    },
+    "NL": {
+      "gasoline": 2.1,
+      "electricity": 0.32
+    },
+    "NO": {
+      "gasoline": 1.76,
+      "electricity": 0.15
+    },
+    "PL": {
+      "gasoline": 1.34,
+      "electricity": 0.22
+    },
+    "PT": {
+      "gasoline": 1.73,
+      "electricity": 0.27
+    },
+    "RO": {
+      "gasoline": 1.37,
+      "electricity": 0.18
+    },
+    "RS": {
+      "gasoline": 1.52,
+      "electricity": 0.16
+    },
+    "SK": {
+      "gasoline": 1.51,
+      "electricity": 0.23
+    },
+    "SI": {
+      "gasoline": 1.43,
+      "electricity": 0.25
+    },
+    "FI": {
+      "gasoline": 1.76,
+      "electricity": 0.2
+    },
+    "FR": {
+      "gasoline": 1.71,
+      "electricity": 0.25
+    },
+    "HR": {
+      "gasoline": 1.41,
+      "electricity": 0.22
+    },
+    "ME": {
+      "gasoline": 1.41,
+      "electricity": 0.17
+    },
+    "CZ": {
+      "gasoline": 1.34,
+      "electricity": 0.24
+    },
+    "CH": {
+      "gasoline": 1.88,
+      "electricity": 0.35
+    },
+    "SE": {
+      "gasoline": 1.43,
+      "electricity": 0.35
+    },
+    "EE": {
+      "gasoline": 1.58,
+      "electricity": 0.2
+    },
+    "RU": {
+      "gasoline": 0.69,
+      "electricity": 0.05
+    }
+  },
+  "source": "autotraveler.ru"
+}
