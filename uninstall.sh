@@ -112,28 +112,57 @@ main() {
     
     print_header "🚀 НАЧИНАЕМ УДАЛЕНИЕ"
     
+    # Проверка доступности systemd user session
+    check_systemd_user() {
+        if [[ -n "$SUDO_USER" ]]; then
+            if ! sudo -u "$SUDO_USER" systemctl --user status >/dev/null 2>&1; then
+                return 1
+            fi
+        else
+            if ! systemctl --user status >/dev/null 2>&1; then
+                return 1
+            fi
+        fi
+        return 0
+    }
+    
     # Остановка и удаление сервиса
     print_info "Остановка сервиса..."
-    if [[ -n "$SUDO_USER" ]]; then
-        sudo -u "$SUDO_USER" systemctl --user stop toyota-dashboard.service 2>/dev/null || print_warning "Сервис не был запущен"
-        sudo -u "$SUDO_USER" systemctl --user disable toyota-dashboard.service 2>/dev/null || print_warning "Сервис не был включен"
-    else
-        systemctl --user stop toyota-dashboard.service 2>/dev/null || print_warning "Сервис не был запущен"
-        systemctl --user disable toyota-dashboard.service 2>/dev/null || print_warning "Сервис не был включен"
-    fi
     
-    # Удаление файла сервиса
+    # Проверяем наличие файла сервиса
     if [[ -f "$CURRENT_HOME/.config/systemd/user/toyota-dashboard.service" ]]; then
+        # Проверяем доступность systemd
+        if check_systemd_user; then
+            if [[ -n "$SUDO_USER" ]]; then
+                sudo -u "$SUDO_USER" systemctl --user stop toyota-dashboard.service 2>/dev/null || print_warning "Сервис не был запущен"
+                sudo -u "$SUDO_USER" systemctl --user disable toyota-dashboard.service 2>/dev/null || print_warning "Сервис не был включен"
+            else
+                systemctl --user stop toyota-dashboard.service 2>/dev/null || print_warning "Сервис не был запущен"
+                systemctl --user disable toyota-dashboard.service 2>/dev/null || print_warning "Сервис не был включен"
+            fi
+        else
+            print_warning "Systemd user session недоступен, пропускаем остановку сервиса"
+        fi
+        
+        # Удаление файла сервиса
         rm -f "$CURRENT_HOME/.config/systemd/user/toyota-dashboard.service"
         print_success "Файл сервиса удален"
+        
+        # Перезагрузка systemd (если доступен)
+        if check_systemd_user; then
+            if [[ -n "$SUDO_USER" ]]; then
+                sudo -u "$SUDO_USER" systemctl --user daemon-reload 2>/dev/null || true
+            else
+                systemctl --user daemon-reload 2>/dev/null || true
+            fi
+        fi
+    else
+        print_info "Файл сервиса не найден"
     fi
     
-    # Перезагрузка systemd
-    if [[ -n "$SUDO_USER" ]]; then
-        sudo -u "$SUDO_USER" systemctl --user daemon-reload 2>/dev/null || true
-    else
-        systemctl --user daemon-reload 2>/dev/null || true
-    fi
+    # Остановка процессов вручную (на случай если systemd недоступен)
+    print_info "Остановка процессов Toyota Dashboard..."
+    pkill -f "python.*app.py" 2>/dev/null || print_info "Процессы не найдены"
     
     # Удаление директорий
     for dir in "$INSTALL_DIR" "$CONFIG_DIR" "$DATA_DIR" "$CACHE_DIR"; do
@@ -146,17 +175,21 @@ main() {
     done
     
     # Отключение lingering (если был включен только для Toyota Dashboard)
-    if command -v loginctl &> /dev/null; then
+    if command -v loginctl &> /dev/null && check_systemd_user; then
         # Проверяем, есть ли другие пользовательские сервисы
         if [[ -n "$SUDO_USER" ]]; then
-            if ! sudo -u "$SUDO_USER" systemctl --user list-unit-files --state=enabled | grep -q "\.service" 2>/dev/null; then
+            if ! sudo -u "$SUDO_USER" systemctl --user list-unit-files --state=enabled 2>/dev/null | grep -q "\.service"; then
                 sudo loginctl disable-linger "$CURRENT_USER" 2>/dev/null || true
-                print_info "Lingering отключен"
+                print_info "Lingering отключен (нет других пользовательских сервисов)"
+            else
+                print_info "Lingering оставлен (есть другие пользовательские сервисы)"
             fi
         else
-            if ! systemctl --user list-unit-files --state=enabled | grep -q "\.service" 2>/dev/null; then
+            if ! systemctl --user list-unit-files --state=enabled 2>/dev/null | grep -q "\.service"; then
                 sudo loginctl disable-linger "$CURRENT_USER" 2>/dev/null || true
-                print_info "Lingering отключен"
+                print_info "Lingering отключен (нет других пользовательских сервисов)"
+            else
+                print_info "Lingering оставлен (есть другие пользовательские сервисы)"
             fi
         fi
     fi
