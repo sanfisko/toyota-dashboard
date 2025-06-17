@@ -641,20 +641,24 @@ EOF
     
     # Перезагружаем systemd для пользователя
     if [[ -n "$SUDO_USER" ]]; then
-        if sudo -u "$SUDO_USER" systemctl --user daemon-reload 2>/dev/null; then
-            sudo -u "$SUDO_USER" systemctl --user enable toyota-dashboard.service 2>/dev/null || print_warning "Не удалось включить сервис"
+        export XDG_RUNTIME_DIR="/run/user/$(id -u "$SUDO_USER")"
+        if sudo -u "$SUDO_USER" XDG_RUNTIME_DIR="$XDG_RUNTIME_DIR" systemctl --user daemon-reload 2>/dev/null; then
+            sudo -u "$SUDO_USER" XDG_RUNTIME_DIR="$XDG_RUNTIME_DIR" systemctl --user enable toyota-dashboard.service 2>/dev/null || print_warning "Не удалось включить сервис"
             print_success "Systemd сервис создан и включен"
         else
             print_warning "Не удалось перезагрузить systemd daemon"
-            return 1
+            print_info "Systemd сервис создан, но не активирован автоматически"
+            print_info "Для активации выполните: ~/toyota-dashboard/enable_systemd.sh"
         fi
     else
-        if systemctl --user daemon-reload 2>/dev/null; then
-            systemctl --user enable toyota-dashboard.service 2>/dev/null || print_warning "Не удалось включить сервис"
+        export XDG_RUNTIME_DIR="/run/user/$(id -u)"
+        if XDG_RUNTIME_DIR="$XDG_RUNTIME_DIR" systemctl --user daemon-reload 2>/dev/null; then
+            XDG_RUNTIME_DIR="$XDG_RUNTIME_DIR" systemctl --user enable toyota-dashboard.service 2>/dev/null || print_warning "Не удалось включить сервис"
             print_success "Systemd сервис создан и включен"
         else
             print_warning "Не удалось перезагрузить systemd daemon"
-            return 1
+            print_info "Systemd сервис создан, но не активирован автоматически"
+            print_info "Для активации выполните: ~/toyota-dashboard/enable_systemd.sh"
         fi
     fi
     
@@ -760,6 +764,60 @@ else
 fi
 EOF
     chmod +x "$INSTALL_DIR/enable_systemd.sh"
+    
+    # Скрипт быстрого запуска (если systemd не работает)
+    cat > "$INSTALL_DIR/quick_start.sh" << EOF
+#!/bin/bash
+echo "🚀 Быстрый запуск Toyota Dashboard..."
+
+# Переходим в директорию проекта
+cd "$INSTALL_DIR" || {
+    echo "❌ Ошибка: не удалось перейти в $INSTALL_DIR"
+    exit 1
+}
+
+# Проверяем, не запущен ли уже
+if pgrep -f "python.*app.py" > /dev/null; then
+    echo "✅ Сервер уже запущен!"
+    echo "🌐 Доступен по адресу: http://localhost:2025"
+    exit 0
+fi
+
+# Пытаемся запустить через systemd
+if systemctl --user is-enabled toyota-dashboard >/dev/null 2>&1; then
+    echo "🔧 Запуск через systemd..."
+    systemctl --user start toyota-dashboard
+    sleep 3
+    if systemctl --user is-active toyota-dashboard >/dev/null 2>&1; then
+        echo "✅ Сервер запущен через systemd!"
+        echo "🌐 Доступен по адресу: http://localhost:2025"
+        exit 0
+    fi
+fi
+
+# Запускаем напрямую
+echo "🔧 Systemd недоступен, запуск напрямую..."
+source venv/bin/activate || {
+    echo "❌ Ошибка: не удалось активировать виртуальное окружение"
+    exit 1
+}
+
+echo "🚀 Запуск сервера..."
+nohup python app.py > logs/quick_start.log 2>&1 &
+
+# Проверяем что сервер запустился
+sleep 3
+if pgrep -f "python.*app.py" > /dev/null; then
+    echo "✅ Сервер запущен!"
+    echo "🌐 Доступен по адресу: http://localhost:2025"
+    echo "📋 Логи: tail -f $INSTALL_DIR/logs/quick_start.log"
+else
+    echo "❌ Не удалось запустить сервер"
+    echo "📋 Проверьте логи: tail -f $INSTALL_DIR/logs/quick_start.log"
+    exit 1
+fi
+EOF
+    chmod +x "$INSTALL_DIR/quick_start.sh"
     
     # Устанавливаем правильного владельца если запущено через sudo
     if [[ -n "$SUDO_USER" ]]; then
@@ -1111,7 +1169,9 @@ main() {
         fi
     else
         print_warning "⚠️  Сервер не запущен автоматически"
-        print_info "Запустите вручную: systemctl --user start toyota-dashboard"
+        print_info "Запустите вручную одним из способов:"
+        print_info "  $INSTALL_DIR/quick_start.sh  # Быстрый запуск (рекомендуется)"
+        print_info "  systemctl --user start toyota-dashboard  # Через systemd"
     fi
     
     echo
@@ -1140,6 +1200,7 @@ main() {
     echo "   journalctl --user -u toyota-dashboard -f"
     echo
     echo -e "${YELLOW}6. Скрипты управления:${NC}"
+    echo "   $INSTALL_DIR/quick_start.sh    # Быстрый запуск (рекомендуется)"
     echo "   $INSTALL_DIR/start.sh          # Прямой запуск"
     echo "   $INSTALL_DIR/stop.sh           # Остановка"
     echo "   $INSTALL_DIR/update.sh         # Обновление"
