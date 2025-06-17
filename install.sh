@@ -579,7 +579,7 @@ Environment=XDG_CONFIG_HOME=$CURRENT_HOME/.config
 Environment=XDG_DATA_HOME=$CURRENT_HOME/.local/share
 Environment=XDG_CACHE_HOME=$CURRENT_HOME/.cache
 Environment=PYTHONPATH=$INSTALL_DIR
-ExecStart=$INSTALL_DIR/venv/bin/python $INSTALL_DIR/app.py
+ExecStart=$INSTALL_DIR/start_service.sh
 Restart=always
 RestartSec=10
 StandardOutput=journal
@@ -624,7 +624,7 @@ Environment=XDG_CONFIG_HOME=$CURRENT_HOME/.config
 Environment=XDG_DATA_HOME=$CURRENT_HOME/.local/share
 Environment=XDG_CACHE_HOME=$CURRENT_HOME/.cache
 Environment=PYTHONPATH=$INSTALL_DIR
-ExecStart=$INSTALL_DIR/venv/bin/python $INSTALL_DIR/app.py
+ExecStart=$INSTALL_DIR/start_service.sh
 Restart=always
 RestartSec=10
 StandardOutput=journal
@@ -678,10 +678,33 @@ python app.py
 EOF
     chmod +x "$INSTALL_DIR/start.sh"
     
+    # Скрипт запуска для systemd (без интерактивного режима)
+    cat > "$INSTALL_DIR/start_service.sh" << EOF
+#!/bin/bash
+cd "$INSTALL_DIR"
+source venv/bin/activate
+exec python app.py
+EOF
+    chmod +x "$INSTALL_DIR/start_service.sh"
+    
     # Скрипт остановки
     cat > "$INSTALL_DIR/stop.sh" << EOF
 #!/bin/bash
-pkill -f "python.*app.py" || echo "Процесс не найден"
+echo "Остановка Toyota Dashboard..."
+
+# Пытаемся остановить через systemd
+if systemctl --user is-active toyota-dashboard >/dev/null 2>&1; then
+    echo "Остановка через systemd..."
+    systemctl --user stop toyota-dashboard
+    echo "Сервис остановлен через systemd"
+else
+    echo "Systemd сервис не активен, останавливаем процессы напрямую..."
+    if pkill -f "python.*app.py"; then
+        echo "Процессы остановлены"
+    else
+        echo "Процессы не найдены"
+    fi
+fi
 EOF
     chmod +x "$INSTALL_DIR/stop.sh"
     
@@ -913,16 +936,33 @@ start_server_after_install() {
     if [[ -f "$CURRENT_HOME/.config/systemd/user/toyota-dashboard.service" ]] && check_systemd_user; then
         print_info "Запуск через systemd..."
         if [[ -n "$SUDO_USER" ]]; then
-            sudo -u "$SUDO_USER" systemctl --user start toyota-dashboard 2>/dev/null && {
-                print_success "Сервер запущен через systemd"
-                return 0
-            }
+            export XDG_RUNTIME_DIR="/run/user/$(id -u "$SUDO_USER")"
+            if sudo -u "$SUDO_USER" XDG_RUNTIME_DIR="$XDG_RUNTIME_DIR" systemctl --user daemon-reload 2>/dev/null; then
+                if sudo -u "$SUDO_USER" XDG_RUNTIME_DIR="$XDG_RUNTIME_DIR" systemctl --user enable toyota-dashboard 2>/dev/null; then
+                    if sudo -u "$SUDO_USER" XDG_RUNTIME_DIR="$XDG_RUNTIME_DIR" systemctl --user start toyota-dashboard 2>/dev/null; then
+                        sleep 3
+                        if sudo -u "$SUDO_USER" XDG_RUNTIME_DIR="$XDG_RUNTIME_DIR" systemctl --user is-active toyota-dashboard >/dev/null 2>&1; then
+                            print_success "Сервер запущен через systemd"
+                            return 0
+                        fi
+                    fi
+                fi
+            fi
         else
-            systemctl --user start toyota-dashboard 2>/dev/null && {
-                print_success "Сервер запущен через systemd"
-                return 0
-            }
+            export XDG_RUNTIME_DIR="/run/user/$(id -u)"
+            if XDG_RUNTIME_DIR="$XDG_RUNTIME_DIR" systemctl --user daemon-reload 2>/dev/null; then
+                if XDG_RUNTIME_DIR="$XDG_RUNTIME_DIR" systemctl --user enable toyota-dashboard 2>/dev/null; then
+                    if XDG_RUNTIME_DIR="$XDG_RUNTIME_DIR" systemctl --user start toyota-dashboard 2>/dev/null; then
+                        sleep 3
+                        if XDG_RUNTIME_DIR="$XDG_RUNTIME_DIR" systemctl --user is-active toyota-dashboard >/dev/null 2>&1; then
+                            print_success "Сервер запущен через systemd"
+                            return 0
+                        fi
+                    fi
+                fi
+            fi
         fi
+        print_warning "Не удалось запустить через systemd, пробуем прямой запуск"
     fi
     
     # Если systemd не работает, запускаем напрямую

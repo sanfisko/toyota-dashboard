@@ -163,6 +163,8 @@ main() {
     # Остановка процессов вручную (на случай если systemd недоступен)
     print_info "Остановка процессов Toyota Dashboard..."
     pkill -f "python.*app.py" 2>/dev/null || print_info "Процессы не найдены"
+    pkill -f "start_service.sh" 2>/dev/null || true
+    pkill -f "start.sh" 2>/dev/null || true
     
     # Удаление cron задач
     print_info "Удаление cron задач..."
@@ -191,6 +193,30 @@ main() {
             print_info "Директория не найдена: $dir"
         fi
     done
+    
+    # Удаление дополнительных файлов и логов
+    print_info "Удаление дополнительных файлов..."
+    
+    # Удаляем логи из /tmp если есть
+    rm -f /tmp/toyota-dashboard*.log 2>/dev/null || true
+    
+    # Удаляем возможные pid файлы
+    rm -f /tmp/toyota-dashboard.pid 2>/dev/null || true
+    
+    # Удаляем директорию systemd если пустая
+    if [[ -d "$CURRENT_HOME/.config/systemd/user" ]]; then
+        if [[ -z "$(ls -A "$CURRENT_HOME/.config/systemd/user" 2>/dev/null)" ]]; then
+            rmdir "$CURRENT_HOME/.config/systemd/user" 2>/dev/null || true
+            print_info "Удалена пустая директория systemd/user"
+        fi
+    fi
+    
+    if [[ -d "$CURRENT_HOME/.config/systemd" ]]; then
+        if [[ -z "$(ls -A "$CURRENT_HOME/.config/systemd" 2>/dev/null)" ]]; then
+            rmdir "$CURRENT_HOME/.config/systemd" 2>/dev/null || true
+            print_info "Удалена пустая директория systemd"
+        fi
+    fi
     
     # Отключение lingering (если был включен только для Toyota Dashboard)
     if command -v loginctl &> /dev/null && check_systemd_user; then
@@ -223,7 +249,9 @@ main() {
     echo "   • Конфигурация ($CONFIG_DIR)"
     echo "   • Данные ($DATA_DIR)"
     echo "   • Кэш ($CACHE_DIR)"
-    echo "   • Скрипты управления"
+    echo "   • Скрипты управления (start.sh, stop.sh, update.sh, start_service.sh)"
+    echo "   • Cron задачи автозапуска"
+    echo "   • Временные файлы и логи"
     echo
     print_info "Если вы хотите переустановить Toyota Dashboard:"
     echo "bash <(curl -sSL https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/install.sh)"
