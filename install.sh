@@ -522,11 +522,24 @@ except ImportError as e:
 check_systemd_user() {
     # Проверяем, доступен ли systemd для пользователя
     if [[ -n "$SUDO_USER" ]]; then
-        if ! sudo -u "$SUDO_USER" systemctl --user status >/dev/null 2>&1; then
+        # Пытаемся инициализировать user session
+        sudo loginctl enable-linger "$SUDO_USER" 2>/dev/null || true
+        
+        # Устанавливаем переменные окружения для systemd user session
+        export XDG_RUNTIME_DIR="/run/user/$(id -u "$SUDO_USER")"
+        
+        # Проверяем доступность systemd user session
+        if ! sudo -u "$SUDO_USER" XDG_RUNTIME_DIR="$XDG_RUNTIME_DIR" systemctl --user status >/dev/null 2>&1; then
             return 1
         fi
     else
-        if ! systemctl --user status >/dev/null 2>&1; then
+        # Включаем lingering для текущего пользователя
+        sudo loginctl enable-linger "$CURRENT_USER" 2>/dev/null || true
+        
+        # Устанавливаем переменные окружения
+        export XDG_RUNTIME_DIR="/run/user/$(id -u)"
+        
+        if ! XDG_RUNTIME_DIR="$XDG_RUNTIME_DIR" systemctl --user status >/dev/null 2>&1; then
             return 1
         fi
     fi
@@ -539,16 +552,52 @@ setup_systemd() {
     
     # Проверяем доступность systemd user session
     if ! check_systemd_user; then
-        print_warning "Systemd user session недоступен"
-        print_info "Возможные причины:"
-        print_info "  - Запуск в контейнере или chroot окружении"
-        print_info "  - SSH сессия без X11 forwarding"
-        print_info "  - Systemd не настроен для пользовательских сервисов"
-        print_info ""
-        print_info "Systemd сервис не будет создан, но вы можете:"
-        print_info "  1. Запустить вручную: $INSTALL_DIR/start.sh"
-        print_info "  2. Добавить в crontab: @reboot $INSTALL_DIR/start.sh"
-        print_info "  3. Настроить systemd позже вручную"
+        print_warning "Systemd user session недоступен, настраиваем альтернативные методы автозапуска"
+        print_info "Будут настроены:"
+        print_info "  1. Cron задача для автозапуска при перезагрузке"
+        print_info "  2. Скрипты управления для ручного запуска"
+        print_info "  3. Systemd сервис (для использования после настройки)"
+        
+        # Создаем systemd сервис файл для будущего использования
+        mkdir -p "$CURRENT_HOME/.config/systemd/user"
+        if [[ -n "$SUDO_USER" ]]; then
+            chown -R "$CURRENT_UID:$CURRENT_GID" "$CURRENT_HOME/.config/systemd" 2>/dev/null || true
+        fi
+        
+        # Создаем файл сервиса
+        cat > "$CURRENT_HOME/.config/systemd/user/toyota-dashboard.service" << EOF
+[Unit]
+Description=Toyota Dashboard Server
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=$INSTALL_DIR
+Environment=HOME=$CURRENT_HOME
+Environment=XDG_CONFIG_HOME=$CURRENT_HOME/.config
+Environment=XDG_DATA_HOME=$CURRENT_HOME/.local/share
+Environment=XDG_CACHE_HOME=$CURRENT_HOME/.cache
+Environment=PYTHONPATH=$INSTALL_DIR
+ExecStart=$INSTALL_DIR/venv/bin/python $INSTALL_DIR/app.py
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=default.target
+EOF
+        
+        if [[ -n "$SUDO_USER" ]]; then
+            chown "$CURRENT_UID:$CURRENT_GID" "$CURRENT_HOME/.config/systemd/user/toyota-dashboard.service" 2>/dev/null || true
+        fi
+        
+        print_info "Systemd сервис создан для будущего использования"
+        print_info "Для активации выполните:"
+        print_info "  systemctl --user daemon-reload"
+        print_info "  systemctl --user enable toyota-dashboard"
+        print_info "  systemctl --user start toyota-dashboard"
         return 0
     fi
     
@@ -647,6 +696,48 @@ echo "Обновление завершено. Перезапустите сер
 EOF
     chmod +x "$INSTALL_DIR/update.sh"
     
+    # Скрипт активации systemd
+    cat > "$INSTALL_DIR/enable_systemd.sh" << EOF
+#!/bin/bash
+# Скрипт для активации systemd сервиса Toyota Dashboard
+
+echo "Активация systemd сервиса Toyota Dashboard..."
+
+# Устанавливаем переменные окружения
+export XDG_RUNTIME_DIR="/run/user/\$(id -u)"
+
+# Включаем lingering
+sudo loginctl enable-linger "\$(whoami)" 2>/dev/null || echo "Не удалось включить lingering"
+
+# Перезагружаем systemd daemon
+systemctl --user daemon-reload
+
+# Включаем сервис
+systemctl --user enable toyota-dashboard
+
+# Запускаем сервис
+systemctl --user start toyota-dashboard
+
+# Проверяем статус
+sleep 2
+if systemctl --user is-active toyota-dashboard >/dev/null 2>&1; then
+    echo "✅ Toyota Dashboard сервис успешно активирован и запущен!"
+    echo "🌐 Доступен по адресу: http://localhost:2025"
+    echo ""
+    echo "Управление сервисом:"
+    echo "  systemctl --user start toyota-dashboard    # Запуск"
+    echo "  systemctl --user stop toyota-dashboard     # Остановка"
+    echo "  systemctl --user restart toyota-dashboard  # Перезапуск"
+    echo "  systemctl --user status toyota-dashboard   # Статус"
+    echo "  journalctl --user -u toyota-dashboard -f   # Логи"
+else
+    echo "❌ Не удалось запустить systemd сервис"
+    echo "Проверьте логи: journalctl --user -u toyota-dashboard"
+    echo "Или используйте прямой запуск: $INSTALL_DIR/start.sh"
+fi
+EOF
+    chmod +x "$INSTALL_DIR/enable_systemd.sh"
+    
     # Устанавливаем правильного владельца если запущено через sudo
     if [[ -n "$SUDO_USER" ]]; then
         chown "$CURRENT_UID:$CURRENT_GID" "$INSTALL_DIR"/*.sh 2>/dev/null || true
@@ -659,23 +750,10 @@ EOF
 setup_autostart() {
     print_step "Настройка автозапуска..."
     
-    # Проверяем, был ли создан systemd сервис
-    if [[ ! -f "$CURRENT_HOME/.config/systemd/user/toyota-dashboard.service" ]]; then
-        print_info "Systemd сервис не создан, пропускаем автозапуск"
-        print_info "Для запуска используйте: $INSTALL_DIR/start.sh"
-        return 0
-    fi
-    
-    # Проверяем доступность systemd user session
-    if ! check_systemd_user; then
-        print_warning "Systemd user session недоступен, пропускаем автозапуск"
-        print_info "Для запуска используйте: $INSTALL_DIR/start.sh"
-        return 0
-    fi
-    
     # Включаем lingering для пользователя (чтобы сервисы запускались без входа в систему)
     if command -v loginctl &> /dev/null; then
         sudo loginctl enable-linger "$CURRENT_USER" 2>/dev/null || print_warning "Не удалось включить lingering"
+        print_success "Lingering включен для пользователя $CURRENT_USER"
     fi
     
     # Добавляем автозапуск через cron как резервный вариант
@@ -683,27 +761,28 @@ setup_autostart() {
         print_info "Настройка автозапуска через cron..."
         
         # Создаем скрипт автозапуска
-        cat > "$INSTALL_DIR/autostart.sh" << 'EOF'
+        cat > "$INSTALL_DIR/autostart.sh" << EOF
 #!/bin/bash
 # Автозапуск Toyota Dashboard
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-LOG_FILE="$SCRIPT_DIR/logs/autostart.log"
+SCRIPT_DIR="$INSTALL_DIR"
+LOG_FILE="\$SCRIPT_DIR/logs/autostart.log"
+USER_HOME="$CURRENT_HOME"
 
 # Создаем директорию для логов
-mkdir -p "$SCRIPT_DIR/logs"
+mkdir -p "\$SCRIPT_DIR/logs"
 
 # Логируем запуск
-echo "$(date): Запуск автозапуска Toyota Dashboard" >> "$LOG_FILE"
+echo "\$(date): Запуск автозапуска Toyota Dashboard" >> "\$LOG_FILE"
 
 # Переходим в директорию проекта
-cd "$SCRIPT_DIR" || {
-    echo "$(date): Ошибка: не удалось перейти в $SCRIPT_DIR" >> "$LOG_FILE"
+cd "\$SCRIPT_DIR" || {
+    echo "\$(date): Ошибка: не удалось перейти в \$SCRIPT_DIR" >> "\$LOG_FILE"
     exit 1
 }
 
 # Проверяем, не запущен ли уже
 if pgrep -f "python.*app.py" > /dev/null; then
-    echo "$(date): Сервер уже запущен" >> "$LOG_FILE"
+    echo "\$(date): Сервер уже запущен" >> "\$LOG_FILE"
     exit 0
 fi
 
@@ -712,26 +791,47 @@ sleep 30
 
 # Проверяем наличие виртуального окружения
 if [[ ! -f "venv/bin/activate" ]]; then
-    echo "$(date): Ошибка: виртуальное окружение не найдено" >> "$LOG_FILE"
+    echo "\$(date): Ошибка: виртуальное окружение не найдено" >> "\$LOG_FILE"
     exit 1
 fi
 
+# Устанавливаем переменные окружения
+export HOME="\$USER_HOME"
+export XDG_CONFIG_HOME="\$USER_HOME/.config"
+export XDG_DATA_HOME="\$USER_HOME/.local/share"
+export XDG_CACHE_HOME="\$USER_HOME/.cache"
+export PYTHONPATH="\$SCRIPT_DIR"
+
 # Активируем виртуальное окружение
 source venv/bin/activate || {
-    echo "$(date): Ошибка: не удалось активировать виртуальное окружение" >> "$LOG_FILE"
+    echo "\$(date): Ошибка: не удалось активировать виртуальное окружение" >> "\$LOG_FILE"
     exit 1
 }
 
-# Запускаем сервер
-echo "$(date): Запуск сервера..." >> "$LOG_FILE"
-nohup python app.py >> "$LOG_FILE" 2>&1 &
+# Пытаемся запустить через systemd сначала
+if command -v systemctl &> /dev/null; then
+    echo "\$(date): Попытка запуска через systemd..." >> "\$LOG_FILE"
+    export XDG_RUNTIME_DIR="/run/user/\$(id -u)"
+    if systemctl --user start toyota-dashboard 2>/dev/null; then
+        sleep 5
+        if systemctl --user is-active toyota-dashboard >/dev/null 2>&1; then
+            echo "\$(date): Сервер успешно запущен через systemd" >> "\$LOG_FILE"
+            exit 0
+        fi
+    fi
+    echo "\$(date): Systemd недоступен, запускаем напрямую" >> "\$LOG_FILE"
+fi
+
+# Запускаем сервер напрямую
+echo "\$(date): Запуск сервера напрямую..." >> "\$LOG_FILE"
+nohup python app.py >> "\$LOG_FILE" 2>&1 &
 
 # Проверяем что сервер запустился
 sleep 5
 if pgrep -f "python.*app.py" > /dev/null; then
-    echo "$(date): Сервер успешно запущен, PID: $(pgrep -f 'python.*app.py')" >> "$LOG_FILE"
+    echo "\$(date): Сервер успешно запущен, PID: \$(pgrep -f 'python.*app.py')" >> "\$LOG_FILE"
 else
-    echo "$(date): Ошибка: не удалось запустить сервер" >> "$LOG_FILE"
+    echo "\$(date): Ошибка: не удалось запустить сервер" >> "\$LOG_FILE"
 fi
 EOF
         chmod +x "$INSTALL_DIR/autostart.sh"
@@ -755,60 +855,48 @@ EOF
         fi
     }
     
-    # Настраиваем cron автозапуск
+    # Настраиваем cron автозапуск (всегда)
     setup_cron_autostart
     
-    # Запускаем сервис
-    print_info "Попытка запуска сервиса..."
-    if [[ -n "$SUDO_USER" ]]; then
-        if sudo -u "$SUDO_USER" systemctl --user start toyota-dashboard.service 2>/dev/null; then
-            sleep 2
-            if sudo -u "$SUDO_USER" systemctl --user is-active toyota-dashboard.service >/dev/null 2>&1; then
-                print_success "Toyota Dashboard сервис запущен через systemd"
-                print_info "Сервер доступен по адресу: http://localhost:2025"
-            else
-                print_warning "Сервис не запущен. Проверьте конфигурацию и запустите вручную"
+    # Пытаемся запустить сервис через systemd если доступен
+    if [[ -f "$CURRENT_HOME/.config/systemd/user/toyota-dashboard.service" ]] && check_systemd_user; then
+        print_info "Попытка запуска сервиса через systemd..."
+        if [[ -n "$SUDO_USER" ]]; then
+            export XDG_RUNTIME_DIR="/run/user/$(id -u "$SUDO_USER")"
+            if sudo -u "$SUDO_USER" XDG_RUNTIME_DIR="$XDG_RUNTIME_DIR" systemctl --user daemon-reload 2>/dev/null; then
+                if sudo -u "$SUDO_USER" XDG_RUNTIME_DIR="$XDG_RUNTIME_DIR" systemctl --user enable toyota-dashboard.service 2>/dev/null; then
+                    if sudo -u "$SUDO_USER" XDG_RUNTIME_DIR="$XDG_RUNTIME_DIR" systemctl --user start toyota-dashboard.service 2>/dev/null; then
+                        sleep 3
+                        if sudo -u "$SUDO_USER" XDG_RUNTIME_DIR="$XDG_RUNTIME_DIR" systemctl --user is-active toyota-dashboard.service >/dev/null 2>&1; then
+                            print_success "Toyota Dashboard сервис запущен через systemd"
+                            print_info "Сервер доступен по адресу: http://localhost:2025"
+                            print_success "Автозапуск настроен через systemd и cron"
+                            return 0
+                        fi
+                    fi
+                fi
             fi
         else
-            print_warning "Не удалось запустить сервис через systemd. Запускаем напрямую..."
-            # Запускаем сервер напрямую в фоне
-            cd "$INSTALL_DIR"
-            mkdir -p logs
-            sudo -u "$SUDO_USER" bash -c "cd '$INSTALL_DIR' && source venv/bin/activate && nohup python app.py > logs/server.log 2>&1 &"
-            sleep 3
-            if pgrep -f "python.*app.py" > /dev/null; then
-                print_success "Toyota Dashboard запущен напрямую"
-                print_info "Сервер доступен по адресу: http://localhost:2025"
-            else
-                print_warning "Не удалось запустить сервер. Используйте: $INSTALL_DIR/start.sh"
+            export XDG_RUNTIME_DIR="/run/user/$(id -u)"
+            if XDG_RUNTIME_DIR="$XDG_RUNTIME_DIR" systemctl --user daemon-reload 2>/dev/null; then
+                if XDG_RUNTIME_DIR="$XDG_RUNTIME_DIR" systemctl --user enable toyota-dashboard.service 2>/dev/null; then
+                    if XDG_RUNTIME_DIR="$XDG_RUNTIME_DIR" systemctl --user start toyota-dashboard.service 2>/dev/null; then
+                        sleep 3
+                        if XDG_RUNTIME_DIR="$XDG_RUNTIME_DIR" systemctl --user is-active toyota-dashboard.service >/dev/null 2>&1; then
+                            print_success "Toyota Dashboard сервис запущен через systemd"
+                            print_info "Сервер доступен по адресу: http://localhost:2025"
+                            print_success "Автозапуск настроен через systemd и cron"
+                            return 0
+                        fi
+                    fi
+                fi
             fi
         fi
-    else
-        if systemctl --user start toyota-dashboard.service 2>/dev/null; then
-            sleep 2
-            if systemctl --user is-active toyota-dashboard.service >/dev/null 2>&1; then
-                print_success "Toyota Dashboard сервис запущен через systemd"
-                print_info "Сервер доступен по адресу: http://localhost:2025"
-            else
-                print_warning "Сервис не запущен. Проверьте конфигурацию и запустите вручную"
-            fi
-        else
-            print_warning "Не удалось запустить сервис через systemd. Запускаем напрямую..."
-            # Запускаем сервер напрямую в фоне
-            cd "$INSTALL_DIR"
-            mkdir -p logs
-            source venv/bin/activate && nohup python app.py > logs/server.log 2>&1 &
-            sleep 3
-            if pgrep -f "python.*app.py" > /dev/null; then
-                print_success "Toyota Dashboard запущен напрямую"
-                print_info "Сервер доступен по адресу: http://localhost:2025"
-            else
-                print_warning "Не удалось запустить сервер. Используйте: $INSTALL_DIR/start.sh"
-            fi
-        fi
+        print_warning "Systemd сервис не удалось запустить, но он настроен для будущего использования"
     fi
     
-    print_success "Автозапуск настроен"
+    print_success "Автозапуск настроен через cron"
+    print_info "Systemd сервис создан для ручной активации"
 }
 
 # Автоматический запуск сервера после установки
@@ -1012,17 +1100,24 @@ main() {
     echo "   journalctl --user -u toyota-dashboard -f"
     echo
     echo -e "${YELLOW}6. Скрипты управления:${NC}"
-    echo "   $INSTALL_DIR/start.sh   # Прямой запуск"
-    echo "   $INSTALL_DIR/stop.sh    # Остановка"
-    echo "   $INSTALL_DIR/update.sh  # Обновление"
+    echo "   $INSTALL_DIR/start.sh          # Прямой запуск"
+    echo "   $INSTALL_DIR/stop.sh           # Остановка"
+    echo "   $INSTALL_DIR/update.sh         # Обновление"
+    echo "   $INSTALL_DIR/enable_systemd.sh # Активация systemd сервиса"
     echo
     echo -e "${YELLOW}7. Автозапуск:${NC}"
-    echo "   ✅ Systemd сервис настроен для автозапуска при перезагрузке"
-    echo "   ✅ Cron задача настроена как резервный вариант"
+    echo "   ✅ Cron задача настроена для автозапуска при перезагрузке"
+    echo "   ✅ Systemd сервис создан (может потребовать активация)"
+    echo "   ✅ Lingering включен для пользователя"
     echo "   ✅ Сервер автоматически запущен после установки"
+    echo
+    echo -e "${YELLOW}8. Активация systemd (опционально):${NC}"
+    echo "   Если хотите использовать systemd вместо cron:"
+    echo "   $INSTALL_DIR/enable_systemd.sh"
     echo
     echo -e "${GREEN}🎉 Установка завершена успешно! Toyota Dashboard готов! ✨${NC}"
     echo -e "${GREEN}🚗 Сервер автоматически запустится при следующей перезагрузке${NC}"
+    echo -e "${GREEN}📋 Автозапуск настроен через cron (надежный метод)${NC}"
 }
 
 # Обработка ошибок
