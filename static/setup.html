@@ -250,16 +250,14 @@
         <form id="setup-form">
             <div class="form-group">
                 <label for="username">📧 Email Toyota Connected</label>
-                <input type="email" id="username" name="username" required 
-                       placeholder="your-email@example.com">
+                <input type="email" id="username" name="username" required>
                 <div class="help-text">Email, который вы используете для входа в Toyota Connected Services</div>
             </div>
             
             <div class="form-group">
                 <label for="password">🔒 Пароль</label>
                 <div class="password-toggle">
-                    <input type="password" id="password" name="password" required 
-                           placeholder="Ваш пароль">
+                    <input type="password" id="password" name="password" required>
                     <button type="button" onclick="togglePassword()">👁️</button>
                 </div>
                 <div class="help-text">Пароль от Toyota Connected Services</div>
@@ -268,7 +266,6 @@
             <div class="form-group">
                 <label for="vin">🚗 VIN номер автомобиля</label>
                 <input type="text" id="vin" name="vin" required 
-                       placeholder="17-символьный VIN номер" 
                        pattern="[A-HJ-NPR-Z0-9]{17}" 
                        maxlength="17"
                        style="text-transform: uppercase;">
