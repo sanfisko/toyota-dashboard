@@ -79,7 +79,7 @@ main() {
     
     # Подтверждение удаления
     print_warning "Это действие удалит:"
-    echo "   • Пользовательский systemd сервис toyota-dashboard"
+    echo "   • Пользовательские systemd сервисы (toyota-dashboard, toyota_dashboard)"
     echo "   • Все файлы проекта ($INSTALL_DIR)"
     echo "   • Виртуальное окружение Python и все пакеты"
     echo "   • Конфигурацию ($CONFIG_DIR)"
@@ -126,28 +126,41 @@ main() {
         return 0
     }
     
-    # Остановка и удаление сервиса
-    print_info "Остановка сервиса..."
+    # Остановка и удаление сервисов
+    print_info "Остановка сервисов..."
     
-    # Проверяем наличие файла сервиса
-    if [[ -f "$CURRENT_HOME/.config/systemd/user/toyota-dashboard.service" ]]; then
-        # Проверяем доступность systemd
-        if check_systemd_user; then
-            if [[ -n "$SUDO_USER" ]]; then
-                sudo -u "$SUDO_USER" systemctl --user stop toyota-dashboard.service 2>/dev/null || print_warning "Сервис не был запущен"
-                sudo -u "$SUDO_USER" systemctl --user disable toyota-dashboard.service 2>/dev/null || print_warning "Сервис не был включен"
+    # Список возможных названий сервисов
+    SERVICE_NAMES=("toyota-dashboard.service" "toyota_dashboard.service")
+    SERVICES_FOUND=false
+    
+    for service_name in "${SERVICE_NAMES[@]}"; do
+        service_file="$CURRENT_HOME/.config/systemd/user/$service_name"
+        
+        # Проверяем наличие файла сервиса
+        if [[ -f "$service_file" ]]; then
+            SERVICES_FOUND=true
+            print_info "Найден сервис: $service_name"
+            
+            # Проверяем доступность systemd
+            if check_systemd_user; then
+                if [[ -n "$SUDO_USER" ]]; then
+                    sudo -u "$SUDO_USER" systemctl --user stop "$service_name" 2>/dev/null || print_warning "Сервис $service_name не был запущен"
+                    sudo -u "$SUDO_USER" systemctl --user disable "$service_name" 2>/dev/null || print_warning "Сервис $service_name не был включен"
+                else
+                    systemctl --user stop "$service_name" 2>/dev/null || print_warning "Сервис $service_name не был запущен"
+                    systemctl --user disable "$service_name" 2>/dev/null || print_warning "Сервис $service_name не был включен"
+                fi
             else
-                systemctl --user stop toyota-dashboard.service 2>/dev/null || print_warning "Сервис не был запущен"
-                systemctl --user disable toyota-dashboard.service 2>/dev/null || print_warning "Сервис не был включен"
+                print_warning "Systemd user session недоступен, пропускаем остановку сервиса $service_name"
             fi
-        else
-            print_warning "Systemd user session недоступен, пропускаем остановку сервиса"
+            
+            # Удаление файла сервиса
+            rm -f "$service_file"
+            print_success "Файл сервиса $service_name удален"
         fi
-        
-        # Удаление файла сервиса
-        rm -f "$CURRENT_HOME/.config/systemd/user/toyota-dashboard.service"
-        print_success "Файл сервиса удален"
-        
+    done
+    
+    if [[ "$SERVICES_FOUND" == "true" ]]; then
         # Перезагрузка systemd (если доступен)
         if check_systemd_user; then
             if [[ -n "$SUDO_USER" ]]; then
@@ -157,7 +170,7 @@ main() {
             fi
         fi
     else
-        print_info "Файл сервиса не найден"
+        print_info "Файлы сервисов не найдены"
     fi
     
     # Остановка процессов вручную (на случай если systemd недоступен)
@@ -165,6 +178,13 @@ main() {
     pkill -f "python.*app.py" 2>/dev/null || print_info "Процессы не найдены"
     pkill -f "start_service.sh" 2>/dev/null || true
     pkill -f "start.sh" 2>/dev/null || true
+    pkill -f "quick_start.sh" 2>/dev/null || true
+    
+    # Дополнительная проверка и остановка любых оставшихся процессов Toyota Dashboard
+    if pgrep -f "toyota.*dashboard" >/dev/null 2>&1; then
+        print_info "Остановка дополнительных процессов Toyota Dashboard..."
+        pkill -f "toyota.*dashboard" 2>/dev/null || true
+    fi
     
     # Удаление cron задач
     print_info "Удаление cron задач..."
@@ -243,13 +263,13 @@ main() {
     print_success "Toyota Dashboard удален из пользовательской установки"
     echo
     print_info "Что было удалено:"
-    echo "   • Пользовательский systemd сервис"
+    echo "   • Пользовательские systemd сервисы (toyota-dashboard, toyota_dashboard)"
     echo "   • Все файлы проекта ($INSTALL_DIR)"
     echo "   • Виртуальное окружение Python и все пакеты"
     echo "   • Конфигурация ($CONFIG_DIR)"
     echo "   • Данные ($DATA_DIR)"
     echo "   • Кэш ($CACHE_DIR)"
-    echo "   • Скрипты управления (start.sh, stop.sh, update.sh, start_service.sh)"
+    echo "   • Скрипты управления (start.sh, stop.sh, update.sh, start_service.sh, quick_start.sh)"
     echo "   • Cron задачи автозапуска"
     echo "   • Временные файлы и логи"
     echo
