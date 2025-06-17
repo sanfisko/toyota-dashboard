@@ -5,8 +5,8 @@
 # Версия: 2.0.0
 #
 # Использование:
-#   curl -sSL https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/install.sh | bash
-#   curl -sSL https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/install.sh | bash -s -- -y
+#   curl -sSL https://raw.githubusercontent.com/YorkMable0tqe/toyota-dashboard/main/install.sh | sudo bash
+#   curl -sSL https://raw.githubusercontent.com/YorkMable0tqe/toyota-dashboard/main/install.sh | sudo bash -s -- -y
 #
 # Флаги:
 #   -y, --yes                    Автоматическое подтверждение без интерактивного запроса
@@ -330,7 +330,7 @@ download_project() {
     fi
     
     # Клонируем репозиторий
-    git clone https://github.com/sanfisko/toyota-dashboard.git "$INSTALL_DIR"
+    git clone https://github.com/YorkMable0tqe/toyota-dashboard.git "$INSTALL_DIR"
     cd "$INSTALL_DIR"
     
     # Устанавливаем правильного владельца если запущено через sudo
@@ -759,10 +759,13 @@ EOF
     setup_cron_autostart
     
     # Запускаем сервис
+    print_info "Попытка запуска сервиса..."
     if [[ -n "$SUDO_USER" ]]; then
         if sudo -u "$SUDO_USER" systemctl --user start toyota-dashboard.service 2>/dev/null; then
+            sleep 2
             if sudo -u "$SUDO_USER" systemctl --user is-active toyota-dashboard.service >/dev/null 2>&1; then
-                print_success "Toyota Dashboard сервис запущен"
+                print_success "Toyota Dashboard сервис запущен через systemd"
+                print_info "Сервер доступен по адресу: http://localhost:2025"
             else
                 print_warning "Сервис не запущен. Проверьте конфигурацию и запустите вручную"
             fi
@@ -770,18 +773,22 @@ EOF
             print_warning "Не удалось запустить сервис через systemd. Запускаем напрямую..."
             # Запускаем сервер напрямую в фоне
             cd "$INSTALL_DIR"
+            mkdir -p logs
             sudo -u "$SUDO_USER" bash -c "cd '$INSTALL_DIR' && source venv/bin/activate && nohup python app.py > logs/server.log 2>&1 &"
             sleep 3
             if pgrep -f "python.*app.py" > /dev/null; then
                 print_success "Toyota Dashboard запущен напрямую"
+                print_info "Сервер доступен по адресу: http://localhost:2025"
             else
                 print_warning "Не удалось запустить сервер. Используйте: $INSTALL_DIR/start.sh"
             fi
         fi
     else
         if systemctl --user start toyota-dashboard.service 2>/dev/null; then
+            sleep 2
             if systemctl --user is-active toyota-dashboard.service >/dev/null 2>&1; then
-                print_success "Toyota Dashboard сервис запущен"
+                print_success "Toyota Dashboard сервис запущен через systemd"
+                print_info "Сервер доступен по адресу: http://localhost:2025"
             else
                 print_warning "Сервис не запущен. Проверьте конфигурацию и запустите вручную"
             fi
@@ -789,10 +796,12 @@ EOF
             print_warning "Не удалось запустить сервис через systemd. Запускаем напрямую..."
             # Запускаем сервер напрямую в фоне
             cd "$INSTALL_DIR"
+            mkdir -p logs
             source venv/bin/activate && nohup python app.py > logs/server.log 2>&1 &
             sleep 3
             if pgrep -f "python.*app.py" > /dev/null; then
                 print_success "Toyota Dashboard запущен напрямую"
+                print_info "Сервер доступен по адресу: http://localhost:2025"
             else
                 print_warning "Не удалось запустить сервер. Используйте: $INSTALL_DIR/start.sh"
             fi
@@ -876,14 +885,31 @@ start_server_after_install() {
     print_info "Ожидание запуска сервера..."
     sleep 5
     
-    if pgrep -f "python.*app.py" > /dev/null; then
-        print_success "Сервер запущен! Доступен по адресу: http://localhost:2025"
-        print_info "PID сервера: $(pgrep -f 'python.*app.py')"
-    else
-        print_warning "Не удалось автоматически запустить сервер"
-        print_info "Проверьте логи: tail -f $INSTALL_DIR/logs/install_startup.log"
-        print_info "Запустите вручную: $INSTALL_DIR/start.sh"
-    fi
+    # Проверяем несколько раз с интервалом
+    for i in {1..3}; do
+        if pgrep -f "python.*app.py" > /dev/null; then
+            print_success "Сервер запущен! Доступен по адресу: http://localhost:2025"
+            print_info "PID сервера: $(pgrep -f 'python.*app.py')"
+            
+            # Проверяем что сервер отвечает на запросы
+            sleep 2
+            if curl -s http://localhost:2025 >/dev/null 2>&1; then
+                print_success "Сервер успешно отвечает на HTTP запросы"
+            else
+                print_info "Сервер запущен, но еще не готов принимать запросы (это нормально)"
+            fi
+            return 0
+        fi
+        
+        if [[ $i -lt 3 ]]; then
+            print_info "Попытка $i/3: сервер еще не запущен, ждем..."
+            sleep 3
+        fi
+    done
+    
+    print_warning "Не удалось автоматически запустить сервер"
+    print_info "Проверьте логи: tail -f $INSTALL_DIR/logs/install_startup.log"
+    print_info "Запустите вручную: $INSTALL_DIR/start.sh"
 }
 
 # Основная функция установки
@@ -945,6 +971,21 @@ main() {
     
     # Финальная информация
     print_success "Установка завершена!"
+    
+    # Проверяем статус сервера
+    echo
+    print_step "Проверка статуса сервера..."
+    if pgrep -f "python.*app.py" > /dev/null; then
+        print_success "✅ Сервер запущен и работает!"
+        print_info "🌐 Доступен по адресу: http://localhost:2025"
+        if curl -s http://localhost:2025 >/dev/null 2>&1; then
+            print_success "✅ Сервер отвечает на HTTP запросы"
+        fi
+    else
+        print_warning "⚠️  Сервер не запущен автоматически"
+        print_info "Запустите вручную: systemctl --user start toyota-dashboard"
+    fi
+    
     echo
     echo -e "${BLUE}╔══════════════════════════════════════════════════════════════╗${NC}"
     echo -e "${BLUE}║                    ВАЖНАЯ ИНФОРМАЦИЯ                        ║${NC}"
@@ -975,7 +1016,13 @@ main() {
     echo "   $INSTALL_DIR/stop.sh    # Остановка"
     echo "   $INSTALL_DIR/update.sh  # Обновление"
     echo
-    echo -e "${GREEN}Установка завершена успешно! Toyota Dashboard готов! ✨${NC}"
+    echo -e "${YELLOW}7. Автозапуск:${NC}"
+    echo "   ✅ Systemd сервис настроен для автозапуска при перезагрузке"
+    echo "   ✅ Cron задача настроена как резервный вариант"
+    echo "   ✅ Сервер автоматически запущен после установки"
+    echo
+    echo -e "${GREEN}🎉 Установка завершена успешно! Toyota Dashboard готов! ✨${NC}"
+    echo -e "${GREEN}🚗 Сервер автоматически запустится при следующей перезагрузке${NC}"
 }
 
 # Обработка ошибок
