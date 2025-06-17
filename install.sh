@@ -5,8 +5,8 @@
 # Версия: 2.0.0
 #
 # Использование:
-#   curl -sSL https://raw.githubusercontent.com/YorkMable0tqe/toyota-dashboard/main/install.sh | sudo bash
-#   curl -sSL https://raw.githubusercontent.com/YorkMable0tqe/toyota-dashboard/main/install.sh | sudo bash -s -- -y
+#   curl -sSL https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/install.sh | sudo bash
+#   curl -sSL https://raw.githubusercontent.com/sanfisko/toyota-dashboard/main/install.sh | sudo bash -s -- -y
 #
 # Флаги:
 #   -y, --yes                    Автоматическое подтверждение без интерактивного запроса
@@ -330,7 +330,7 @@ download_project() {
     fi
     
     # Клонируем репозиторий
-    git clone https://github.com/YorkMable0tqe/toyota-dashboard.git "$INSTALL_DIR"
+    git clone https://github.com/sanfisko/toyota-dashboard.git "$INSTALL_DIR"
     cd "$INSTALL_DIR"
     
     # Устанавливаем правильного владельца если запущено через sudo
