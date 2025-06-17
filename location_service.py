@@ -102,7 +102,7 @@ class LocationService:
             }
             
             headers = {
-                "User-Agent": "Toyota-Dashboard/1.0 (https://github.com/Harvardtabby2dv/toyota-dashboard)"
+                "User-Agent": "Toyota-Dashboard/1.0 (https://github.com/sanfisko/toyota-dashboard)"
             }
             
             async with session.get(url, params=params, headers=headers) as response:

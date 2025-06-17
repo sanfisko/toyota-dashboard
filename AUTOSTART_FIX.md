@@ -9,7 +9,7 @@
 Используйте обновленную версию скрипта установки:
 
 ```bash
-curl -sSL "https://raw.githubusercontent.com/YorkMable0tqe/toyota-dashboard/improve-autostart-install/install.sh" | sudo bash
+curl -sSL "https://raw.githubusercontent.com/sanfisko/toyota-dashboard/improve-autostart-install/install.sh" | sudo bash
 ```
 
 ### 2. Или исправьте существующую установку
