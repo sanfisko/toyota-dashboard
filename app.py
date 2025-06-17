@@ -266,7 +266,7 @@ async def lifespan(app: FastAPI):
 db_path = paths.database_path
 db = DatabaseManager(db_path)
 toyota_client: Optional[MyT] = None
-vehicle_vin = config.get('toyota', {}).get('vin', '')
+vehicle_vin = config.get('toyota', {}).get('vin', '').strip()
 
 app = FastAPI(title="Toyota Dashboard", version="1.0.0", lifespan=lifespan)
 
@@ -317,7 +317,11 @@ async def init_toyota_client():
     global toyota_client
     try:
         # Проверить, что учетные данные настроены
-        if not config.get('toyota', {}).get('username') or not config.get('toyota', {}).get('password'):
+        toyota_config = config.get('toyota', {})
+        username = toyota_config.get('username', '').strip()
+        password = toyota_config.get('password', '').strip()
+        
+        if not username or not password:
             logger.info("Toyota клиент не инициализирован - учетные данные не настроены")
             toyota_client = None
             return
@@ -449,7 +453,12 @@ async def collect_vehicle_data():
 async def dashboard():
     """Главная страница дашборда."""
     # Проверить, настроен ли Toyota клиент
-    if not config.get('toyota', {}).get('username') or not config.get('toyota', {}).get('password') or not config.get('toyota', {}).get('vin'):
+    toyota_config = config.get('toyota', {})
+    username = toyota_config.get('username', '').strip()
+    password = toyota_config.get('password', '').strip()
+    vin = toyota_config.get('vin', '').strip()
+    
+    if not username or not password or not vin:
         # Перенаправить на страницу настройки
         return HTMLResponse(content="""
         <!DOCTYPE html>
