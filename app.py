@@ -321,7 +321,20 @@ async def init_toyota_client():
         username = toyota_config.get('username', '').strip()
         password = toyota_config.get('password', '').strip()
         
-        if not username or not password:
+        # Список значений по умолчанию, которые считаются "не настроенными"
+        default_values = {
+            'your-email@example.com',
+            'your-password', 
+            'YOUR_VIN_NUMBER_HERE',
+            'default-secret-key-change-me',
+            'your-secret-key-here'
+        }
+
+        # Проверяем, что поля не пустые и не содержат значения по умолчанию
+        username_valid = username and username not in default_values
+        password_valid = password and password not in default_values
+
+        if not username_valid or not password_valid:
             logger.info("Toyota клиент не инициализирован - учетные данные не настроены")
             toyota_client = None
             return
@@ -458,7 +471,21 @@ async def dashboard():
     password = toyota_config.get('password', '').strip()
     vin = toyota_config.get('vin', '').strip()
     
-    if not username or not password or not vin:
+    # Список значений по умолчанию, которые считаются "не настроенными"
+    default_values = {
+        'your-email@example.com',
+        'your-password', 
+        'YOUR_VIN_NUMBER_HERE',
+        'default-secret-key-change-me',
+        'your-secret-key-here'
+    }
+
+    # Проверяем, что поля не пустые и не содержат значения по умолчанию
+    username_valid = username and username not in default_values
+    password_valid = password and password not in default_values
+    vin_valid = vin and vin not in default_values
+
+    if not username_valid or not password_valid or not vin_valid:
         # Перенаправить на страницу настройки
         return HTMLResponse(content="""
         <!DOCTYPE html>
@@ -1060,12 +1087,30 @@ async def health_check():
 @app.get("/api/config")
 async def get_config():
     """Получить текущую конфигурацию (без паролей)."""
+    # Список значений по умолчанию, которые считаются "не настроенными"
+    default_values = {
+        'your-email@example.com',
+        'your-password', 
+        'YOUR_VIN_NUMBER_HERE',
+        'default-secret-key-change-me',
+        'your-secret-key-here'
+    }
+    
+    username = config.get('toyota', {}).get('username', '').strip()
+    password = config.get('toyota', {}).get('password', '').strip()
+    vin = config.get('toyota', {}).get('vin', '').strip()
+    
+    # Очищаем значения по умолчанию
+    clean_username = '' if username in default_values else username
+    clean_vin = '' if vin in default_values else vin
+    clean_password = '' if password in default_values else password
+    
     safe_config = {
         "toyota": {
-            "username": config.get('toyota', {}).get('username', ''),
-            "vin": config.get('toyota', {}).get('vin', ''),
+            "username": clean_username,
+            "vin": clean_vin,
             "region": config.get('toyota', {}).get('region', 'europe'),
-            "password": "***" if config.get('toyota', {}).get('password') else ""
+            "password": "***" if clean_password else ""
         },
         "server": {
             "port": config.get('server', {}).get('port', 2025),
